@@ -18,9 +18,79 @@
 
 Тестируют изолированную логику. Зависимости — моки (NSubstitute, Moq). Быстро, детерминированно. Покрывают ветвления, граничные случаи. Не проверяют интеграцию с БД, сетью, файлами.
 
+```csharp
+public class OrderServiceTests
+{
+    private readonly IOrderRepository _repo = Substitute.For<IOrderRepository>();
+    private readonly OrderService _sut;
+
+    public OrderServiceTests() => _sut = new OrderService(_repo);
+
+    [Fact]
+    public async Task CreateOrder_ValidInput_ReturnsSuccess()
+    {
+        // Arrange
+        _repo.AddAsync(Arg.Any<Order>()).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _sut.CreateAsync(new CreateOrderDto("Customer", 100m));
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        await _repo.Received(1).AddAsync(Arg.Is<Order>(o => o.Total == 100m));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task CreateOrder_InvalidTotal_ReturnsError(decimal total)
+    {
+        var result = await _sut.CreateAsync(new CreateOrderDto("Customer", total));
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("Total");
+    }
+}
+```
+
+**Нюанс:** `Substitute.For<T>()` (NSubstitute) — проще синтаксис, чем Moq. `Arg.Is<T>(predicate)` — проверка аргументов. `Received(n)` — вызов произошёл n раз.
+
 ### Интеграционные
 
 Тестируют взаимодействие компонентов. Реальная БД (Testcontainers), HTTP (WebApplicationFactory). Медленнее, могут быть нестабильны (внешние факторы). Покрывают критичные сценарии: «запрос пришёл → запрос к БД → ответ».
+
+```csharp
+public class OrdersApiTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient _client;
+
+    public OrdersApiTests(WebApplicationFactory<Program> factory)
+    {
+        _client = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                // Заменяем реальную БД на Testcontainers PostgreSQL
+                services.RemoveAll<DbContextOptions<AppDbContext>>();
+                services.AddDbContext<AppDbContext>(opts =>
+                    opts.UseNpgsql(TestDatabase.ConnectionString));
+            });
+        }).CreateClient();
+    }
+
+    [Fact]
+    public async Task GetOrders_ReturnsOk()
+    {
+        var response = await _client.GetAsync("/api/orders");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var orders = await response.Content.ReadFromJsonAsync<List<OrderDto>>();
+        orders.Should().NotBeNull();
+    }
+}
+```
+
+**Нюанс:** `WebApplicationFactory<Program>` поднимает реальный ASP.NET pipeline в памяти. Тестируется полный путь: routing → middleware → controller → DB.
 
 ### Выбор
 

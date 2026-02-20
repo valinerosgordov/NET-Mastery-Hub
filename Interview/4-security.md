@@ -16,27 +16,95 @@
 
 Токен (или session id) в cookie. HttpOnly — недоступен из JavaScript, защита от XSS. Secure — только HTTPS. SameSite — защита от CSRF. Подходит для браузерных SPA, когда backend и frontend на одном домене или настроен CORS.
 
+```csharp
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.HttpOnly = true;       // недоступен из JS
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict; // защита от CSRF
+        options.ExpireTimeSpan = TimeSpan.FromHours(2);
+        options.SlidingExpiration = true;      // продлевается при активности
+    });
+```
+
 ### JWT (JSON Web Token)
 
-Самодостаточный токен: payload + подпись. Сервер проверяет подпись, не хранит сессию. Stateless. Подходит для API, мобильных клиентов, микросервисов. Риски: хранение в localStorage — уязвим к XSS; нельзя отозвать до истечения срока (если не хранить blacklist). Короткий TTL + refresh token — типичная схема.
+Самодостаточный токен: Header + Payload + Signature. Сервер проверяет подпись, не хранит сессию. Stateless.
+
+```csharp
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,          // проверка exp
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = "https://myapp.com",
+            ValidAudience = "https://myapp.com",
+            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+            ClockSkew = TimeSpan.FromSeconds(30) // допуск на рассинхрон часов
+        };
+    });
+```
+
+**Риски JWT:** хранение в localStorage — уязвим к XSS. Нельзя отозвать до истечения срока (без blacklist). **Решение:** короткий TTL (15–60 мин) + refresh token.
+
+**Нюанс:** JWT payload — не зашифрован, а только подписан. Не хранить sensitive данные (пароли, PII) в claims.
 
 ### Opaque tokens
 
-Случайная строка, значение хранится на сервере. Проверка — lookup в БД/кэше. Можно отозвать в любой момент. Подходит, когда нужен жёсткий контроль и отзыв. Минус — состояние на сервере, нагрузка на хранилище.
+Случайная строка, значение хранится на сервере. Проверка — lookup в БД/кэше. Можно отозвать в любой момент. Минус — состояние на сервере, нагрузка на хранилище.
 
 ### Выбор
 
-- Браузер, один домен → Cookie.
-- Stateless API, мобильные клиенты → JWT с коротким TTL.
-- Необходим отзыв, централизованный контроль → Opaque.
+| Сценарий | Рекомендация |
+|----------|-------------|
+| Браузер, один домен | Cookie (HttpOnly, SameSite) |
+| Stateless API, мобильные клиенты | JWT с коротким TTL |
+| Необходим отзыв, централизованный контроль | Opaque tokens |
+| Микросервисы (service-to-service) | JWT или mTLS |
 
 ---
 
 ## Policy-based authorization
 
-Вместо проверки роли в коде — объявление политик в конфигурации. `AddAuthorizationBuilder()` или `AddAuthorization()` + `AddPolicy("PolicyName", policy => policy.RequireClaim("scope", "read").RequireRole("Admin"))`. На action: `[Authorize(Policy = "PolicyName")]`.
+Вместо проверки роли в коде — объявление политик в конфигурации.
 
-Политика может комбинировать требования: claim + role + custom `IAuthorizationHandler`. Удобно для сложных правил и переиспользования.
+```csharp
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CanManageOrders", policy => policy
+        .RequireAuthenticatedUser()
+        .RequireRole("Admin", "Manager")
+        .RequireClaim("scope", "orders:write"))
+    .AddPolicy("MinimumAge", policy => policy
+        .AddRequirements(new MinimumAgeRequirement(18)));
+
+// Custom requirement + handler
+public class MinimumAgeRequirement(int age) : IAuthorizationRequirement
+{
+    public int MinimumAge { get; } = age;
+}
+
+public class MinimumAgeHandler : AuthorizationHandler<MinimumAgeRequirement>
+{
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context, MinimumAgeRequirement requirement)
+    {
+        var birthDateClaim = context.User.FindFirst("birth_date");
+        if (birthDateClaim is not null &&
+            DateOnly.Parse(birthDateClaim.Value).AddYears(requirement.MinimumAge) <= DateOnly.FromDateTime(DateTime.Today))
+        {
+            context.Succeed(requirement);
+        }
+        return Task.CompletedTask;
+    }
+}
+```
+
+На endpoint: `[Authorize(Policy = "CanManageOrders")]`. Политика комбинирует: claim + role + custom handler.
 
 ---
 

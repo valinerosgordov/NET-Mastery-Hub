@@ -24,7 +24,7 @@
 8. Interview Prep (1–2 недели)
 ```
 
-**Старт**: [[Topics/NetQuestions150/csharp/01-types-memory|01 Types & Memory]] или [[Interview/01-csharp-fundamentals|Interview: C# Fundamentals]].
+**Старт**: [[Topics/NetQuestions150/csharp/01-types-memory|01 Types & Memory]] или [[1-csharp-fundamentals|Interview: C# Fundamentals]].
 
 ---
 
@@ -46,7 +46,7 @@
 | # | Тема | Материал | Время | Статус |
 |---|------|----------|-------|--------|
 | 5 | Async и Concurrency | [[Topics/NetQuestions150/csharp/04-async-concurrency\|04 Async & Concurrency]] | 6–8 ч | ⬜ |
-| 6 | Async углублённо | [[Interview/02-async-threading\|Interview: Async & Threading]] | 3–4 ч | ⬜ |
+| 6 | Async углублённо | [[2-async-threading\|Interview: Async & Threading]] | 3–4 ч | ⬜ |
 
 **Практика**: async/await, Task.WhenAll, Channel, SemaphoreSlim.
 
@@ -95,7 +95,7 @@
 | 25 | Project Setup | [[Topics/ProjectSetup/start-dotnet-project-2026\|Start .NET Project 2026]] | 2–3 ч | ⬜ |
 | 26 | Top 10 things | [[Topics/ProjectSetup/top-10-things-dotnet-2026\|Top 10 .NET 2026]] | 1–2 ч | ⬜ |
 | 27 | Code Quality | [[Topics/CodeQuality/code-quality-best-practices\|Code Quality]] | 2–3 ч | ⬜ |
-| 28 | Security | [[Interview/04-security\|Interview: Security]] | 3–4 ч | ⬜ |
+| 28 | Security | [[4-security\|Interview: Security]] | 3–4 ч | ⬜ |
 | 29 | Observability | [[Topics/Observability/opentelemetry-jaeger-seq\|OpenTelemetry, Jaeger, Seq]] | 4–5 ч | ⬜ |
 | 30 | Result и MediatR | [[Topics/ResultPattern/result-pattern-cqrs\|Result/Option и MediatR]] | 3–4 ч | ⬜ |
 
@@ -106,7 +106,7 @@
 | # | Тема | Материал | Время | Статус |
 |---|------|----------|-------|--------|
 | 31 | Unit и Integration тесты | [[Topics/Testing/testing-xunit-testcontainers\|Testing]] | 5–6 ч | ⬜ |
-| 32 | Testing Interview | [[Interview/08-testing\|Interview: Testing]] | 2–3 ч | ⬜ |
+| 32 | Testing Interview | [[8-testing\|Interview: Testing]] | 2–3 ч | ⬜ |
 | 33 | Docker и деплой | [[Topics/Docker/docker-deploy\|Docker & CI/CD]] | 4–5 ч | ⬜ |
 | 34 | Git, CI/CD basics | [[Topics/Docker/docker-deploy\|Docker & CI/CD]] (Git в том же) | 2–3 ч | ⬜ |
 
@@ -120,7 +120,7 @@
 |---|------|----------|-------|--------|
 | 35 | Messaging | [[Topics/Messaging/rabbitmq-masstransit\|RabbitMQ, MassTransit]] | 4–5 ч | ⬜ |
 | 36 | Performance | [[Topics/Performance/dotnet-performance\|.NET Performance]] | 3–4 ч | ⬜ |
-| 37 | Architecture Interview | [[Interview/07-architecture\|Interview: Architecture]] | 2–3 ч | ⬜ |
+| 37 | Architecture Interview | [[7-architecture\|Interview: Architecture]] | 2–3 ч | ⬜ |
 
 ---
 
@@ -129,8 +129,8 @@
 | # | Тема | Материал | Время | Статус |
 |---|------|----------|-------|--------|
 | 38 | Все категории Interview | [[Interview/interview-index\|Interview Index]] | 8–12 ч | ⬜ |
-| 39 | Logging, Metrics | [[Interview/06-logging-metrics\|Logging & Metrics]] | 2–3 ч | ⬜ |
-| 40 | Behavioral | [[Interview/09-behavioral\|Behavioral]] | 2–3 ч | ⬜ |
+| 39 | Logging, Metrics | [[6-logging-metrics\|Logging & Metrics]] | 2–3 ч | ⬜ |
+| 40 | Behavioral | [[9-behavioral\|Behavioral]] | 2–3 ч | ⬜ |
 | 41 | NetQuestions150 повтор | [[Topics/NetQuestions150/net-questions-150\|150 Questions]] | 6–8 ч | ⬜ |
 
 ---

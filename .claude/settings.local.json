@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for f in \"Topics/Testing/testing-xunit-testcontainers.md\" \"Topics/ResultPattern/result-pattern-cqrs.md\" \"Topics/SQL/sql-query-optimization.md\" \"Topics/Repositories/dotnet-github-repos.md\" \"Topics/Tips/csharp-channel-tips.md\" \"Topics/Snippets/snippet-mediatr-handlers.md\" \"Topics/Snippets/snippet-result-pattern.md\" \"Topics/Snippets/snippet-efcore-queries.md\" \"Topics/Snippets/snippet-wpf-viewmodel.md\")",
+      "Bash(do)",
+      "Bash(if [ -f \"c:/Users/mos26/OneDrive/Документы/Knowledge/C#/$f\" ])",
+      "Bash(then)",
+      "Bash(echo:*)",
+      "Bash(else)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(wc:*)"
+    ]
+  }
+}
