@@ -14,6 +14,19 @@
 
 Для read-only сценариев — `AsNoTracking()`. Запросы только на чтение не требуют отслеживания. Экономия памяти и ускорение.
 
+```csharp
+// Read-only — без tracking
+var orders = await context.Orders
+    .AsNoTracking()
+    .Where(o => o.Status == OrderStatus.Active)
+    .Select(o => new OrderDto(o.Id, o.Total, o.Customer.Name))
+    .ToListAsync(ct);
+
+// Глобально для контекста
+protected override void OnConfiguring(DbContextOptionsBuilder options)
+    => options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+```
+
 ---
 
 ## Tracking vs AsNoTracking

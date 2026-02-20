@@ -26,6 +26,20 @@
 
 В .NET — `ILogger` с параметрами: `logger.LogInformation("User {UserId} logged in", userId)`. Параметры попадают в структурированные поля.
 
+```csharp
+// ✗ Плохо — интерполяция, строка каждый раз создаётся, нет структурированных полей
+logger.LogInformation($"Order {orderId} created for {customer}");
+
+// ✓ Хорошо — структурированные параметры, кэшируемый шаблон
+logger.LogInformation("Order {OrderId} created for {Customer}", orderId, customer);
+
+// ✓ High-performance logging (source generator, .NET 6+)
+[LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} created for {Customer}")]
+partial void LogOrderCreated(Guid orderId, string customer);
+```
+
+**Нюанс:** `LoggerMessage` source generator — нулевые аллокации при отключённом уровне. Для hot path — обязательно.
+
 ---
 
 ## Уровни по окружениям

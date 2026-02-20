@@ -63,6 +63,19 @@ Middleware, вызвавший `next()`, ждёт завершения влож�
 
 Для сложных сценариев — Autofac, Scrutor и т.п.
 
+```csharp
+// Регистрация
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddSingleton<ICacheService, RedisCacheService>();
+
+// Keyed services (.NET 8+)
+builder.Services.AddKeyedSingleton<IStorage, AzureStorage>("azure");
+builder.Services.AddKeyedSingleton<IStorage, S3Storage>("aws");
+
+// Использование
+public class MyController([FromKeyedServices("azure")] IStorage storage) { }
+```
+
 ---
 
 ## Transient, Scoped, Singleton

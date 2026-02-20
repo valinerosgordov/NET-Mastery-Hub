@@ -2,14 +2,198 @@
 
 ## IHostApplicationLifetime
 
-События: ApplicationStarted, ApplicationStopping (SIGTERM, graceful shutdown), ApplicationStopped. Регистрация callbacks через `lifetime.ApplicationStopping.Register(...)`. CancellationToken для долгих операций при shutdown.
+Интерфейс для отслеживания событий жизненного цикла приложения. Позволяет выполнять логику при запуске, остановке и после остановки.
+
+### События
+
+| Событие | Когда срабатывает | Типичное применение |
+|---------|-------------------|---------------------|
+| `ApplicationStarted` | Приложение полностью запущено, готово принимать запросы | Логирование, warm-up, уведомление |
+| `ApplicationStopping` | Получен сигнал остановки (SIGTERM), начинается graceful shutdown | Завершение текущих запросов, flush буферов |
+| `ApplicationStopped` | Приложение полностью остановлено | Очистка ресурсов, финальное логирование |
+
+```csharp
+public class LifetimeEventsService : IHostedService
+{
+    private readonly IHostApplicationLifetime _lifetime;
+    private readonly ILogger<LifetimeEventsService> _logger;
+
+    public LifetimeEventsService(IHostApplicationLifetime lifetime, ILogger<LifetimeEventsService> logger)
+    {
+        _lifetime = lifetime;
+        _logger = logger;
+    }
+
+    public Task StartAsync(CancellationToken ct)
+    {
+        _lifetime.ApplicationStarted.Register(() =>
+            _logger.LogInformation("Application started at {Time}", DateTime.UtcNow));
+
+        _lifetime.ApplicationStopping.Register(() =>
+            _logger.LogInformation("Application stopping..."));
+
+        _lifetime.ApplicationStopped.Register(() =>
+            _logger.LogInformation("Application stopped"));
+
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken ct) => Task.CompletedTask;
+}
+```
+
+### Graceful Shutdown
+
+При получении SIGTERM / Ctrl+C:
+1. Срабатывает `ApplicationStopping`
+2. Вызывается `StopAsync` на всех `IHostedService` (в обратном порядке регистрации)
+3. Ожидание завершения текущих запросов (по умолчанию 30 секунд — `ShutdownTimeout`)
+4. Срабатывает `ApplicationStopped`
+
+```csharp
+// Настройка таймаута graceful shutdown
+builder.Host.ConfigureHostOptions(opts =>
+{
+    opts.ShutdownTimeout = TimeSpan.FromSeconds(60);
+});
+```
+
+### Программная остановка
+
+```csharp
+// Остановить приложение из кода
+app.MapPost("/admin/shutdown", (IHostApplicationLifetime lifetime) =>
+{
+    lifetime.StopApplication(); // Инициирует graceful shutdown
+    return Results.Ok("Shutting down...");
+});
+```
 
 ---
 
-## HostedService и BackgroundService
+## IHostedService и BackgroundService
 
-**IHostedService** — контракт для фоновых задач при старте. **BackgroundService** — базовый класс, переопределить `ExecuteAsync(CancellationToken)`. Регистрация: AddHostedService<T>().
+### IHostedService
 
-Применение: периодическая синхронизация, очереди (RabbitMQ), очистка кэша, warm-up. Остановка — через CancellationToken при shutdown приложения.
+Базовый контракт для фоновых задач:
 
-**PeriodicTimer** (.NET 6+) — предпочтительнее Task.Delay для периодических задач: интервал между началом итераций, меньше дрейфа.
+```csharp
+public interface IHostedService
+{
+    Task StartAsync(CancellationToken cancellationToken);
+    Task StopAsync(CancellationToken cancellationToken);
+}
+```
+
+`StartAsync` вызывается **до** того, как приложение начнёт принимать запросы. Если `StartAsync` долгий — приложение не запустится вовремя. Для долгих задач — запускайте `Task` и не ждите его.
+
+### BackgroundService
+
+Базовый класс, упрощающий создание фоновых задач:
+
+```csharp
+public class OrderProcessingService : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<OrderProcessingService> _logger;
+
+    public OrderProcessingService(IServiceScopeFactory scopeFactory, ILogger<OrderProcessingService> logger)
+    {
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Order processing started");
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var repo = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
+                await ProcessPendingOrdersAsync(repo, stoppingToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Error processing orders");
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+        }
+    }
+}
+
+// Регистрация
+builder.Services.AddHostedService<OrderProcessingService>();
+```
+
+### PeriodicTimer (.NET 6+)
+
+Предпочтительнее `Task.Delay` для периодических задач — точнее контролирует интервал и корректно работает с cancellation:
+
+```csharp
+protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    using var timer = new PeriodicTimer(TimeSpan.FromMinutes(5));
+
+    while (await timer.WaitForNextTickAsync(stoppingToken))
+    {
+        try
+        {
+            await DoWorkAsync(stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Periodic task failed");
+            // Не пробрасываем — продолжаем работу
+        }
+    }
+}
+```
+
+**Разница**: `Task.Delay` ждёт фиксированное время после завершения работы. `PeriodicTimer` тикает с фиксированным интервалом от начала — если работа заняла 2 секунды из 5-секундного интервала, следующий тик через 3 секунды. Если работа заняла больше интервала — следующий тик сразу.
+
+### Типичные применения
+
+| Задача | Реализация |
+|--------|------------|
+| Периодическая синхронизация данных | `BackgroundService` + `PeriodicTimer` |
+| Обработка очередей (RabbitMQ, Kafka) | `BackgroundService` + consumer loop |
+| Warm-up кэша при запуске | `IHostedService.StartAsync` |
+| Очистка временных файлов | `BackgroundService` + `PeriodicTimer` |
+| Health check для внешних сервисов | `BackgroundService` + periodic polling |
+
+### Тонкости и нюансы
+
+- **BackgroundService — Singleton**: нельзя инжектить Scoped-сервисы в конструктор. Используйте `IServiceScopeFactory`
+- **Необработанное исключение в `ExecuteAsync`** (.NET 6) — приложение **завершается**. В .NET 8 по умолчанию тоже. Всегда оборачивайте в try-catch
+- `StartAsync` **блокирует запуск** приложения — не делайте долгих операций. `ExecuteAsync` вызывается из `StartAsync`, но обычно возвращает `Task`, который работает в фоне
+- **Порядок остановки** — обратный порядку регистрации. Если сервис B зависит от A, регистрируйте A первым
+- `StopAsync` получает `CancellationToken` с таймаутом (`ShutdownTimeout`) — если не уложились, принудительное завершение
+- Для сложных сценариев с очередями — используйте `Channel<T>` как in-memory очередь между HTTP-запросами и background-обработкой
+
+```csharp
+// Паттерн: Channel как in-memory очередь
+builder.Services.AddSingleton(Channel.CreateBounded<WorkItem>(new BoundedChannelOptions(100)
+{
+    FullMode = BoundedChannelFullMode.Wait
+}));
+
+// В контроллере — пишем в канал
+app.MapPost("/tasks", async (WorkItem item, Channel<WorkItem> channel) =>
+{
+    await channel.Writer.WriteAsync(item);
+    return Results.Accepted();
+});
+
+// В BackgroundService — читаем из канала
+protected override async Task ExecuteAsync(CancellationToken ct)
+{
+    await foreach (var item in _channel.Reader.ReadAllAsync(ct))
+    {
+        await ProcessAsync(item);
+    }
+}
+```

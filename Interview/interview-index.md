@@ -8,15 +8,15 @@
 
 | # | Тема | Заметка |
 |---|------|---------|
-| 1 | C# Fundamentals | [[Interview/01-csharp-fundamentals\|C# Fundamentals]] |
-| 2 | Async & Threading | [[Interview/02-async-threading\|Async & Threading]] |
-| 3 | ASP.NET Core | [[Interview/03-aspnet-core\|ASP.NET Core]] |
-| 4 | Security | [[Interview/04-security\|Security]] |
-| 5 | EF Core & SQL | [[Interview/05-ef-core-sql\|EF Core & SQL]] |
-| 6 | Logging & Metrics | [[Interview/06-logging-metrics\|Logging & Metrics]] |
-| 7 | Architecture | [[Interview/07-architecture\|Architecture]] |
-| 8 | Testing | [[Interview/08-testing\|Testing]] |
-| 9 | Behavioral | [[Interview/09-behavioral\|Behavioral]] |
+| 1 | C# Fundamentals | [[1-csharp-fundamentals\|C# Fundamentals]] |
+| 2 | Async & Threading | [[2-async-threading\|Async & Threading]] |
+| 3 | ASP.NET Core | [[3-aspnet-core\|ASP.NET Core]] |
+| 4 | Security | [[4-security\|Security]] |
+| 5 | EF Core & SQL | [[5-ef-core-sql\|EF Core & SQL]] |
+| 6 | Logging & Metrics | [[6-logging-metrics\|Logging & Metrics]] |
+| 7 | Architecture | [[7-architecture\|Architecture]] |
+| 8 | Testing | [[8-testing\|Testing]] |
+| 9 | Behavioral | [[9-behavioral\|Behavioral]] |
 
 ---
 
