@@ -5,6 +5,34 @@ level: Senior
 
 # Архитектура и паттерны проектирования
 
+## Что это, зачем и когда
+
+### Что такое архитектура приложения?
+**Правила организации кода** — кто с кем общается, где что лежит, как добавлять новые фичи.
+
+**Аналогия:** Планировка здания. Можно строить без плана (сарай), но если нужен многоэтажный дом — нужны чертежи, этажи, несущие стены. Архитектура — это «чертёж» приложения.
+
+### Зачем?
+
+| Без архитектуры | С архитектурой |
+|-----------------|---------------|
+| «Где логика оплаты?» — разбросана по 15 файлам | Логика в `Application/Orders/Pay/` |
+| Поменял БД — переписал половину кода | Поменял только `Infrastructure/Persistence/` |
+| Новый разработчик разбирается неделю | Структура предсказуема, понятна за день |
+| Тесты невозможны — всё связано | Слои независимы, тестируются отдельно |
+
+### Когда какую архитектуру?
+
+| Ситуация | Архитектура | Почему |
+|----------|-------------|--------|
+| Учебный проект, скрипт, утилита | Без архитектуры / 1 слой | Оверкилл, быстрее без церемоний |
+| Типичное CRUD-приложение | **N-Layered** (3 слоя) | Просто, понятно, достаточно для CRUD |
+| Сложный домен, DDD, долгоживущий проект | **Clean Architecture** | Домен в центре, инфраструктура заменяема |
+| Много фич, каждая независима | **Vertical Slice Architecture** | Изменения изолированы в одной фиче |
+| Сложный домен + много независимых фич | **Clean + VSA гибрид** | Лучшее из двух миров |
+
+---
+
 > По материалам: [N-Layered vs Clean vs VSA](https://antondevtips.com/blog/n-layered-vs-clean-vs-vertical-slice-architecture), [Clean + VSA](https://antondevtips.com/blog/the-best-way-to-structure-your-dotnet-projects-with-clean-architecture-and-vertical-slices), [VSA структура](https://antondevtips.com/blog/vertical-slice-architecture-the-best-ways-to-structure-your-project).
 
 > [!question]- **Интервью: Декомпозиция монолита — подход?**
@@ -722,6 +750,242 @@ public class CreateShipmentEndpoint : IEndpoint
 | Много фич, feature-focused | VSA |
 | Простой микросервис | VSA (pragmatic, без MediatR) |
 | Модульный монолит | Clean + VSA |
+
+---
+
+## 8. Modular Monolith
+
+### Что это?
+**Монолит, разделённый на независимые модули.** Один deployment (один .exe), но внутри — чёткие границы между модулями. Каждый модуль = bounded context (DDD).
+
+**Аналогия:** Многоквартирный дом. Один дом (монолит), но каждая квартира (модуль) — отдельная, со своей дверью. Соседи не лезут к тебе в кухню. Общение — через домофон (публичные контракты), не через стены.
+
+### Зачем?
+
+| Обычный монолит | Modular Monolith | Микросервисы |
+|----------------|-----------------|--------------|
+| Всё связано, спагетти | Чёткие границы, но один деплой | Чёткие границы, отдельный деплой |
+| Поменял одно — сломалось другое | Модули независимы | Модули независимы |
+| Простой деплой | Простой деплой | Сложный деплой (K8s, service mesh) |
+| Нет сетевых вызовов | Нет сетевых вызовов | Latency, partial failures |
+| Одна БД | Одна БД, разные schema | Разные БД |
+| Невозможно масштабировать отдельно | Невозможно масштабировать отдельно | Масштабируешь по модулям |
+
+### Когда выбирать Modular Monolith?
+- Проект растёт, но **рано для микросервисов** (нет DevOps, K8s, опыта distributed systems)
+- Хочешь **подготовиться к микросервисам** — каждый модуль потом извлекается в отдельный сервис
+- Команда 3-10 человек — каждый работает в своём модуле
+- **Сложный домен** с несколькими bounded contexts
+
+### Структура проекта
+
+```
+MySolution/
+├── src/
+│   ├── Api/                           ← Точка входа (Program.cs)
+│   │   └── Program.cs
+│   ├── Shared/                        ← Общие контракты (минимум!)
+│   │   ├── Shared.Contracts/          ← Integration Events, общие DTO
+│   │   └── Shared.Infrastructure/     ← Базовые классы, middleware
+│   ├── Modules/
+│   │   ├── Orders/                    ← Модуль «Заказы»
+│   │   │   ├── Orders.Domain/
+│   │   │   ├── Orders.Application/
+│   │   │   ├── Orders.Infrastructure/
+│   │   │   └── Orders.Endpoints/
+│   │   ├── Catalog/                   ← Модуль «Каталог»
+│   │   │   ├── Catalog.Domain/
+│   │   │   ├── Catalog.Application/
+│   │   │   ├── Catalog.Infrastructure/
+│   │   │   └── Catalog.Endpoints/
+│   │   └── Users/                     ← Модуль «Пользователи»
+│   │       └── ...
+└── tests/
+    ├── Orders.Tests/
+    ├── Catalog.Tests/
+    └── Integration.Tests/
+```
+
+### Правила модулей
+
+```csharp
+// 1. Каждый модуль регистрируется через extension method
+public static class OrdersModule
+{
+    public static IServiceCollection AddOrdersModule(
+        this IServiceCollection services, IConfiguration config)
+    {
+        services.AddDbContext<OrdersDbContext>(o =>
+            o.UseNpgsql(config.GetConnectionString("Orders")));
+
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<CreateOrderHandler>();
+
+        return services;
+    }
+
+    public static IEndpointRouteBuilder MapOrdersEndpoints(
+        this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/orders")
+            .WithTags("Orders");
+
+        group.MapPost("/", async (CreateOrderRequest req,
+            CreateOrderHandler handler, CancellationToken ct) =>
+        {
+            var result = await handler.HandleAsync(req, ct);
+            return result.ToResponse(o => TypedResults.Created($"/api/orders/{o.Id}", o));
+        });
+
+        return app;
+    }
+}
+
+// 2. В Program.cs — подключение модулей
+builder.Services
+    .AddOrdersModule(builder.Configuration)
+    .AddCatalogModule(builder.Configuration)
+    .AddUsersModule(builder.Configuration);
+
+app.MapOrdersEndpoints();
+app.MapCatalogEndpoints();
+app.MapUsersEndpoints();
+```
+
+### Общение между модулями
+
+```csharp
+// ✗ НЕЛЬЗЯ — прямая зависимость между модулями
+// Orders.Application ссылается на Catalog.Domain
+var product = await catalogDbContext.Products.FindAsync(productId); // ЗАПРЕЩЕНО!
+
+// ✓ Вариант 1: Integration Events (асинхронное)
+// Shared.Contracts — общий контракт
+public sealed record ProductPriceChangedEvent(Guid ProductId, decimal NewPrice);
+
+// Catalog публикует
+public sealed class UpdatePriceHandler
+{
+    public async Task HandleAsync(...)
+    {
+        product.UpdatePrice(newPrice);
+        await unitOfWork.SaveChangesAsync(ct);
+        await eventBus.PublishAsync(new ProductPriceChangedEvent(product.Id, newPrice), ct);
+    }
+}
+
+// Orders подписывается
+public sealed class ProductPriceChangedHandler
+    : IIntegrationEventHandler<ProductPriceChangedEvent>
+{
+    public async Task HandleAsync(ProductPriceChangedEvent @event, CancellationToken ct)
+    {
+        // Обновить локальную копию цены
+        await orderRepository.UpdateProductPriceAsync(@event.ProductId, @event.NewPrice, ct);
+    }
+}
+
+// ✓ Вариант 2: Public API модуля (синхронное)
+// Catalog.Contracts (публичный интерфейс модуля)
+public interface ICatalogModule
+{
+    Task<ProductDto?> GetProductAsync(Guid productId, CancellationToken ct);
+}
+
+// Catalog.Infrastructure — реализация
+public sealed class CatalogModule(CatalogDbContext context) : ICatalogModule
+{
+    public async Task<ProductDto?> GetProductAsync(Guid productId, CancellationToken ct)
+        => await context.Products
+            .Where(p => p.Id == productId)
+            .Select(p => new ProductDto(p.Id, p.Name, p.Price))
+            .FirstOrDefaultAsync(ct);
+}
+
+// Orders.Application — использует контракт, не знает про CatalogDbContext
+public sealed class CreateOrderHandler(ICatalogModule catalog)
+{
+    public async Task<Result<OrderDto>> HandleAsync(CreateOrderRequest req, CancellationToken ct)
+    {
+        var product = await catalog.GetProductAsync(req.ProductId, ct);
+        if (product is null)
+            return Result<OrderDto>.Fail(Error.NotFound("Product.NotFound", "Product not found"));
+        // ...
+    }
+}
+```
+
+### Отдельные schema в одной БД
+
+```csharp
+// Каждый модуль — свой DbContext, своя schema
+public class OrdersDbContext : DbContext
+{
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.HasDefaultSchema("orders"); // schema "orders"
+        builder.ApplyConfigurationsFromAssembly(typeof(OrdersDbContext).Assembly);
+    }
+}
+
+public class CatalogDbContext : DbContext
+{
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.HasDefaultSchema("catalog"); // schema "catalog"
+        builder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly);
+    }
+}
+
+// Результат в PostgreSQL:
+// orders.orders, orders.order_items
+// catalog.products, catalog.categories
+// → Чёткое разделение, легко потом вынести в отдельную БД
+```
+
+### Architecture Tests для модулей
+
+```csharp
+[Fact]
+public void Orders_Should_Not_Depend_On_Catalog_Domain()
+{
+    var result = Types.InAssembly(typeof(Order).Assembly)
+        .ShouldNot()
+        .HaveDependencyOn("Catalog.Domain")
+        .GetResult();
+
+    result.IsSuccessful.Should().BeTrue();
+}
+
+[Fact]
+public void Modules_Should_Only_Communicate_Through_Contracts()
+{
+    var result = Types.InNamespace("Orders")
+        .ShouldNot()
+        .HaveDependencyOn("Catalog.Infrastructure")
+        .GetResult();
+
+    result.IsSuccessful.Should().BeTrue();
+}
+```
+
+### Путь к микросервисам
+
+```
+Монолит → Modular Monolith → Микросервисы
+
+1. Монолит: всё в одном, спагетти
+2. Modular Monolith: границы модулей, своя schema, Integration Events
+3. Микросервисы: каждый модуль → отдельный сервис + БД + деплой
+   (Strangler Fig Pattern — постепенная миграция)
+```
+
+| Шаг миграции | Что делать |
+|-------------|-----------|
+| Выделить модуль | Отдельный DbContext, schema, API контракт |
+| Integration Events | Заменить синхронные вызовы на события |
+| Отдельная БД | Schema → отдельная database |
+| Отдельный деплой | Модуль → отдельный сервис (Docker, K8s) |
 
 ---
 

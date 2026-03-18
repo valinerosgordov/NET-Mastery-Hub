@@ -5,6 +5,27 @@ level: Senior
 
 # Relationships и типы
 
+## Что это, зачем и когда
+
+### Что такое Relationships?
+Связи между таблицами в БД, описанные через C#-свойства. `Order` имеет `Customer` → в БД это FK `CustomerId`.
+
+**Аналогия:** Папки с документами. Заказ «лежит» в папке клиента. Связь = ссылка «этот заказ принадлежит этому клиенту».
+
+### Когда какой тип связи?
+
+| Связь | Пример | В БД |
+|-------|--------|------|
+| **One-to-Many** | Customer → Orders | FK `CustomerId` в Orders |
+| **Many-to-Many** | Student ↔ Course | Join-таблица `StudentCourse` |
+| **One-to-One** | User → UserProfile | FK + Unique index |
+| **Owned Type** | Order → Address (Value Object) | Столбцы Address_Street, Address_City в Orders |
+
+### Fluent API vs Data Annotations
+**Fluent API** (в отдельных `*Configuration.cs` файлах) — предпочтительный способ. Entity остаётся чистой, без EF-атрибутов.
+
+---
+
 ## Navigation Properties
 
 Свойства, ссылающиеся на связанную сущность (reference) или коллекцию (collection). EF использует для построения JOIN, Include, Change Tracking.

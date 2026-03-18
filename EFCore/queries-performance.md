@@ -5,6 +5,36 @@ level: Senior
 
 # Запросы и Performance
 
+## Что это, зачем и когда
+
+### Главное правило EF Core запросов
+**Фильтруй В SQL, не в C#.** Каждый `.Where()`, `.Select()`, `.Take()` на `IQueryable` превращается в SQL. Но если вызвать `.ToList()` РАНЬШЕ фильтрации — вся таблица загрузится в память.
+
+```csharp
+// УЖАСНО: загружает ВСЮ таблицу, фильтрует в C#
+var all = await _db.Orders.ToListAsync();              // SELECT * FROM Orders (ВСЁ!)
+var active = all.Where(o => o.Status == "Active");     // фильтр в памяти
+
+// ПРАВИЛЬНО: фильтрует В SQL
+var active = await _db.Orders
+    .Where(o => o.Status == "Active")                  // WHERE Status = 'Active'
+    .ToListAsync();
+```
+
+### Когда что?
+
+| Задача | Метод | Почему |
+|--------|-------|--------|
+| Проверить «есть ли хоть один?» | `AnyAsync()` | Останавливается на первом, быстрее Count |
+| Получить один элемент по ID | `FindAsync(id)` | Сначала ищет в Change Tracker (без SQL) |
+| Получить первый подходящий | `FirstOrDefaultAsync()` | `TOP 1` — быстрый |
+| Убедиться что ровно один | `SingleOrDefaultAsync()` | `TOP 2` — проверяет уникальность |
+| Только нужные столбцы | `.Select(o => new Dto{...})` | Не тащит лишние данные |
+| Массовое обновление | `ExecuteUpdateAsync()` | Без загрузки в память (.NET 7+) |
+| Массовое удаление | `ExecuteDeleteAsync()` | Без загрузки в память (.NET 7+) |
+
+---
+
 > [!question]- **Интервью: N+1 — суть и решения?**
 > N+1: 1 запрос на основную сущность + N запросов на связанные. Решения: `Include()` (eager), `AsSplitQuery()`, проекция (Select → DTO), compiled queries для hot path.
 

@@ -5,6 +5,30 @@ level: Senior
 
 # Authentication, Authorization и безопасность
 
+## Что это, зачем и когда
+
+### Что такое Authentication и Authorization?
+- **Authentication (аутентификация)** — **кто ты?** Проверка личности (логин/пароль, JWT-токен).
+- **Authorization (авторизация)** — **что тебе можно?** Проверка прав (роли, политики).
+
+**Аналогия — клуб:** Охранник проверяет паспорт (authentication) — «Да, ты Иван». Потом проверяет VIP-список (authorization) — «Иван, тебе можно в VIP-зону».
+
+### Зачем?
+- Без authentication — любой может представиться кем угодно
+- Без authorization — любой авторизованный пользователь имеет доступ ко всему (в т.ч. к админке)
+
+### Когда что?
+
+| Механизм | Когда |
+|----------|-------|
+| **JWT (Bearer Token)** | REST API, SPA, мобильные приложения. Stateless — сервер не хранит сессии |
+| **Cookie** | MVC/Razor Pages, SSR-приложения. Server-side state |
+| **Role-based auth** | Простые случаи: Admin, Manager, User |
+| **Policy-based auth** | Сложные правила: «пользователь старше 18 И из РФ И подтвердил email» |
+| **Resource-based auth** | «Пользователь может редактировать ТОЛЬКО СВОИ заказы» |
+
+---
+
 > [!question]- **Интервью: Authentication vs Authorization?**
 > **Authentication** — кто ты? (identity, JWT, Cookie). **Authorization** — что тебе можно? (roles, policies, claims).
 
