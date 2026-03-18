@@ -11,6 +11,33 @@ date: 2026-02-23
 
 # .NET Runtime: от исходного кода до машинных инструкций
 
+## Что это, зачем и когда
+
+### Что такое .NET Runtime (CLR)?
+**Виртуальная машина**, которая запускает твой C#-код. Компилирует, управляет памятью (GC), проверяет типы, ловит ошибки.
+
+**Аналогия:** Операционная система внутри операционной системы. Ты пишешь код на C# → Roslyn компилирует в IL (промежуточный язык) → CLR компилирует IL в машинный код прямо во время работы (JIT).
+
+### Зачем это знать?
+
+| Без понимания | С пониманием |
+|--------------|-------------|
+| «Почему первый вызов медленный?» | JIT компилирует метод при первом вызове |
+| «Зачем AOT?» | Компиляция заранее → мгновенный старт (Lambda, контейнеры) |
+| «Что делает Roslyn?» | Компилятор C# → IL. Source generators работают на этом этапе |
+| «Зачем Tiered Compilation?» | Tier 0 — быстрая компиляция, Tier 1 — оптимизированная. Баланс старта и скорости |
+
+### Этапы выполнения
+
+| Этап | Что происходит | Инструмент |
+|------|---------------|-----------|
+| Компиляция | C# → IL (.dll) | Roslyn |
+| Загрузка | Assembly загружается в AppDomain | CLR Loader |
+| JIT | IL → машинный код (при первом вызове) | RyuJIT |
+| Выполнение | Машинный код на CPU | Процессор |
+
+---
+
 ## Общая картина
 
 Путь C#-кода до процессора — это конвейер из трёх стадий: **компиляция → загрузка → исполнение**. На каждом этапе код трансформируется в более низкоуровневое представление.
@@ -277,6 +304,92 @@ dotnet publish -c Release -r linux-x64 \
 
 > [!warning] NativeAOT trade-offs
 > NativeAOT не поддерживает: `Assembly.LoadFrom`, runtime code generation (`Reflection.Emit`), неограниченный reflection. Для CLI-утилит и microservices — отлично. Для plugin-систем — не подходит.
+
+### NativeAOT — что нужно для подготовки
+
+Чтобы приложение работало с NativeAOT, нужно **избавиться от рефлексии** или объяснить компилятору, что сохранить.
+
+#### Source Generators — замена рефлексии
+
+```csharp
+// ✗ Без source generator — System.Text.Json использует рефлексию
+var json = JsonSerializer.Serialize(order); // NativeAOT: ОШИБКА или пустой JSON
+
+// ✓ С source generator — без рефлексии, AOT-ready
+[JsonSerializable(typeof(Order))]
+[JsonSerializable(typeof(List<OrderDto>))]
+[JsonSerializable(typeof(ProblemDetails))]
+public partial class AppJsonContext : JsonSerializerContext;
+
+// Регистрация в Minimal API
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonContext.Default);
+});
+
+// Ручная сериализация
+var json = JsonSerializer.Serialize(order, AppJsonContext.Default.Order);
+```
+
+#### Logging source generator
+
+```csharp
+// ✗ Рефлексия + boxing + аллокации
+logger.LogInformation("Order {OrderId} created for {Total}", order.Id, order.Total);
+
+// ✓ Source generator — zero-alloc, compile-time проверка, AOT-ready
+public static partial class LogMessages
+{
+    [LoggerMessage(Level = LogLevel.Information,
+        Message = "Order {OrderId} created for {Total}")]
+    public static partial void OrderCreated(ILogger logger, Guid orderId, decimal total);
+}
+
+// Использование
+LogMessages.OrderCreated(logger, order.Id, order.Total);
+```
+
+#### Trimming — удаление неиспользуемого кода
+
+```xml
+<!-- .csproj -->
+<PropertyGroup>
+    <PublishAot>true</PublishAot>
+    <!-- Или только trimming без AOT: -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+</PropertyGroup>
+```
+
+```csharp
+// Если библиотека использует рефлексию — пометить что сохранить
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+public Type GetEntityType() => typeof(Order);
+
+// Или в rd.xml — список типов для сохранения
+```
+
+#### Когда использовать NativeAOT?
+
+| Сценарий | NativeAOT? | Почему |
+|----------|-----------|--------|
+| **CLI утилита** | Да | Мгновенный старт, один файл |
+| **AWS Lambda / Azure Functions** | Да | Cold start критичен |
+| **Микросервис (Minimal API)** | Да | Быстрый старт, маленький Docker image |
+| **Полное ASP.NET Core приложение** | Осторожно | Многие библиотеки не AOT-ready |
+| **EF Core** | Нет (пока) | Активно использует рефлексию |
+| **Plugin-система** | Нет | Нужен runtime loading |
+
+#### Чеклист AOT-готовности
+
+| Проверка | Как |
+|---------|-----|
+| JSON сериализация | `[JsonSerializable]` source generator |
+| Logging | `[LoggerMessage]` source generator |
+| DI | Конструкторная инжекция (не `Activator.CreateInstance`) |
+| Конфигурация | `IOptions<T>` с source generator или ручной binding |
+| Trimming warnings | `dotnet publish` с `<PublishTrimmed>true</PublishTrimmed>` и проверить warnings |
+| Тесты | Запустить приложение после publish и проверить все endpoints |
 
 ---
 

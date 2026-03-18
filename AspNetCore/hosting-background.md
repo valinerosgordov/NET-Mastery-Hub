@@ -5,6 +5,30 @@ level: Senior
 
 # Hosting и фоновые задачи
 
+## Что это, зачем и когда
+
+### Что такое Background Service?
+Код, который работает **в фоне**, пока приложение обрабатывает HTTP-запросы. Не блокирует пользователя — работает параллельно.
+
+**Аналогия — ресторан:** Официант (API) принимает заказы и отдаёт блюда. Повар (Background Service) **готовит** в фоне. Официант не ждёт пока блюдо приготовится — обслуживает другие столики.
+
+### Зачем?
+- **Отправка email/SMS** — не блокировать пользователя (ответ за 50мс вместо 2с)
+- **Генерация отчётов** — долгая операция в фоне
+- **Обработка файлов** — resize, конвертация загруженных изображений
+- **Периодические задачи** — очистка кэша, синхронизация данных, проверка подписок
+
+### Когда что?
+
+| Инструмент | Когда |
+|-----------|-------|
+| `BackgroundService` + `Channel<T>` | Очередь задач внутри одного приложения |
+| `BackgroundService` + `PeriodicTimer` | Задача по расписанию (каждые N минут) |
+| **Hangfire / Quartz.NET** | Сложное расписание, retry, dashboard, персистентность |
+| **RabbitMQ / MassTransit** | Задачи между РАЗНЫМИ сервисами |
+
+---
+
 ## IHostApplicationLifetime
 
 Интерфейс для отслеживания событий жизненного цикла приложения. Позволяет выполнять логику при запуске, остановке и после остановки.
@@ -202,3 +226,120 @@ protected override async Task ExecuteAsync(CancellationToken ct)
     }
 }
 ```
+
+---
+
+## Health Checks
+
+### Что это и зачем?
+**Endpoint `/health`, который отвечает «приложение живо и работает».** Kubernetes, load balancer, мониторинг — все проверяют health check. Если unhealthy — трафик перенаправляется на другой инстанс.
+
+**Аналогия:** Пульс пациента. Врач (Kubernetes) регулярно проверяет: пульс есть (healthy) → всё ок. Нет пульса (unhealthy) → реанимация (restart pod).
+
+### Типы проверок
+
+| Тип | Что проверяет | Endpoint | Когда |
+|-----|--------------|----------|-------|
+| **Liveness** | Приложение не зависло | `/health/live` | Если unhealthy → restart контейнера |
+| **Readiness** | Приложение готово принимать трафик | `/health/ready` | Если не ready → убрать из load balancer |
+| **Startup** | Приложение запустилось | `/health/startup` | Не проверять liveness пока не стартовал |
+
+### Базовая настройка
+
+```csharp
+// Регистрация health checks
+builder.Services.AddHealthChecks()
+    // БД — NuGet: AspNetCore.HealthChecks.NpgSql
+    .AddNpgSql(
+        connectionString,
+        name: "postgresql",
+        tags: ["ready"])
+    // Redis — NuGet: AspNetCore.HealthChecks.Redis
+    .AddRedis(
+        redisConnectionString,
+        name: "redis",
+        tags: ["ready"])
+    // Кастомная проверка
+    .AddCheck<S3HealthCheck>("s3", tags: ["ready"])
+    // Простая проверка (всегда healthy)
+    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"]);
+
+// Маппинг endpoints
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live")
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = WriteDetailedResponse
+});
+
+// Детальный ответ в JSON
+static async Task WriteDetailedResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+    var result = new
+    {
+        status = report.Status.ToString(),
+        duration = report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            duration = e.Value.Duration.TotalMilliseconds,
+            description = e.Value.Description,
+            error = e.Value.Exception?.Message
+        })
+    };
+    await context.Response.WriteAsJsonAsync(result);
+}
+```
+
+### Кастомный Health Check
+
+```csharp
+public sealed class S3HealthCheck(IAmazonS3 s3Client) : IHealthCheck
+{
+    public async Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context, CancellationToken ct)
+    {
+        try
+        {
+            await s3Client.ListBucketsAsync(ct);
+            return HealthCheckResult.Healthy("S3 is accessible");
+        }
+        catch (Exception ex)
+        {
+            return HealthCheckResult.Unhealthy("S3 is not accessible", ex);
+        }
+    }
+}
+
+// Регистрация
+builder.Services.AddHealthChecks()
+    .AddCheck<S3HealthCheck>("s3", tags: ["ready"]);
+```
+
+### Kubernetes probes
+
+```yaml
+# deployment.yaml
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+```
+
+**Нюанс:** Health check endpoint **не должен** требовать аутентификации. Добавьте `.AllowAnonymous()` или исключите из auth middleware.

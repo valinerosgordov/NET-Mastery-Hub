@@ -1,7 +1,8 @@
 # .NET Knowledge Base
 
 > Персональная база знаний по C#, .NET, архитектуре и подготовке к собеседованиям.
-> **42 заметки** — единый справочник с встроенными вопросами интервью, production-ready кодом и Senior-level разборами.
+> **49 заметок** — единый справочник с встроенными вопросами интервью, production-ready кодом и Senior-level разборами.
+> Каждый документ начинается с раздела **«Что это, зачем и когда»** — простое объяснение с аналогиями и таблицами.
 
 ---
 
@@ -9,11 +10,11 @@
 
 ```
 C#/
-├── CSharp/           — Язык C# (7 заметок)
+├── CSharp/           — Язык C# (8 заметок)
 ├── Runtime/          — .NET Internals: JIT, GC, Span, Concurrency (4)
-├── AspNetCore/       — ASP.NET Core: pipeline → logging (7)
+├── AspNetCore/       — ASP.NET Core: pipeline → security (9)
 ├── EFCore/           — Entity Framework Core (6)
-├── Architecture/     — Clean, VSA, CQRS, архтесты (3)
+├── Architecture/     — Clean, VSA, CQRS, DDD, SOLID, архтесты (6)
 ├── Testing/          — xUnit, Testcontainers (1)
 ├── Infrastructure/   — Docker, Messaging, Observability (4)
 ├── Performance/      — BenchmarkDotNet, profiling, leaks (1)
@@ -36,6 +37,7 @@ C#/
 | 5 | [Ошибки, строки, I/O](CSharp/error-handling.md) | Exceptions, строки, JSON, файлы, Regex |
 | 6 | [Async и Threading](CSharp/async-threading.md) | Task, async/await, CancellationToken, Channel, синхронизация |
 | 7 | [Modern C# 8–14](CSharp/modern-features.md) | Pattern matching, nullable, records, primary constructors |
+| 8 | [Design Patterns](CSharp/design-patterns.md) | Strategy, Factory, Decorator, Observer, Builder, Singleton |
 
 ---
 
@@ -61,6 +63,8 @@ C#/
 | 5 | [Caching](AspNetCore/caching.md) | IMemoryCache, IDistributedCache, Rate Limiting |
 | 6 | [API Design](AspNetCore/api-design.md) | Controllers, Minimal API, versioning, content negotiation |
 | 7 | [Logging и Observability](AspNetCore/logging-observability.md) | ILogger, Serilog, OpenTelemetry, Jaeger, Seq |
+| 8 | [Resilience и HttpClient](AspNetCore/resilience.md) | Polly, retry, circuit breaker, typed HttpClient |
+| 9 | [Security Practices](AspNetCore/security-practices.md) | Timing-safe, token hashing, path traversal, CORS |
 
 ---
 
@@ -84,6 +88,9 @@ C#/
 | 1 | [Patterns](Architecture/patterns.md) | Clean Architecture, VSA, N-Layered, масштабирование |
 | 2 | [CQRS и MediatR](Architecture/cqrs-mediatr.md) | Result Pattern, Command/Query, pipeline behaviors |
 | 3 | [Архитектурные тесты](Architecture/arch-tests.md) | NetArchTest, проверка слоёв, конвенции |
+| 4 | [DDD на практике](Architecture/ddd.md) | Value Objects, Aggregate Root, Domain Events, Result Pattern |
+| 5 | [SOLID + DRY/KISS/YAGNI](Architecture/solid.md) | SRP, OCP, LSP, ISP, DIP, DRY, KISS, YAGNI с примерами |
+| 6 | [Patterns (+ Modular Monolith)](Architecture/patterns.md) | Modular Monolith, структура модулей, inter-module communication |
 
 ---
 
@@ -110,6 +117,7 @@ C#/
 | [Result Pattern](Snippets/result-pattern.md) | Примеры Result/Option |
 | [EF Core Queries](Snippets/efcore-queries.md) | Запросы, Include, проекции |
 | [WPF ViewModel](Snippets/wpf-viewmodel.md) | MVVM Toolkit, ObservableProperty |
+| [CRUD — полный пример](Snippets/crud-example.md) | Endpoint → Handler → Domain → EF → БД для всех операций |
 
 ---
 

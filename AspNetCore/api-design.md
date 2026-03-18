@@ -5,6 +5,28 @@ level: Senior
 
 # API: Model Binding, Controllers, Versioning
 
+## Что это, зачем и когда
+
+### Что такое REST API?
+Способ общения между приложениями по HTTP. Клиент (браузер, мобилка) отправляет HTTP-запрос → сервер обрабатывает → возвращает JSON-ответ.
+
+**Аналогия — официант:** Клиент (браузер) говорит «дай меню» (GET /menu). Официант (API) идёт на кухню (бизнес-логика), приносит меню (JSON-ответ).
+
+### Minimal API vs Controllers — когда что?
+
+| Критерий | Minimal API | Controllers |
+|----------|------------|-------------|
+| Объём кода | Мало boilerplate | Больше boilerplate |
+| Производительность | Быстрее | Чуть медленнее |
+| Когда | Новые проекты, простые API | Legacy, сложные фильтры |
+| DI | Явный (в параметрах) | Через конструктор |
+| Группировка | MapGroup() | [Route] атрибут |
+| AOT/Trimming | Поддерживает | Ограниченно |
+
+**Рекомендация:** Для новых проектов — **Minimal API**. Для сложной организации — Minimal API + Handler-классы + MapGroup.
+
+---
+
 > [!question]- **Интервью: Minimal API vs Controllers — trade-offs?**
 > **Minimal API** — легковесные, меньше boilerplate, хорошо для простых CRUD и прототипов. **Controllers** — полная модель MVC, фильтры, model binding, Swagger из коробки. Для сложных API с валидацией, авторизацией на уровне action — Controllers.
 
@@ -212,10 +234,91 @@ public class ProductsController : ControllerBase
 
 ---
 
-## Swagger / OpenAPI
+## OpenAPI
+
+### Встроенный OpenAPI (.NET 9+) — рекомендуемый подход
+
+.NET 9 убрал зависимость от Swashbuckle. OpenAPI генерация встроена в ASP.NET Core.
 
 ```csharp
-// NuGet: Swashbuckle.AspNetCore
+// Регистрация — без сторонних пакетов!
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+// Endpoint для OpenAPI документа (JSON)
+app.MapOpenApi(); // → /openapi/v1.json
+
+// Для Swagger UI — отдельный пакет (только dev)
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "My API v1");
+    });
+    // NuGet: Swashbuckle.AspNetCore.SwaggerUI (только UI, без генератора)
+}
+```
+
+### Кастомизация OpenAPI документа
+
+```csharp
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, ct) =>
+    {
+        document.Info = new OpenApiInfo
+        {
+            Title = "My API",
+            Version = "v1",
+            Description = "Production API"
+        };
+        return Task.CompletedTask;
+    });
+
+    // JWT Bearer схема
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
+
+// Security scheme transformer
+public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransformer
+{
+    public Task TransformAsync(OpenApiDocument document,
+        OpenApiDocumentTransformerContext context, CancellationToken ct)
+    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        };
+        return Task.CompletedTask;
+    }
+}
+```
+
+### TypedResults → точная OpenAPI схема
+
+```csharp
+// TypedResults автоматически генерируют корректную OpenAPI схему
+app.MapGet("/orders/{id}", async (Guid id, GetOrderHandler handler, CancellationToken ct)
+    : Results<Ok<OrderDto>, NotFound, ProblemHttpResult> =>
+{
+    var result = await handler.HandleAsync(id, ct);
+    return result.Match<Results<Ok<OrderDto>, NotFound, ProblemHttpResult>>(
+        order => TypedResults.Ok(order),
+        error => error.Type == ErrorType.NotFound
+            ? TypedResults.NotFound()
+            : TypedResults.Problem(error.Message, statusCode: 400));
+});
+// OpenAPI: 200 → OrderDto, 404 → empty, 400 → ProblemDetails
+```
+
+### Swashbuckle (legacy, до .NET 9)
+
+```csharp
+// NuGet: Swashbuckle.AspNetCore (для .NET 8 и старше)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {
@@ -236,6 +339,12 @@ builder.Services.AddSwaggerGen(opts =>
 
 // В .csproj: <GenerateDocumentationFile>true</GenerateDocumentationFile>
 ```
+
+| Подход | Версия | Плюсы | Минусы |
+|--------|--------|-------|--------|
+| **Встроенный OpenAPI** | .NET 9+ | Нет сторонних зависимостей, Document Transformers | Swagger UI нужен отдельно |
+| **Swashbuckle** | .NET 6-8 | Swagger UI из коробки, зрелый | Стороння зависимость, не обновляется |
+| **NSwag** | Любая | Генерация клиентов (C#, TS) | Сложнее в настройке |
 
 ---
 

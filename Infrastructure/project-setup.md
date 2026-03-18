@@ -7,6 +7,26 @@ level: Senior
 
 > По материалам: [How to Start a New .NET Project in 2026](https://antondevtips.com/blog/how-to-start-a-new-dotnet-project-in-2026/)
 
+## Что это, зачем и когда
+
+### Что это?
+Чеклист настроек, которые нужно сделать **в самом начале** проекта. Если не настроить сразу — потом будет больно: предупреждения копятся, стиль кода разный у всех, зависимости конфликтуют.
+
+**Аналогия:** Фундамент дома. Закладываешь ОДИН раз в начале. Если криво — потом весь дом перекосит. Переделывать фундамент готового дома — дорого и больно.
+
+### Зачем?
+- **Directory.Build.props** — единые настройки для ВСЕХ проектов (nullable, warnings as errors). Без этого — каждый проект настраиваешь отдельно.
+- **Analyzers** — автоматически находят баги, code smells, уязвимости. Без них — баги попадают в production.
+- **EditorConfig** — единый стиль кода для всей команды. Без него — каждый пишет по-своему, PR невозможно ревьюить.
+- **Central Package Management** — одна версия NuGet-пакета для всех проектов. Без этого — конфликты версий, «у меня работает».
+- **CI/CD** — автоматическая проверка каждого коммита. Без этого — «забыл прогнать тесты».
+
+### Когда применять?
+- **Каждый новый проект** — с ПЕРВОГО дня
+- **Существующий проект** — при первой возможности (чем раньше, тем дешевле)
+
+---
+
 ## 7 шагов для нового проекта
 
 ### 1. Directory.Build.props — настройки решения
@@ -39,12 +59,111 @@ level: Senior
 
 `ManagePackageVersionsCentrally = true`. Все версии пакетов в одном месте. В `.csproj` — без версий.
 
-### 5. Aspire
+### 5. .NET Aspire
 
-- **ServiceDefaults** — общая конфигурация, observability
-- **AppHost** — оркестратор, зависимости (PostgreSQL, Redis)
-- `aspire publish` — Docker Compose
-- Connection strings через environment variables
+**Что это:** Фреймворк для cloud-native .NET приложений. Оркестрация сервисов, автоматическая конфигурация, встроенный dashboard для мониторинга.
+
+**Аналогия:** Docker Compose на стероидах. Aspire знает про .NET и автоматически настраивает connection strings, health checks, OpenTelemetry.
+
+#### Структура проекта
+
+```
+MySolution/
+├── MyApp.AppHost/          ← Оркестратор (точка входа для dev)
+│   └── Program.cs
+├── MyApp.ServiceDefaults/  ← Общая конфигурация для всех сервисов
+│   └── Extensions.cs
+├── MyApp.Api/              ← Web API
+└── MyApp.Worker/           ← Background Worker
+```
+
+#### AppHost — оркестратор
+
+```csharp
+// MyApp.AppHost/Program.cs
+var builder = DistributedApplication.CreateBuilder(args);
+
+// Инфраструктура
+var postgres = builder.AddPostgres("postgres")
+    .WithDataVolume()              // persist данных
+    .WithPgAdmin();                // UI для БД
+
+var db = postgres.AddDatabase("appdb");
+
+var redis = builder.AddRedis("cache")
+    .WithRedisCommander();         // UI для Redis
+
+// Сервисы
+var api = builder.AddProject<Projects.MyApp_Api>("api")
+    .WithReference(db)             // автоматический connection string
+    .WithReference(redis)
+    .WithExternalHttpEndpoints();  // публичный endpoint
+
+builder.AddProject<Projects.MyApp_Worker>("worker")
+    .WithReference(db)
+    .WithReference(redis);
+
+builder.Build().Run();
+```
+
+#### ServiceDefaults — общая конфигурация
+
+```csharp
+// MyApp.ServiceDefaults/Extensions.cs
+public static class Extensions
+{
+    public static IHostApplicationBuilder AddServiceDefaults(
+        this IHostApplicationBuilder builder)
+    {
+        // OpenTelemetry: логи, метрики, трейсы
+        builder.ConfigureOpenTelemetry();
+
+        // Health Checks
+        builder.AddDefaultHealthChecks();
+
+        // HttpClient resilience по умолчанию
+        builder.Services.ConfigureHttpClientDefaults(http =>
+        {
+            http.AddStandardResilienceHandler();
+        });
+
+        // Service Discovery
+        builder.Services.AddServiceDiscovery();
+
+        return builder;
+    }
+}
+
+// В каждом сервисе:
+builder.AddServiceDefaults();
+```
+
+#### Aspire Dashboard
+
+При запуске AppHost автоматически поднимается dashboard:
+- **Traces** — distributed tracing всех сервисов
+- **Metrics** — CPU, память, HTTP запросы
+- **Logs** — structured logs всех сервисов
+- **Resources** — статус каждого контейнера/проекта
+
+#### Публикация
+
+```bash
+# Генерация Docker Compose / Kubernetes manifests
+aspire publish --output-path ./deploy
+
+# Или через CLI
+dotnet run --project MyApp.AppHost -- publish
+```
+
+| Aspire vs Docker Compose | Aspire | Docker Compose |
+|--------------------------|--------|---------------|
+| Connection strings | Автоматически | Вручную в .env |
+| Health Checks | Автоматически | Вручную в YAML |
+| OpenTelemetry | Встроено | Настраивать самому |
+| Service Discovery | Автоматически | Через DNS / nginx |
+| Dashboard | Из коробки | Grafana / Portainer |
+| Подходит для | .NET приложения | Любые контейнеры |
 
 ### 6. OpenTelemetry
 
