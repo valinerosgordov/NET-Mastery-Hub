@@ -1,44 +1,44 @@
-# NET-Mastery-Hub
+﻿# NET-Mastery-Hub
 
-> **Comprehensive C# / .NET knowledge base** — from Junior fundamentals to Senior architecture and distributed systems.
+> **Comprehensive C# / .NET knowledge base** вЂ” from Junior fundamentals to Senior architecture and distributed systems.
 >
-> **119 deep-dive notes / ~3.2 MB**, organized by topic. Russian primary, English technical terms.
+> **138 deep-dive notes / ~3.4 MB**, organized by topic. Russian primary, English technical terms.
 
 ---
 
-## 📋 Table of Contents
+## рџ“‹ Table of Contents
 
-- [Quick Start — куда смотреть первым делом](#quick-start)
+- [Quick Start вЂ” РєСѓРґР° СЃРјРѕС‚СЂРµС‚СЊ РїРµСЂРІС‹Рј РґРµР»РѕРј](#quick-start)
 - [How this vault is organized](#how-this-vault-is-organized)
-- [📁 The 12 sections](#-the-12-sections)
-- [🌟 Top-20 must-read для Senior](#-top-20-must-read-для-senior)
-- [🗺️ Special navigation files](#️-special-navigation-files)
-- [🎯 Quick navigation — by use case](#-quick-navigation--by-use-case)
-- [📐 Conventions & format](#-conventions--format)
-- [📊 Stats](#-stats)
+- [рџ“Ѓ The 12 sections](#-the-12-sections)
+- [рџЊџ Top-20 must-read РґР»СЏ Senior](#-top-20-must-read-РґР»СЏ-senior)
+- [рџ—єпёЏ Special navigation files](#пёЏ-special-navigation-files)
+- [рџЋЇ Quick navigation вЂ” by use case](#-quick-navigation--by-use-case)
+- [рџ“ђ Conventions & format](#-conventions--format)
+- [рџ“Љ Stats](#-stats)
 - [License](#license)
 
 ---
 
 ## Quick Start
 
-### Куда идти первым делом?
+### РљСѓРґР° РёРґС‚Рё РїРµСЂРІС‹Рј РґРµР»РѕРј?
 
-| Ты кто | Куда идти |
+| РўС‹ РєС‚Рѕ | РљСѓРґР° РёРґС‚Рё |
 |--------|-----------|
-| 🌱 **Никогда не писал на C#** | [`CSharp/csharp-basics.md`](CSharp/csharp-basics.md) |
-| 🌿 **Junior хочет в Middle** | [`LearningPath/02_junior-to-middle.md`](LearningPath/02_junior-to-middle.md) (3-6 месяцев план) |
-| 🌳 **Middle хочет в Senior** | [`LearningPath/03_middle-to-senior.md`](LearningPath/03_middle-to-senior.md) |
-| 🎤 **Готовлюсь к собесу** | [`LearningPath/04_interview-prep.md`](LearningPath/04_interview-prep.md) (1-2 недели спринт) |
-| 🏗️ **Проектирую новое приложение** | [`Architecture/real-world-scenarios.md`](Architecture/real-world-scenarios.md) — 18 сценариев с решениями |
-| 🤔 **Какой паттерн / архитектуру выбрать?** | [`Architecture/patterns-decision-guide.md`](Architecture/patterns-decision-guide.md) |
-| 📚 **Reference / lookup** | [Полное оглавление ниже](#-the-12-sections) |
+| рџЊ± **РќРёРєРѕРіРґР° РЅРµ РїРёСЃР°Р» РЅР° C#** | [`CSharp/csharp-basics.md`](CSharp/csharp-basics.md) |
+| рџЊї **Junior С…РѕС‡РµС‚ РІ Middle** | [`LearningPath/02_junior-to-middle.md`](LearningPath/02_junior-to-middle.md) (3-6 РјРµСЃСЏС†РµРІ РїР»Р°РЅ) |
+| рџЊі **Middle С…РѕС‡РµС‚ РІ Senior** | [`LearningPath/03_middle-to-senior.md`](LearningPath/03_middle-to-senior.md) |
+| рџЋ¤ **Р“РѕС‚РѕРІР»СЋСЃСЊ Рє СЃРѕР±РµСЃСѓ** | [`LearningPath/04_interview-prep.md`](LearningPath/04_interview-prep.md) (1-2 РЅРµРґРµР»Рё СЃРїСЂРёРЅС‚) |
+| рџЏ—пёЏ **РџСЂРѕРµРєС‚РёСЂСѓСЋ РЅРѕРІРѕРµ РїСЂРёР»РѕР¶РµРЅРёРµ** | [`Architecture/real-world-scenarios.md`](Architecture/real-world-scenarios.md) вЂ” 18 СЃС†РµРЅР°СЂРёРµРІ СЃ СЂРµС€РµРЅРёСЏРјРё |
+| рџ¤” **РљР°РєРѕР№ РїР°С‚С‚РµСЂРЅ / Р°СЂС…РёС‚РµРєС‚СѓСЂСѓ РІС‹Р±СЂР°С‚СЊ?** | [`Architecture/patterns-decision-guide.md`](Architecture/patterns-decision-guide.md) |
+| рџ“љ **Reference / lookup** | [РџРѕР»РЅРѕРµ РѕРіР»Р°РІР»РµРЅРёРµ РЅРёР¶Рµ](#-the-12-sections) |
 
-### Как использовать
+### РљР°Рє РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ
 
-1. **В Obsidian** — открой папку как vault для full backlink navigation
-2. **На GitHub** — markdown render OK, ссылки работают через relative paths
-3. **Локально** — VSCode + Markdown Preview
+1. **Р’ Obsidian** вЂ” РѕС‚РєСЂРѕР№ РїР°РїРєСѓ РєР°Рє vault РґР»СЏ full backlink navigation
+2. **РќР° GitHub** вЂ” markdown render OK, СЃСЃС‹Р»РєРё СЂР°Р±РѕС‚Р°СЋС‚ С‡РµСЂРµР· relative paths
+3. **Р›РѕРєР°Р»СЊРЅРѕ** вЂ” VSCode + Markdown Preview
 
 ---
 
@@ -46,204 +46,204 @@
 
 ```
 NET-Mastery-Hub/
-│
-├── 🎓 LearningPath/      Roadmaps Junior → Middle → Senior + interview prep
-│
-├── 💎 CSharp/             Сам язык — fundamentals → advanced (29 файлов)
-├── ⚙️  Runtime/            CLR internals, GC, JIT, threading (7 файлов)
-│
-├── 🌐 AspNetCore/         Web framework — auth, middleware, GraphQL, SignalR (14)
-├── 💾 EFCore/             ORM — basics, performance, patterns (7)
-├── 🗄️  SQL/                SQL fundamentals + indexes + Postgres (4)
-│
-├── 🏛️  Architecture/       SOLID, DDD, CQRS, microservices, decision guides (12)
-├── ✅ Quality/            Clean code, refactoring, code review, static analysis (5)
-├── 🧪 Testing/            Unit, integration, mocking, mutation, fundamentals (5)
-├── ⚡ Performance/        Profiling, optimization, caching, HFT (11)
-├── 🚢 Infrastructure/     Docker, k8s, CI/CD, observability, messaging (10)
-│
-├── 📋 Snippets/           Ready-to-copy code patterns (5)
-├── 📜 Scripts/            Maintenance PowerShell scripts
-└── 📖 _changelog.md       What changed when
+в”‚
+в”њв”Ђв”Ђ рџЋ“ LearningPath/      Roadmaps Junior в†’ Middle в†’ Senior + interview prep
+в”‚
+в”њв”Ђв”Ђ рџ’Ћ CSharp/             РЎР°Рј СЏР·С‹Рє вЂ” fundamentals в†’ advanced (29 С„Р°Р№Р»РѕРІ)
+в”њв”Ђв”Ђ вљ™пёЏ  Runtime/            CLR internals, GC, JIT, threading (7 С„Р°Р№Р»РѕРІ)
+в”‚
+в”њв”Ђв”Ђ рџЊђ AspNetCore/         Web framework вЂ” auth, middleware, GraphQL, SignalR (14)
+в”њв”Ђв”Ђ рџ’ѕ EFCore/             ORM вЂ” basics, performance, patterns (7)
+в”њв”Ђв”Ђ рџ—„пёЏ  SQL/                SQL fundamentals + indexes + Postgres (4)
+в”‚
+в”њв”Ђв”Ђ рџЏ›пёЏ  Architecture/       SOLID, DDD, CQRS, microservices, decision guides (12)
+в”њв”Ђв”Ђ вњ… Quality/            Clean code, refactoring, code review, static analysis (5)
+в”њв”Ђв”Ђ рџ§Є Testing/            Unit, integration, mocking, mutation, fundamentals (5)
+в”њв”Ђв”Ђ вљЎ Performance/        Profiling, optimization, caching, HFT (11)
+в”њв”Ђв”Ђ рџљў Infrastructure/     Docker, k8s, CI/CD, observability, messaging (10)
+в”‚
+в”њв”Ђв”Ђ рџ“‹ Snippets/           Ready-to-copy code patterns (5)
+в”њв”Ђв”Ђ рџ“њ Scripts/            Maintenance PowerShell scripts
+в””в”Ђв”Ђ рџ“– _changelog.md       What changed when
 ```
 
 ---
 
-## 📁 The 12 sections
+## рџ“Ѓ The 12 sections
 
-> Каждая папка имеет свой `README.md` с детальной навигацией внутри.
+> РљР°Р¶РґР°СЏ РїР°РїРєР° РёРјРµРµС‚ СЃРІРѕР№ `README.md` СЃ РґРµС‚Р°Р»СЊРЅРѕР№ РЅР°РІРёРіР°С†РёРµР№ РІРЅСѓС‚СЂРё.
 
-### 🎓 [LearningPath](LearningPath/) — где начать (8 файлов)
+### рџЋ“ [LearningPath](LearningPath/) вЂ” РіРґРµ РЅР°С‡Р°С‚СЊ (8 С„Р°Р№Р»РѕРІ)
 
-Roadmaps для роста: какие темы изучать в каком порядке + interview prep.
+Roadmaps РґР»СЏ СЂРѕСЃС‚Р°: РєР°РєРёРµ С‚РµРјС‹ РёР·СѓС‡Р°С‚СЊ РІ РєР°РєРѕРј РїРѕСЂСЏРґРєРµ + interview prep.
 
-→ [Подробнее в LearningPath/README.md](LearningPath/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ LearningPath/README.md](LearningPath/README.md)
 
-### 💎 [CSharp](CSharp/) — язык (29 файлов / 933 KB) ⭐ самая большая
+### рџ’Ћ [CSharp](CSharp/) вЂ” СЏР·С‹Рє (29 С„Р°Р№Р»РѕРІ / 933 KB) в­ђ СЃР°РјР°СЏ Р±РѕР»СЊС€Р°СЏ
 
-Полное покрытие C# языка от basics до Senior:
+РџРѕР»РЅРѕРµ РїРѕРєСЂС‹С‚РёРµ C# СЏР·С‹РєР° РѕС‚ basics РґРѕ Senior:
 
 - **Junior:** csharp-basics, datetime-timezones, strings-regex, enums-flags, tuples-deconstruction
 - **Middle:** oop, modern-features, async-threading, collections-linq, error-handling, nullable-types, io-streams, equality-comparison, attributes-metadata, indexers-operators, dispose-pattern, extension-methods, iterators-yield, delegates-events
 - **Senior:** generics-deep, functional-csharp, design-patterns, types-and-memory, reflection-expression-trees, source-generators, csharp-language-design, csharp-vs-other-langs, cli-tools-scripting, desktop-frameworks
 
-→ [Подробнее в CSharp/README.md](CSharp/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ CSharp/README.md](CSharp/README.md)
 
-### ⚙️ [Runtime](Runtime/) — CLR internals (7 файлов)
+### вљ™пёЏ [Runtime](Runtime/) вЂ” CLR internals (7 С„Р°Р№Р»РѕРІ)
 
 `gc-memory`, `compilation-jit`, `concurrency-atomics`, `span-layout`, `threading-basics`, `interop-pinvoke`, `diagnostics-tools`
 
-→ [Подробнее в Runtime/README.md](Runtime/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ Runtime/README.md](Runtime/README.md)
 
-### 🌐 [AspNetCore](AspNetCore/) — web framework (14 файлов / 392 KB)
+### рџЊђ [AspNetCore](AspNetCore/) вЂ” web framework (14 С„Р°Р№Р»РѕРІ / 392 KB)
 
 `api-design`, `auth-security`, `pipeline-middleware`, `di-configuration`, `caching`, `logging-observability`, `hosting-background`, `resilience`, `security-practices`, `signalr`, `graphql`, `blazor-server`, `blazor-wasm`, `native-aot`
 
-→ [Подробнее в AspNetCore/README.md](AspNetCore/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ AspNetCore/README.md](AspNetCore/README.md)
 
-### 💾 [EFCore](EFCore/) — ORM (7 файлов)
+### рџ’ѕ [EFCore](EFCore/) вЂ” ORM (7 С„Р°Р№Р»РѕРІ)
 
 `basics-tracking`, `queries-performance`, `relationships`, `migrations`, `concurrency`, `patterns`, `dapper-comparison`
 
-→ [Подробнее в EFCore/README.md](EFCore/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ EFCore/README.md](EFCore/README.md)
 
-### 🗄️ [SQL](SQL/) — relational DB (4 файла)
+### рџ—„пёЏ [SQL](SQL/) вЂ” relational DB (4 С„Р°Р№Р»Р°)
 
 `sql-basics`, `indexes-deep`, `optimization`, `postgresql-deep`
 
-→ [Подробнее в SQL/README.md](SQL/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ SQL/README.md](SQL/README.md)
 
-### 🏛️ [Architecture](Architecture/) — patterns & systems (12 файлов / 385 KB)
+### рџЏ›пёЏ [Architecture](Architecture/) вЂ” patterns & systems (12 С„Р°Р№Р»РѕРІ / 385 KB)
 
-`patterns` (N-Layer/Clean/VSA), `solid`, `ddd`, `cqrs-mediatr`, `distributed-systems`, `microservices-vs-monolith`, `system-design`, `architecture-decisions`, `arch-tests`, **`patterns-decision-guide`** (новый!), **`real-world-scenarios`** (18 case studies), `webai-csharp-architecture`
+`patterns` (N-Layer/Clean/VSA), `solid`, `ddd`, `cqrs-mediatr`, `distributed-systems`, `microservices-vs-monolith`, `system-design`, `architecture-decisions`, `arch-tests`, **`patterns-decision-guide`** (РЅРѕРІС‹Р№!), **`real-world-scenarios`** (18 case studies), `webai-csharp-architecture`
 
-→ [Подробнее в Architecture/README.md](Architecture/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ Architecture/README.md](Architecture/README.md)
 
-### ✅ [Quality](Quality/) — clean code (5 файлов)
+### вњ… [Quality](Quality/) вЂ” clean code (5 С„Р°Р№Р»РѕРІ)
 
-`clean-code` (Junior basics), `code-quality` (Senior tools — analyzers/SonarCloud), `refactoring`, `code-review`, `static-analysis`
+`clean-code` (Junior basics), `code-quality` (Senior tools вЂ” analyzers/SonarCloud), `refactoring`, `code-review`, `static-analysis`
 
-> ⚠️ `clean-code.md` ≠ `code-quality.md` — это разные уровни одной темы (Junior принципы vs Senior tooling).
+> вљ пёЏ `clean-code.md` в‰  `code-quality.md` вЂ” СЌС‚Рѕ СЂР°Р·РЅС‹Рµ СѓСЂРѕРІРЅРё РѕРґРЅРѕР№ С‚РµРјС‹ (Junior РїСЂРёРЅС†РёРїС‹ vs Senior tooling).
 
-→ [Подробнее в Quality/README.md](Quality/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ Quality/README.md](Quality/README.md)
 
-### 🧪 [Testing](Testing/) — testing strategies (5 файлов)
+### рџ§Є [Testing](Testing/) вЂ” testing strategies (5 С„Р°Р№Р»РѕРІ)
 
-`testing-fundamentals` (Junior basics), `testing` (Senior — xUnit/TUnit/TestContainers), `integration-testing`, `mocking-strategies`, `mutation-load-testing`
+`testing-fundamentals` (Junior basics), `testing` (Senior вЂ” xUnit/TUnit/TestContainers), `integration-testing`, `mocking-strategies`, `mutation-load-testing`
 
-> ⚠️ `testing.md` ≠ `testing-fundamentals.md` — это разные уровни (Senior tools vs Junior basics).
+> вљ пёЏ `testing.md` в‰  `testing-fundamentals.md` вЂ” СЌС‚Рѕ СЂР°Р·РЅС‹Рµ СѓСЂРѕРІРЅРё (Senior tools vs Junior basics).
 
-→ [Подробнее в Testing/README.md](Testing/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ Testing/README.md](Testing/README.md)
 
-### ⚡ [Performance](Performance/) — производительность (11 файлов)
+### вљЎ [Performance](Performance/) вЂ” РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕСЃС‚СЊ (11 С„Р°Р№Р»РѕРІ)
 
-`performance-fundamentals` (Junior basics), `performance` (Senior — BenchmarkDotNet/PerfView), `optimization-patterns`, `caching-strategies`, `memory-profiling`, `async-performance`, `lazy-eager-loading`, `hft-low-latency`, `bottleneck-analysis`, `capacity-planning`, `performance-budgets`
+`performance-fundamentals` (Junior basics), `performance` (Senior вЂ” BenchmarkDotNet/PerfView), `optimization-patterns`, `caching-strategies`, `memory-profiling`, `async-performance`, `lazy-eager-loading`, `hft-low-latency`, `bottleneck-analysis`, `capacity-planning`, `performance-budgets`
 
-> ⚠️ `performance.md` ≠ `performance-fundamentals.md` — Senior tools vs Junior basics.
+> вљ пёЏ `performance.md` в‰  `performance-fundamentals.md` вЂ” Senior tools vs Junior basics.
 
-→ [Подробнее в Performance/README.md](Performance/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ Performance/README.md](Performance/README.md)
 
-### 🚢 [Infrastructure](Infrastructure/) — DevOps & deploy (10 файлов / 331 KB)
+### рџљў [Infrastructure](Infrastructure/) вЂ” DevOps & deploy (10 С„Р°Р№Р»РѕРІ / 331 KB)
 
 `docker`, `kubernetes`, `cicd-github-actions`, `observability`, `messaging`, `project-setup`, `ipc-named-pipes-grpc`, `wpf-production`, `llm-rag-patterns`, `semantic-kernel`
 
-→ [Подробнее в Infrastructure/README.md](Infrastructure/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ Infrastructure/README.md](Infrastructure/README.md)
 
-### 📋 [Snippets](Snippets/) — ready-to-copy (5 файлов)
+### рџ“‹ [Snippets](Snippets/) вЂ” ready-to-copy (5 С„Р°Р№Р»РѕРІ)
 
 `crud-example`, `efcore-queries`, `mediatr-handlers`, `result-pattern`, `wpf-viewmodel`
 
-→ [Подробнее в Snippets/README.md](Snippets/README.md)
+в†’ [РџРѕРґСЂРѕР±РЅРµРµ РІ Snippets/README.md](Snippets/README.md)
 
-### 📜 [Scripts](Scripts/) — maintenance
+### рџ“њ [Scripts](Scripts/) вЂ” maintenance
 
-`format_audit.ps1`, `fix_formatting.ps1` — для автомейнтенанса формата кода в `.md` файлах.
+`format_audit.ps1`, `fix_formatting.ps1` вЂ” РґР»СЏ Р°РІС‚РѕРјРµР№РЅС‚РµРЅР°РЅСЃР° С„РѕСЂРјР°С‚Р° РєРѕРґР° РІ `.md` С„Р°Р№Р»Р°С….
 
 ```powershell
-# Запускать из корня vault
+# Р—Р°РїСѓСЃРєР°С‚СЊ РёР· РєРѕСЂРЅСЏ vault
 & "Scripts/format_audit.ps1"
 & "Scripts/fix_formatting.ps1"
 ```
 
 ---
 
-## 🌟 Top-20 must-read для Senior
+## рџЊџ Top-20 must-read РґР»СЏ Senior
 
-Если время ограничено — это самые ценные файлы:
+Р•СЃР»Рё РІСЂРµРјСЏ РѕРіСЂР°РЅРёС‡РµРЅРѕ вЂ” СЌС‚Рѕ СЃР°РјС‹Рµ С†РµРЅРЅС‹Рµ С„Р°Р№Р»С‹:
 
-### Язык + Runtime (must-know internals)
+### РЇР·С‹Рє + Runtime (must-know internals)
 
-1. [`CSharp/async-threading.md`](CSharp/async-threading.md) — Task, async/await под капотом (58 KB)
-2. [`CSharp/types-and-memory.md`](CSharp/types-and-memory.md) — value vs reference, boxing, struct internals (53 KB)
-3. [`Runtime/gc-memory.md`](Runtime/gc-memory.md) — GC generations, regions, leaks (56 KB)
-4. [`Runtime/span-layout.md`](Runtime/span-layout.md) — Span\<T\>, ref struct, performance
-5. [`CSharp/generics-deep.md`](CSharp/generics-deep.md) — variance, INumber\<T\>, .NET 7+
+1. [`CSharp/async-threading.md`](CSharp/async-threading.md) вЂ” Task, async/await РїРѕРґ РєР°РїРѕС‚РѕРј (58 KB)
+2. [`CSharp/types-and-memory.md`](CSharp/types-and-memory.md) вЂ” value vs reference, boxing, struct internals (53 KB)
+3. [`Runtime/gc-memory.md`](Runtime/gc-memory.md) вЂ” GC generations, regions, leaks (56 KB)
+4. [`Runtime/span-layout.md`](Runtime/span-layout.md) вЂ” Span\<T\>, ref struct, performance
+5. [`CSharp/generics-deep.md`](CSharp/generics-deep.md) вЂ” variance, INumber\<T\>, .NET 7+
 
 ### Data + EF Core
 
-6. [`EFCore/basics-tracking.md`](EFCore/basics-tracking.md) — Change Tracker, AsNoTracking
-7. [`EFCore/queries-performance.md`](EFCore/queries-performance.md) — N+1, projections
-8. [`EFCore/dapper-comparison.md`](EFCore/dapper-comparison.md) — когда EF, когда Dapper
-9. [`SQL/indexes-deep.md`](SQL/indexes-deep.md) — query plans, B-tree internals
+6. [`EFCore/basics-tracking.md`](EFCore/basics-tracking.md) вЂ” Change Tracker, AsNoTracking
+7. [`EFCore/queries-performance.md`](EFCore/queries-performance.md) вЂ” N+1, projections
+8. [`EFCore/dapper-comparison.md`](EFCore/dapper-comparison.md) вЂ” РєРѕРіРґР° EF, РєРѕРіРґР° Dapper
+9. [`SQL/indexes-deep.md`](SQL/indexes-deep.md) вЂ” query plans, B-tree internals
 
 ### Web framework
 
-10. [`AspNetCore/pipeline-middleware.md`](AspNetCore/pipeline-middleware.md) — request pipeline
-11. [`AspNetCore/auth-security.md`](AspNetCore/auth-security.md) — JWT, OAuth, OIDC
+10. [`AspNetCore/pipeline-middleware.md`](AspNetCore/pipeline-middleware.md) вЂ” request pipeline
+11. [`AspNetCore/auth-security.md`](AspNetCore/auth-security.md) вЂ” JWT, OAuth, OIDC
 
-### Архитектура
+### РђСЂС…РёС‚РµРєС‚СѓСЂР°
 
-12. [`Architecture/patterns-decision-guide.md`](Architecture/patterns-decision-guide.md) ⭐ — какой паттерн под какую задачу
-13. [`Architecture/real-world-scenarios.md`](Architecture/real-world-scenarios.md) ⭐ — 18 case studies
-14. [`Architecture/patterns.md`](Architecture/patterns.md) — N-Layer / Clean / VSA / Hybrid
-15. [`Architecture/microservices-vs-monolith.md`](Architecture/microservices-vs-monolith.md) — когда выбирать
-16. [`Architecture/ddd.md`](Architecture/ddd.md) — Bounded Contexts, Aggregates
+12. [`Architecture/patterns-decision-guide.md`](Architecture/patterns-decision-guide.md) в­ђ вЂ” РєР°РєРѕР№ РїР°С‚С‚РµСЂРЅ РїРѕРґ РєР°РєСѓСЋ Р·Р°РґР°С‡Сѓ
+13. [`Architecture/real-world-scenarios.md`](Architecture/real-world-scenarios.md) в­ђ вЂ” 18 case studies
+14. [`Architecture/patterns.md`](Architecture/patterns.md) вЂ” N-Layer / Clean / VSA / Hybrid
+15. [`Architecture/microservices-vs-monolith.md`](Architecture/microservices-vs-monolith.md) вЂ” РєРѕРіРґР° РІС‹Р±РёСЂР°С‚СЊ
+16. [`Architecture/ddd.md`](Architecture/ddd.md) вЂ” Bounded Contexts, Aggregates
 
 ### Quality + Testing
 
-17. [`Testing/testing-fundamentals.md`](Testing/testing-fundamentals.md) — pyramid, FIRST principles
-18. [`Quality/clean-code.md`](Quality/clean-code.md) — fundamentals
-19. [`Quality/code-review.md`](Quality/code-review.md) — process & culture
+17. [`Testing/testing-fundamentals.md`](Testing/testing-fundamentals.md) вЂ” pyramid, FIRST principles
+18. [`Quality/clean-code.md`](Quality/clean-code.md) вЂ” fundamentals
+19. [`Quality/code-review.md`](Quality/code-review.md) вЂ” process & culture
 
 ### Infrastructure
 
-20. [`Infrastructure/observability.md`](Infrastructure/observability.md) — OpenTelemetry, logs/metrics/traces
+20. [`Infrastructure/observability.md`](Infrastructure/observability.md) вЂ” OpenTelemetry, logs/metrics/traces
 
 ---
 
-## 🗺️ Special navigation files
+## рџ—єпёЏ Special navigation files
 
-Эти файлы — **integrating hubs**, связывающие разные части vault:
+Р­С‚Рё С„Р°Р№Р»С‹ вЂ” **integrating hubs**, СЃРІСЏР·С‹РІР°СЋС‰РёРµ СЂР°Р·РЅС‹Рµ С‡Р°СЃС‚Рё vault:
 
-| Файл | Зачем |
+| Р¤Р°Р№Р» | Р—Р°С‡РµРј |
 |------|-------|
-| [`Architecture/patterns-decision-guide.md`](Architecture/patterns-decision-guide.md) | Под какую задачу — какой паттерн / архитектура |
-| [`Architecture/real-world-scenarios.md`](Architecture/real-world-scenarios.md) | 18 конкретных сценариев: меню, корзина, e-commerce, HFT, IoT |
-| [`LearningPath/00_overview.md`](LearningPath/00_overview.md) | Главная навигация по learning path |
-| [`LearningPath/05_topics-by-priority.md`](LearningPath/05_topics-by-priority.md) | Темы по приоритету value/effort |
+| [`Architecture/patterns-decision-guide.md`](Architecture/patterns-decision-guide.md) | РџРѕРґ РєР°РєСѓСЋ Р·Р°РґР°С‡Сѓ вЂ” РєР°РєРѕР№ РїР°С‚С‚РµСЂРЅ / Р°СЂС…РёС‚РµРєС‚СѓСЂР° |
+| [`Architecture/real-world-scenarios.md`](Architecture/real-world-scenarios.md) | 18 РєРѕРЅРєСЂРµС‚РЅС‹С… СЃС†РµРЅР°СЂРёРµРІ: РјРµРЅСЋ, РєРѕСЂР·РёРЅР°, e-commerce, HFT, IoT |
+| [`LearningPath/00_overview.md`](LearningPath/00_overview.md) | Р“Р»Р°РІРЅР°СЏ РЅР°РІРёРіР°С†РёСЏ РїРѕ learning path |
+| [`LearningPath/05_topics-by-priority.md`](LearningPath/05_topics-by-priority.md) | РўРµРјС‹ РїРѕ РїСЂРёРѕСЂРёС‚РµС‚Сѓ value/effort |
 
 ---
 
-## 🎯 Quick navigation — by use case
+## рџЋЇ Quick navigation вЂ” by use case
 
-### "Я разрабатываю..."
+### "РЇ СЂР°Р·СЂР°Р±Р°С‚С‹РІР°СЋ..."
 
-| Что | Куда |
+| Р§С‚Рѕ | РљСѓРґР° |
 |-----|------|
-| Internal admin tool | [`Architecture/real-world-scenarios.md#сценарий-11`](Architecture/real-world-scenarios.md) |
-| Малый интернет-магазин | [`Architecture/real-world-scenarios.md#сценарий-12`](Architecture/real-world-scenarios.md) |
-| Крупный e-commerce | [`Architecture/real-world-scenarios.md#сценарий-13`](Architecture/real-world-scenarios.md) |
-| Контент-портал / CMS | [`Architecture/real-world-scenarios.md#сценарий-14`](Architecture/real-world-scenarios.md) |
-| SaaS B2B мульти-tenant | [`Architecture/real-world-scenarios.md#сценарий-15`](Architecture/real-world-scenarios.md) |
+| Internal admin tool | [`Architecture/real-world-scenarios.md#СЃС†РµРЅР°СЂРёР№-11`](Architecture/real-world-scenarios.md) |
+| РњР°Р»С‹Р№ РёРЅС‚РµСЂРЅРµС‚-РјР°РіР°Р·РёРЅ | [`Architecture/real-world-scenarios.md#СЃС†РµРЅР°СЂРёР№-12`](Architecture/real-world-scenarios.md) |
+| РљСЂСѓРїРЅС‹Р№ e-commerce | [`Architecture/real-world-scenarios.md#СЃС†РµРЅР°СЂРёР№-13`](Architecture/real-world-scenarios.md) |
+| РљРѕРЅС‚РµРЅС‚-РїРѕСЂС‚Р°Р» / CMS | [`Architecture/real-world-scenarios.md#СЃС†РµРЅР°СЂРёР№-14`](Architecture/real-world-scenarios.md) |
+| SaaS B2B РјСѓР»СЊС‚Рё-tenant | [`Architecture/real-world-scenarios.md#СЃС†РµРЅР°СЂРёР№-15`](Architecture/real-world-scenarios.md) |
 | HFT / Trading | [`Performance/hft-low-latency.md`](Performance/hft-low-latency.md) |
-| IoT платформа | [`Architecture/real-world-scenarios.md#сценарий-17`](Architecture/real-world-scenarios.md) |
+| IoT РїР»Р°С‚С„РѕСЂРјР° | [`Architecture/real-world-scenarios.md#СЃС†РµРЅР°СЂРёР№-17`](Architecture/real-world-scenarios.md) |
 | Desktop app (WPF) | [`CSharp/desktop-frameworks.md`](CSharp/desktop-frameworks.md) |
 
-### "Мне нужно решить..."
+### "РњРЅРµ РЅСѓР¶РЅРѕ СЂРµС€РёС‚СЊ..."
 
-| Проблема | Куда |
+| РџСЂРѕР±Р»РµРјР° | РљСѓРґР° |
 |----------|------|
-| N+1 query в EF | [`EFCore/queries-performance.md`](EFCore/queries-performance.md) |
+| N+1 query РІ EF | [`EFCore/queries-performance.md`](EFCore/queries-performance.md) |
 | Memory leak | [`Runtime/diagnostics-tools.md`](Runtime/diagnostics-tools.md) + [`Runtime/gc-memory.md`](Runtime/gc-memory.md) |
 | Slow database | [`SQL/optimization.md`](SQL/optimization.md) + [`SQL/indexes-deep.md`](SQL/indexes-deep.md) |
 | ThreadPool starvation | [`CSharp/async-threading.md`](CSharp/async-threading.md) + [`Runtime/threading-basics.md`](Runtime/threading-basics.md) |
@@ -252,21 +252,21 @@ Roadmaps для роста: какие темы изучать в каком п�
 | Caching strategy | [`AspNetCore/caching.md`](AspNetCore/caching.md) + [`Performance/caching-strategies.md`](Performance/caching-strategies.md) |
 | Auth / Identity | [`AspNetCore/auth-security.md`](AspNetCore/auth-security.md) |
 
-### "Готовлюсь к интервью на..."
+### "Р“РѕС‚РѕРІР»СЋСЃСЊ Рє РёРЅС‚РµСЂРІСЊСЋ РЅР°..."
 
-| Уровень | Куда |
+| РЈСЂРѕРІРµРЅСЊ | РљСѓРґР° |
 |---------|------|
 | Junior C# | [`LearningPath/02_junior-to-middle.md`](LearningPath/02_junior-to-middle.md) |
-| Middle .NET | [`LearningPath/03_middle-to-senior.md`](LearningPath/03_middle-to-senior.md) + Top-20 список выше |
-| Senior .NET | Top-20 список + [`Architecture/`](Architecture/) полностью |
+| Middle .NET | [`LearningPath/03_middle-to-senior.md`](LearningPath/03_middle-to-senior.md) + Top-20 СЃРїРёСЃРѕРє РІС‹С€Рµ |
+| Senior .NET | Top-20 СЃРїРёСЃРѕРє + [`Architecture/`](Architecture/) РїРѕР»РЅРѕСЃС‚СЊСЋ |
 | Behavioral / soft | [`LearningPath/10_interview-behavioral.md`](LearningPath/10_interview-behavioral.md) |
-| Final sprint (1 неделя) | [`LearningPath/04_interview-prep.md`](LearningPath/04_interview-prep.md) + [`LearningPath/09_senior-tips-cheatsheet.md`](LearningPath/09_senior-tips-cheatsheet.md) |
+| Final sprint (1 РЅРµРґРµР»СЏ) | [`LearningPath/04_interview-prep.md`](LearningPath/04_interview-prep.md) + [`LearningPath/09_senior-tips-cheatsheet.md`](LearningPath/09_senior-tips-cheatsheet.md) |
 
 ---
 
-## 📐 Conventions & format
+## рџ“ђ Conventions & format
 
-### Каждый файл follows:
+### РљР°Р¶РґС‹Р№ С„Р°Р№Р» follows:
 
 ```markdown
 ---
@@ -277,67 +277,67 @@ date: YYYY-MM-DD
 
 # Topic Name
 
-> Tagline — что и зачем (1-2 строки).
+> Tagline вЂ” С‡С‚Рѕ Рё Р·Р°С‡РµРј (1-2 СЃС‚СЂРѕРєРё).
 
-## Что это, зачем и когда
+## Р§С‚Рѕ СЌС‚Рѕ, Р·Р°С‡РµРј Рё РєРѕРіРґР°
 
-## 1. Базовая концепция
-## 2. ... (тематические секции с примерами)
+## 1. Р‘Р°Р·РѕРІР°СЏ РєРѕРЅС†РµРїС†РёСЏ
+## 2. ... (С‚РµРјР°С‚РёС‡РµСЃРєРёРµ СЃРµРєС†РёРё СЃ РїСЂРёРјРµСЂР°РјРё)
 ## N. Common Pitfalls
 ## N+1. Best Practices
 ## Cheat sheet
-## Decision tree (если применимо)
-## См. также (cross-references)
+## Decision tree (РµСЃР»Рё РїСЂРёРјРµРЅРёРјРѕ)
+## РЎРј. С‚Р°РєР¶Рµ (cross-references)
 ## Reading list (books, blogs, docs)
 ```
 
 ### Cross-references
 
-Используется Obsidian-style: `[[folder/file|display name]]`. На GitHub — рендерятся как обычные ссылки.
+РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ Obsidian-style: `[[folder/file|display name]]`. РќР° GitHub вЂ” СЂРµРЅРґРµСЂСЏС‚СЃСЏ РєР°Рє РѕР±С‹С‡РЅС‹Рµ СЃСЃС‹Р»РєРё.
 
 ### Code blocks
 
-ВСЕГДА blank line между preceding header и opening triple-backticks. Скрипт `Scripts/fix_formatting.ps1` чинит автоматом.
+Р’РЎР•Р“Р”Рђ blank line РјРµР¶РґСѓ preceding header Рё opening triple-backticks. РЎРєСЂРёРїС‚ `Scripts/fix_formatting.ps1` С‡РёРЅРёС‚ Р°РІС‚РѕРјР°С‚РѕРј.
 
 ### Tags
 
-Каждый файл имеет tags в frontmatter. Поиск по тегам:
+РљР°Р¶РґС‹Р№ С„Р°Р№Р» РёРјРµРµС‚ tags РІ frontmatter. РџРѕРёСЃРє РїРѕ С‚РµРіР°Рј:
 
 ```bash
-# Все Junior темы
+# Р’СЃРµ Junior С‚РµРјС‹
 grep -r "level: Junior" --include="*.md" -l
 
-# Все про async
+# Р’СЃРµ РїСЂРѕ async
 grep -r "tags:.*async" --include="*.md" -l
 ```
 
 ---
 
-## 📊 Stats
+## рџ“Љ Stats
 
 | | Value |
 |---|---|
-| **Total files** | 119 |
-| **Total size** | ~3.2 MB |
-| **Coverage** | Junior → Senior+ |
-| **Largest folder** | CSharp (29 files / 933 KB) |
+| **Total files** | 138 |
+| **Total size** | ~3.4 MB |
+| **Coverage** | Junior в†’ Senior+ |
+| **Largest folder** | CSharp (35 files / ~1.1 MB) |
 | **Largest file** | `CSharp/async-threading.md` (58 KB) |
 | **Language** | Russian (primary), English (technical terms) |
 | **Last major update** | 2026-04-30 |
 
-### По уровню
+### РџРѕ СѓСЂРѕРІРЅСЋ
 
 ```
-Junior:           ~12 файлов  (basics, fundamentals, daily work)
-Middle:           ~45 файлов  (oop, async, EF, ASP.NET, testing)
-Middle to Senior: ~25 файлов  (patterns, generics, deep topics)
-Senior:           ~37 файлов  (architecture, runtime, performance, advanced)
+Junior:           ~12 С„Р°Р№Р»РѕРІ  (basics, fundamentals, daily work)
+Middle:           ~45 С„Р°Р№Р»РѕРІ  (oop, async, EF, ASP.NET, testing)
+Middle to Senior: ~25 С„Р°Р№Р»РѕРІ  (patterns, generics, deep topics)
+Senior:           ~37 С„Р°Р№Р»РѕРІ  (architecture, runtime, performance, advanced)
 ```
 
-### По категориям
+### РџРѕ РєР°С‚РµРіРѕСЂРёСЏРј
 
 ```
-Language:        29 files  (CSharp/)
+Language:        35 files  (CSharp/)
 Runtime:          7 files  (Runtime/)
 Web framework:   14 files  (AspNetCore/)
 Data:            11 files  (EFCore/ + SQL/)
@@ -354,6 +354,6 @@ Snippets:         5 files  (Snippets/)
 
 ## License
 
-Personal knowledge base — no formal license. Feel free to learn from it; don't republish wholesale.
+Personal knowledge base вЂ” no formal license. Feel free to learn from it; don't republish wholesale.
 
 If you find errors or have suggestions, [open an issue](https://github.com/valinerosgordov/NET-Mastery-Hub/issues).
