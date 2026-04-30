@@ -1,283 +1,210 @@
----
-tags: [index, navigation, readme]
-level: All
-date: 2026-04-30
----
+# NET-Mastery-Hub
 
-# 📚 C# Senior Knowledge Base
+> Comprehensive C# / .NET knowledge base — from Junior fundamentals to Senior architecture. **111 deep-dive notes / ~2.9 MB**, organized for systematic learning, interview prep, and day-to-day reference.
 
-> Production-grade .NET knowledge base для Senior+ разработчиков. **97 файлов, ~2.6 MB**, coverage Junior→Senior.
+Production-grade .NET coverage: language internals, runtime, ASP.NET Core, EF Core, SQL, architecture patterns, performance, testing, infrastructure. Russian primary, English technical terms.
 
 ---
 
-## 🚀 Куда идти?
+## Quick Start
 
-### Хочешь учиться по плану
+### What this is
 
-→ **[[LearningPath/00_overview|Learning Path Overview]]**
+A structured, deeply-researched knowledge base for .NET developers. Each topic file is **17–60 KB** of practical content with examples, common pitfalls, best practices, decision trees, and curated reading lists.
 
-| Цель | Ссылка |
-|------|--------|
-| Junior → Middle | [[LearningPath/02_junior-to-middle\|02 Junior → Middle]] |
-| Middle → Senior | [[LearningPath/03_middle-to-senior\|03 Middle → Senior]] |
-| Готовлюсь к собесу | [[LearningPath/04_interview-prep\|04 Interview Prep]] |
-| Что учить first (priority) | [[LearningPath/05_topics-by-priority\|05 Topics by Priority]] |
-| Senior cheatsheet | [[LearningPath/09_senior-tips-cheatsheet\|09 Senior Tips]] |
-| Behavioral для интервью | [[LearningPath/10_interview-behavioral\|10 Interview Behavioral]] |
-| Книги и курсы | [[LearningPath/99_reading-list\|99 Reading List]] |
+Not a tutorial. Not a course. A **reference vault** organized by topic, designed to be navigated via Obsidian-style backlinks.
 
----
+### Who this is for
 
-## 🗺️ Структура vault (12 разделов, 97 файлов)
+- **Junior** developers building foundations (start with `LearningPath/02_junior-to-middle.md`)
+- **Middle** developers preparing for Senior interviews (`LearningPath/03_middle-to-senior.md`)
+- **Senior** developers as a reference and refresher (Top-15 list below)
+- Anyone preparing for technical interviews in C# / .NET
 
-### LearningPath/ (8 files) — гайды как учить
+### How to use
 
-```
-00_overview                 — главная навигация
-02_junior-to-middle         — roadmap 3-6 месяцев
-03_middle-to-senior         — roadmap для Senior
-04_interview-prep           — за 1-2 недели до собеса
-05_topics-by-priority       — рейтинг по value/effort
-09_senior-tips-cheatsheet   — quick reference
-10_interview-behavioral     — soft skills, STAR
-99_reading-list             — книги, blogs, conferences
-```
-
-### CSharp/ (15 files) — язык
-
-```
-async-threading             — Task, async/await, Channels
-collections-linq            — Collections, LINQ, Immutable
-delegates-events            — Func/Action, events
-design-patterns             — GoF и .NET-specific
-error-handling              — Exceptions vs Result<T,E>
-functional-csharp           — FP стиль: records, monads, railway
-modern-features             — все language features 8→14
-oop                         — классы, interfaces, inheritance
-reflection-expression-trees — метапрограммирование
-source-generators           — compile-time codegen
-types-and-memory            — value/reference, struct
-csharp-language-design      — эволюция C# 1.0→14
-csharp-vs-other-langs       — C# vs TS/Kotlin/Rust/Go/Python/F#
-cli-tools-scripting         — System.CommandLine, Spectre
-desktop-frameworks          — WPF/Avalonia/Uno/MAUI
-```
-
-### Runtime/ (6 files) — низкий уровень CLR
-
-```
-compilation-jit             — Roslyn, IL, JIT, tiered, AOT
-concurrency-atomics         — locks, atomics, memory model
-diagnostics-tools           — dotnet-counters/trace/dump
-gc-memory                   — GC generations, regions, leaks
-interop-pinvoke             — P/Invoke, COM, marshalling
-span-layout                 — Span<T>, struct layout
-```
-
-### AspNetCore/ (14 files) — web framework
-
-```
-api-design                  — REST, OpenAPI, versioning
-auth-security               — JWT, OAuth, OIDC, RBAC
-blazor-server               — Blazor Server (SignalR)
-blazor-wasm                 — Blazor WebAssembly
-caching                     — IMemoryCache, IDistributedCache
-di-configuration            — DI lifetimes, Options
-graphql                     — HotChocolate, DataLoader
-hosting-background          — IHostedService, BackgroundService
-logging-observability       — ILogger, Serilog, OTel
-native-aot                  — AOT compilation, trimming
-pipeline-middleware         — middleware, IExceptionHandler
-resilience                  — Polly, retries
-security-practices          — OWASP top 10
-signalr                     — Real-time, Hubs
-```
-
-### EFCore/ (6 files) — ORM
-
-```
-basics-tracking             — DbContext, Change Tracker
-concurrency                 — optimistic, pessimistic locks
-migrations                  — code-first migrations
-patterns                    — Repository, UoW, Soft Delete
-queries-performance         — N+1, projections
-relationships               — 1:1, 1:N, N:N, TPH/TPT
-```
-
-### SQL/ (4 files) — реляционные БД
-
-```
-sql-basics                  — DDL/DML, JOINs, transactions
-indexes-deep                — индексы досконально, EXPLAIN
-optimization                — query plans, performance
-postgresql-deep             — PG specifics, RLS, JSONB
-```
-
-### Architecture/ (10 files) — паттерны
-
-```
-arch-tests                  — NetArchTest
-architecture-decisions      — ADR, RFC, Design Docs
-cqrs-mediatr                — CQRS pattern, MediatR
-ddd                         — Domain-Driven Design
-distributed-systems         — Saga, Outbox
-microservices-vs-monolith   — выбор архитектуры
-patterns                    — Modular Monolith, VSA, Clean
-solid                       — SOLID
-system-design               — high-level design
-webai-csharp-architecture   — AI integration
-```
-
-### Infrastructure/ (8 files) — DevOps
-
-```
-docker                      — Dockerfile, multi-stage
-ipc-named-pipes-grpc        — IPC patterns
-llm-rag-patterns            — LLM/RAG в .NET
-messaging                   — RabbitMQ, MassTransit
-observability               — OTel, Prometheus, Jaeger
-project-setup               — Directory.Build.props, CPM
-semantic-kernel             — Microsoft Semantic Kernel
-wpf-production              — WPF production patterns
-```
-
-### Performance/ (11 files) — performance
-
-```
-performance + hft + 9 топиков
-(memory profiling, optimization patterns, caching strategies, etc.)
-```
-
-### Quality/ (5 files) — качество кода
-
-```
-clean-code                  — fundamentals, naming, smells
-code-quality                — quality gates
-code-review                 — PR review process
-refactoring                 — safe refactoring techniques
-static-analysis             — analyzers, SonarQube, Roslyn
-```
-
-### Testing/ (5 files) — тестирование
-
-```
-testing                     — основы xUnit
-testing-fundamentals        — что такое тест, виды тестов
-integration-testing         — WebApplicationFactory, Testcontainers
-mocking-strategies          — NSubstitute, anti-patterns
-mutation-load-testing       — Stryker.NET, NBomber, k6
-```
-
-### Snippets/ (5 files) — готовые рецепты
-
-```
-crud-example, efcore-queries, mediatr-handlers,
-result-pattern, wpf-viewmodel
-```
+1. Open the folder in [Obsidian](https://obsidian.md/) for full backlink navigation
+2. Or browse on GitHub — markdown renders fine, links work via relative paths
+3. Start with `LearningPath/00_overview.md` for navigation
 
 ---
 
-## 📊 Статистика
+## Structure (12 sections, 111 files)
 
-| | Значение |
-|--|----------|
-| Всего файлов | 97 |
-| Общий объём | 2.56 MB |
-| Уровень | Junior → Senior+ |
-| Coverage | ~95% Senior .NET topics 2026 |
-| Язык | Русский (основной), English терминология |
+```
+LearningPath/    8 files   Roadmaps and study plans
+CSharp/         25 files   The language itself
+Runtime/         7 files   CLR, GC, JIT, threading
+AspNetCore/     14 files   Web framework deep
+EFCore/          6 files   ORM
+SQL/             4 files   Relational DB
+Architecture/   10 files   Patterns, DDD, distributed
+Infrastructure/  8 files   Docker, observability, messaging
+Performance/    11 files   Performance engineering
+Quality/         5 files   Clean code, refactoring, review
+Testing/         5 files   Unit, integration, mocking, mutation
+Snippets/        5 files   Ready-to-copy patterns
+```
+
+### LearningPath — start here
+
+| File | Purpose |
+|------|---------|
+| `00_overview.md` | Main navigation |
+| `02_junior-to-middle.md` | 3-6 month roadmap |
+| `03_middle-to-senior.md` | Senior roadmap |
+| `04_interview-prep.md` | 1-2 week sprint before interviews |
+| `05_topics-by-priority.md` | Topics ranked by value/effort |
+| `09_senior-tips-cheatsheet.md` | Quick reference |
+| `10_interview-behavioral.md` | Soft skills, STAR method |
+| `99_reading-list.md` | Books, blogs, conferences |
+
+### CSharp — the language (25 files)
+
+Complete coverage from fundamentals to advanced:
+
+- **Junior intro:** `csharp-basics`
+- **Daily work:** `strings-regex`, `datetime-timezones`, `io-streams`, `nullable-types`, `error-handling`, `collections-linq`, `iterators-yield`, `tuples-deconstruction`, `enums-flags`, `attributes-metadata`, `equality-comparison`
+- **Middle fundamentals:** `oop`, `modern-features`, `types-and-memory`, `async-threading`, `delegates-events`
+- **Advanced:** `functional-csharp`, `design-patterns`, `generics-deep`
+- **Senior:** `reflection-expression-trees`, `source-generators`
+- **Context:** `csharp-language-design`, `csharp-vs-other-langs`
+- **Domain:** `cli-tools-scripting`, `desktop-frameworks`
+
+### Runtime — CLR internals (7 files)
+
+`gc-memory`, `compilation-jit`, `concurrency-atomics`, `span-layout`, `threading-basics`, `interop-pinvoke`, `diagnostics-tools`
+
+### AspNetCore (14 files)
+
+`api-design`, `auth-security`, `pipeline-middleware`, `di-configuration`, `caching`, `logging-observability`, `hosting-background`, `resilience`, `security-practices`, `signalr`, `graphql`, `blazor-server`, `blazor-wasm`, `native-aot`
+
+### EFCore (6 files)
+
+`basics-tracking`, `queries-performance`, `relationships`, `migrations`, `concurrency`, `patterns`
+
+### SQL (4 files)
+
+`sql-basics`, `indexes-deep`, `optimization`, `postgresql-deep`
+
+### Architecture (10 files)
+
+`patterns` (Modular Monolith / VSA / Clean), `solid`, `ddd`, `cqrs-mediatr`, `distributed-systems`, `microservices-vs-monolith`, `system-design`, `architecture-decisions`, `arch-tests`, `webai-csharp-architecture`
+
+### Infrastructure (8 files)
+
+`docker`, `observability`, `messaging`, `project-setup`, `ipc-named-pipes-grpc`, `wpf-production`, `llm-rag-patterns`, `semantic-kernel`
+
+### Performance (11 files)
+
+`performance`, `hft`, plus 9 specialized topics on profiling, optimization patterns, caching strategies, lazy loading, memory analysis.
+
+### Quality (5 files)
+
+`clean-code`, `refactoring`, `code-review`, `code-quality`, `static-analysis`
+
+### Testing (5 files)
+
+`testing-fundamentals`, `testing` (xUnit practical), `integration-testing`, `mocking-strategies`, `mutation-load-testing`
+
+### Snippets (5 files)
+
+Production-ready code patterns: CRUD example, EF Core queries, MediatR handlers, Result pattern, WPF view models.
 
 ---
 
-## 🎯 Что нового в этой knowledge base
+## Top-15 must-read for Senior
 
-- **Глубина** — каждый файл 25-60 KB, не поверхностные tutorials
-- **Junior → Senior** — все уровни покрыты
-- **Pitfalls везде** — что НЕ делать
-- **Real production patterns** — не academic
-- **Cross-references** — связи между темами (`[[file]]`)
-- **2026 actual** — учитывает .NET 10, C# 14
-- **Сравнение фреймворков** — не "только Microsoft way"
-- **Multi-paradigm** — OOP + functional, polyglot mindset
+If time is short:
 
----
-
-## 🔑 Top-15 must-read для Senior
-
-Если время ограничено:
-
-1. **[[CSharp/async-threading|async-threading]]** — Task, async/await internals
-2. **[[Runtime/gc-memory|GC и память]]** — поколения, regions, leaks
-3. **[[EFCore/basics-tracking|EF Core Basics]]** — Change Tracker, AsNoTracking
-4. **[[EFCore/queries-performance|EF Queries Performance]]** — N+1
-5. **[[AspNetCore/pipeline-middleware|Pipeline & Middleware]]** — pipeline
-6. **[[AspNetCore/auth-security|Auth & Security]]** — JWT, OAuth
-7. **[[Architecture/patterns|Architecture Patterns]]** — Modular Monolith, VSA
-8. **[[Architecture/microservices-vs-monolith|Microservices vs Monolith]]** — выбор
-9. **[[Architecture/ddd|DDD]]** — aggregates, domain events
-10. **[[SQL/sql-basics|SQL Basics]]** — JOIN, transactions
-11. **[[SQL/indexes-deep|Indexes Deep]]** — производительность БД
-12. **[[Testing/testing-fundamentals|Testing Fundamentals]]** — виды тестов
-13. **[[Testing/integration-testing|Integration Testing]]** — modern stack
-14. **[[Quality/clean-code|Clean Code]]** — читаемый код
-15. **[[Quality/code-review|Code Review]]** — process & culture
+1. `CSharp/async-threading.md` — Task, async/await internals
+2. `Runtime/gc-memory.md` — GC generations, regions, leaks
+3. `EFCore/basics-tracking.md` — Change Tracker, AsNoTracking
+4. `EFCore/queries-performance.md` — N+1, projections
+5. `AspNetCore/pipeline-middleware.md` — request pipeline
+6. `AspNetCore/auth-security.md` — JWT, OAuth, OIDC
+7. `Architecture/patterns.md` — Modular Monolith, VSA, Clean
+8. `Architecture/microservices-vs-monolith.md` — when to choose
+9. `Architecture/ddd.md` — bounded contexts, aggregates
+10. `SQL/sql-basics.md` — JOINs, transactions, isolation
+11. `SQL/indexes-deep.md` — query plans, B-tree internals
+12. `Testing/testing-fundamentals.md` — pyramid, FIRST principles
+13. `Testing/integration-testing.md` — modern stack
+14. `Quality/clean-code.md` — fundamentals
+15. `Quality/code-review.md` — process and culture
 
 ---
 
-## 📝 Полный список новых тем (Junior coverage)
+## Conventions
 
-В отличие от прошлых версий, теперь vault имеет полный **Junior intro** для:
+### File format
 
-- ✅ **Quality/clean-code** — что такое чистый код
-- ✅ **Testing/testing-fundamentals** — что такое тест, виды
-- ✅ **SQL/sql-basics** — DDL/DML/JOINs/transactions
-- ✅ **Architecture/microservices-vs-monolith** — когда что выбирать
+Every note follows the same structure:
+
+```
+---
+tags: [...]
+level: Junior | Middle | Senior | All
+date: YYYY-MM-DD
+---
+
+# Topic Name
+
+> Tagline — what and why.
+
+## What it is, why, when
+
+## 1, 2, 3, ... topical sections with examples
+
+## Common Pitfalls
+
+## Best Practices
+
+## Cheat sheet
+
+## Decision tree
+
+## See also (cross-references)
+
+## Reading list
+```
+
+### Cross-references
+
+Use Obsidian-style links: `[[folder/file|display name]]`. They render as plain links on GitHub.
+
+### Code blocks
+
+Always have a blank line between the preceding header and the opening triple-backticks. The `Scripts/fix_formatting.ps1` script auto-fixes this across the vault.
 
 ---
 
-## 🛠️ Conventions
-
-- **Russian** — основной язык
-- **English** — технические термины
-- **Frontmatter** — все файлы с tags / level / date
-- **Code blocks** — пустая строка между header и ```
-- **Cross-refs** — `[[Folder/file|display name]]`
-- **Pitfalls section** — обязательно
-- **Best Practices summary** — обязательно
-- **Reading list** — books, docs, blogs
-
-### Audit / maintenance
+## Maintenance scripts
 
 ```powershell
-# Проверка форматирования
-& "_Claude\format_audit.ps1"
+# Audit formatting issues across all .md files
+& "Scripts/format_audit.ps1"
 
-# Auto-fix code blocks
-& "_Claude\fix_formatting.ps1"
+# Auto-fix code block formatting
+& "Scripts/fix_formatting.ps1"
 ```
 
 ---
 
-## 🚀 Roadmap (что ещё может улучшиться)
+## Stats
 
-Папки <10 файлов которые можно расширить:
-
-- **EFCore** (6) — добавить: Dapper comparison, raw SQL, EF vs Dapper, stored procedures
-- **Runtime** (6) — добавить: threading-basics (Junior), stack-vs-heap visual, ref-out-in, ref-struct deep
-- **Snippets** (5) — добавить: logging, auth-jwt, healthcheck, docker-compose, github-actions snippets
-- **Quality** (5) — добавить: technical-debt, naming-conventions, defensive-programming
-- **Testing** (5) — добавить: TDD-BDD deep, e2e-playwright, contract-testing-pact, test-design-patterns
-- **SQL** (4) — добавить: transactions-deep, window-functions, redis-deep, nosql-mongo, query-plans-explain
-- **Infrastructure** (8) — добавить: kubernetes, cicd-github-actions, azure-cloud, secrets-management
-
-Это incremental work, можно делать по одному файлу за раз.
+| | Value |
+|---|---|
+| Files | 111 |
+| Total size | ~2.9 MB |
+| Coverage | Junior → Senior+ |
+| Language | Russian (primary), English (technical terms) |
+| Last major update | 2026-04-30 |
 
 ---
 
-## 📜 Changelog
+## License
 
-См. [[_changelog|_changelog]] — полная история изменений.
+Personal knowledge base — no formal license. Feel free to learn from it; don't republish wholesale.
 
-Последние major updates:
-- **2026-04-30 (late)** — Реструктуризация: Meta → LearningPath, +SQL basics, +Quality/Testing fundamentals
-- **2026-04-30 (deep)** — Phase 7 expansion: clean-code, refactoring, code-review, testing-fundamentals, mocking-strategies, indexes-deep, microservices-vs-monolith
+If you find errors or have suggestions, open an issue.

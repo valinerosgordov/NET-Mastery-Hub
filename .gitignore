@@ -1,9 +1,8 @@
-# Backup files (created by format-fix scripts)
+﻿# Backup files (created by format-fix scripts)
 *.bak
 *.bak-*
 *.backup
 
-# Claude / AI tools
 .claude/
 
 # OS-specific

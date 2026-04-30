@@ -1,9 +1,9 @@
-# WebAI C# Architecture — Big Tech Level Design Document
+﻿# WebAI C# Architecture вЂ” Big Tech Level Design Document
 
 > Landing page generator: user fills form -> AI generates texts + images -> site published instantly.
-> Migration from Next.js 16 / TypeScript / Supabase to **.NET 10 / C# 14 modular monolith** — migration completed 2026-04 (originally planned as .NET 9 LTS / C# 13; bumped when the repo moved to net10 preview SDK).
+> Migration from Next.js 16 / TypeScript / Supabase to **.NET 10 / C# 14 modular monolith** вЂ” migration completed 2026-04 (originally planned as .NET 9 LTS / C# 13; bumped when the repo moved to net10 preview SDK).
 >
-> **Доки устарели местами.** Dockerfile/CI snippets ниже показаны как `dotnet/sdk:9.0` и `dotnet-version: '9.0.x'` — актуальный проект на `net10.0`. Раздел "Current Vulnerabilities (Next.js)" — исторический, все CRITICAL/HIGH пофикшены в hardening pass 2026-04-19 (см. `_Claude/active-work.md` → Completed recently). Для актуального статуса compliance против правил vault'а — см. `_Claude/projects.md` → [anonymized] → Compliance vs vault. Код в `C:\SideProjects\WebDevelopment\[anonymized]\backend` — истина.
+> **Р”РѕРєРё СѓСЃС‚Р°СЂРµР»Рё РјРµСЃС‚Р°РјРё.** Dockerfile/CI snippets РЅРёР¶Рµ РїРѕРєР°Р·Р°РЅС‹ РєР°Рє `dotnet/sdk:9.0` Рё `dotnet-version: '9.0.x'` вЂ” Р°РєС‚СѓР°Р»СЊРЅС‹Р№ РїСЂРѕРµРєС‚ РЅР° `net10.0`. Р Р°Р·РґРµР» "Current Vulnerabilities (Next.js)" вЂ” РёСЃС‚РѕСЂРёС‡РµСЃРєРёР№, РІСЃРµ CRITICAL/HIGH РїРѕС„РёРєС€РµРЅС‹ РІ hardening pass 2026-04-19 (СЃРј. `docs/active-work.md` в†’ Completed recently). Р”Р»СЏ Р°РєС‚СѓР°Р»СЊРЅРѕРіРѕ СЃС‚Р°С‚СѓСЃР° compliance РїСЂРѕС‚РёРІ РїСЂР°РІРёР» vault'Р° вЂ” СЃРј. `docs/projects.md` в†’ [anonymized] в†’ Compliance vs vault. РљРѕРґ РІ `C:\SideProjects\WebDevelopment\[anonymized]\backend` вЂ” РёСЃС‚РёРЅР°.
 
 ---
 
@@ -260,7 +260,7 @@ public sealed class Site : AggregateRoot<SiteId>
 ### 4.3 Key Value Objects
 
 ```csharp
-// ProjectInfo — XSS sanitization at the domain boundary
+// ProjectInfo вЂ” XSS sanitization at the domain boundary
 public sealed record ProjectInfo
 {
     public string ProjectName { get; }
@@ -281,7 +281,7 @@ public sealed record ProjectInfo
         input.Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
 }
 
-// SiteId — Guid v7 wrapper
+// SiteId вЂ” Guid v7 wrapper
 public readonly record struct SiteId(Guid Value)
 {
     public static SiteId New() => new(Guid.CreateVersion7());
@@ -289,7 +289,7 @@ public readonly record struct SiteId(Guid Value)
         Guid.TryParse(raw, out var guid) ? new SiteId(guid) : Error.Validation("Invalid site ID");
 }
 
-// ColorPreset — FrozenSet validation
+// ColorPreset вЂ” FrozenSet validation
 public sealed record ColorPreset(string Id, string Label, string Primary, string Accent)
 {
     private static readonly FrozenSet<string> ValidIds = new[]
@@ -301,7 +301,7 @@ public sealed record ColorPreset(string Id, string Label, string Primary, string
     public static bool IsValid(string id) => ValidIds.Contains(id);
 }
 
-// DesignPreferences — URL scheme validation
+// DesignPreferences вЂ” URL scheme validation
 public sealed record DesignPreferences
 {
     public static Result<DesignPreferences> Create(VisualStyle style, string colorPresetId, ...)
@@ -810,26 +810,26 @@ builder.Services.AddOpenTelemetry()
 
 ---
 
-## 12. Current Vulnerabilities (Next.js) — FIX IMMEDIATELY
+## 12. Current Vulnerabilities (Next.js) вЂ” FIX IMMEDIATELY
 
 ### CRITICAL
 
-1. **`edit_token` leaked to every visitor** — `page.tsx` does `select("*")`, exposes edit token in React hydration payload
-2. **Real credentials in `.env.local`** — Gemini API key, admin password visible on disk
+1. **`edit_token` leaked to every visitor** вЂ” `page.tsx` does `select("*")`, exposes edit token in React hydration payload
+2. **Real credentials in `.env.local`** вЂ” Gemini API key, admin password visible on disk
 
 ### HIGH
 
-3. **SSRF via self-fetch** — `submit-lead.ts` derives base URL from `x-forwarded-host` header
-4. **No request body size limits** — all API routes accept unlimited JSON
-5. **`edit_token` comparison is not constant-time** — `edit/[id]/actions.ts` uses `!==`
+3. **SSRF via self-fetch** вЂ” `submit-lead.ts` derives base URL from `x-forwarded-host` header
+4. **No request body size limits** вЂ” all API routes accept unlimited JSON
+5. **`edit_token` comparison is not constant-time** вЂ” `edit/[id]/actions.ts` uses `!==`
 6. **No rate limiting on admin login**
 
 ### MEDIUM
 
-7. **Rate limiter is in-memory only** — bypassed in multi-instance deployment
-8. **Path traversal incomplete** — no null byte, backslash, or URL-encoded checks
-9. **Social links not URL-validated** — potential `javascript:` URLs
-10. **CSP allows `'unsafe-inline'`** — weakens script injection protection
+7. **Rate limiter is in-memory only** вЂ” bypassed in multi-instance deployment
+8. **Path traversal incomplete** вЂ” no null byte, backslash, or URL-encoded checks
+9. **Social links not URL-validated** вЂ” potential `javascript:` URLs
+10. **CSP allows `'unsafe-inline'`** вЂ” weakens script injection protection
 
 ### Priority Fix Order
 
