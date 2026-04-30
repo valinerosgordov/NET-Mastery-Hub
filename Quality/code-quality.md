@@ -1,283 +1,565 @@
 ---
-tags: [code-quality, analyzers, sonarqube, editorconfig]
+tags: [code-quality, analyzers, editorconfig, sonarcloud, roslyn, meziantou, global-usings]
 level: Senior
 ---
 
-# Best Practices for Increasing Code Quality in .NET
+# Code Quality — analyzers, EditorConfig, SonarCloud
 
 ## Что это, зачем и когда
 
-### Что такое Code Quality?
-**Набор практик и инструментов**, которые автоматически следят за чистотой, консистентностью и безопасностью кода. Не полагаемся на «договорённости» — инструменты проверяют.
+### Что такое code quality enforcement?
+**Автоматическая проверка кода на стиль, баги, antipatterns** до того как код попадёт в main branch. Linters, analyzers, formatters запускаются в IDE и CI.
 
-**Аналогия:** Автокорректор в Word. Ты можешь писать правильно, но автокорректор ловит опечатки, которые ты не заметил. Code quality tools — автокорректор для кода.
+**Аналогия:** Корректор в издательстве — проверяет грамматику, стиль, единообразие до публикации. Разработчик может ошибиться — analyzer замечает, не даёт смержить.
 
-### Зачем?
+### Зачем
 
-| Без инструментов | С инструментами |
-|-----------------|----------------|
-| «У нас табы или пробелы?» — спор на каждом PR | EditorConfig: настроено один раз, форматирует автоматически |
-| Забыл `await` — баг в продакшене | Roslyn Analyzer: предупреждение на этапе компиляции |
-| Дублированный код в 5 местах | SonarQube: «обнаружен дубликат в файлах X, Y, Z» |
-| Code review: «поправь стиль» x100 | Автоформатирование + анализаторы: review только про логику |
+| Без analyzers | С analyzers |
+|---------------|-------------|
+| Code review проверяет синтаксис | Review только архитектура / логика |
+| "У вас табы, у меня spaces" — войны | EditorConfig зафиксировал |
+| Опечатка → bug в production | Analyzer ловит в IDE |
+| Разные паттерны в разных частях codebase | Единые правила enforced |
+| Senior сам пишет хорошо, junior забывает | Junior учится через подсказки analyzer |
 
-### Когда настраивать?
+### Стек
 
-| Ситуация | Действие |
-|----------|----------|
-| Начало проекта | **Сразу:** EditorConfig + Directory.Build.props + анализаторы |
-| Существующий проект без инструментов | Включить постепенно: сначала EditorConfig, потом анализаторы |
-| CI/CD pipeline | Добавить `dotnet format --verify-no-changes` и анализаторы в build |
-| Команда > 1 человека | **Обязательно** — без инструментов стиль разъедется за неделю |
-
----
-
-> По материалам: [Best Practices for Code Quality in .NET](https://antondevtips.com/blog/best-practices-for-increasing-code-quality-in-dotnet-projects/)
-
-## Инструменты
-
-| Инструмент | Назначение | Когда |
-|------------|------------|-------|
-| Code Review | Архитектура, бизнес-логика, безопасность | PR |
-| Static Code Analysis | Стандарты, code smells, баги | Build |
-| Roslyn Analyzers | Ошибки на этапе компиляции | IDE + Build |
-| SonarQube / Qodana | Комплексный анализ, метрики, дубликаты | CI/CD |
-| IDE | Real-time feedback | Development |
-
----
-
-## Directory.Build.props
-
-Один файл рядом с `.sln` — настройки для всех проектов решения:
-
-```xml
-<Project>
-  <PropertyGroup>
-    <!-- Базовые настройки -->
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-
-    <!-- Качество кода -->
-    <AnalysisLevel>latest</AnalysisLevel>
-    <AnalysisMode>All</AnalysisMode>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Analyzers для всех проектов -->
-    <PackageReference Include="Meziantou.Analyzer" Version="2.*" PrivateAssets="all" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.*" PrivateAssets="all" />
-    <PackageReference Include="Roslynator.Analyzers" Version="4.*" PrivateAssets="all" />
-  </ItemGroup>
-</Project>
+```
+┌─────────────────────────────────────────────────────────┐
+│  IDE / CI checks                                         │
+└─────────────────────────────────────────────────────────┘
+       │           │            │              │
+   EditorConfig  Roslyn      Custom          SonarCloud
+   (стиль,      analyzers   analyzers       (sonarqube)
+    форматy)    (.NET +     (свои rules)    (cloud метрики)
+                third-party)
 ```
 
-**Нюанс:** `TreatWarningsAsErrors` с первого дня — не даёт накапливать техдолг. В legacy-проекте — включать постепенно, подавляя конкретные правила через `.editorconfig`.
-
-### Directory.Packages.props (Central Package Management)
-
-```xml
-<Project>
-  <PropertyGroup>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageVersion Include="MediatR" Version="12.*" />
-    <PackageVersion Include="FluentValidation" Version="11.*" />
-  </ItemGroup>
-</Project>
-```
-
-Все версии NuGet-пакетов в одном месте. В `.csproj` только `<PackageReference Include="MediatR" />` без версии.
-
 ---
 
-## .editorconfig
+## EditorConfig
 
-Контролирует стиль кода, severity правил, naming conventions:
+Стандартный файл `.editorconfig` в корне репо. IDE и dotnet формат подхватывают автоматически.
 
 ```ini
-# Корень решения
+# .editorconfig — production-ready
 root = true
 
-[*.cs]
-# Indentation
+[*]
+charset = utf-8
+end_of_line = lf
 indent_style = space
 indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
 
-# Naming
-dotnet_naming_rule.interfaces_must_start_with_i.severity = error
-dotnet_naming_rule.interfaces_must_start_with_i.symbols = interfaces
-dotnet_naming_rule.interfaces_must_start_with_i.style = prefix_i
-dotnet_naming_symbols.interfaces.applicable_kinds = interface
-dotnet_naming_style.prefix_i.required_prefix = I
-dotnet_naming_style.prefix_i.capitalization = pascal_case
+[*.{json,yml,yaml,md}]
+indent_size = 2
 
-# Стиль
-csharp_prefer_braces = true:error
-csharp_using_directive_placement = outside_namespace:error
-csharp_style_namespace_declarations = file_scoped:error
-csharp_style_prefer_primary_constructors = true:suggestion
+[*.cs]
+# Базовый стиль
+indent_size = 4
+tab_width = 4
+end_of_line = lf
 
-# Подавление шумных правил
-dotnet_diagnostic.CA1062.severity = none  # null check для public methods (NRT решает)
-dotnet_diagnostic.CA1848.severity = suggestion  # LoggerMessage delegates
-dotnet_diagnostic.S3267.severity = none  # LINQ vs foreach (шум)
+# Using directives
+dotnet_separate_import_directive_groups = false
+dotnet_sort_system_directives_first = true
+
+# Modern C# features
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_var_for_built_in_types = false:warning
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:warning
+
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_constructors = when_on_single_line:silent
+csharp_style_expression_bodied_operators = when_on_single_line:silent
+csharp_style_expression_bodied_properties = true:silent
+csharp_style_expression_bodied_indexers = true:silent
+csharp_style_expression_bodied_accessors = true:silent
+csharp_style_expression_bodied_lambdas = true:silent
+
+# Pattern matching
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+csharp_style_prefer_pattern_matching = true:warning
+csharp_style_prefer_switch_expression = true:warning
+
+# Nullable references
+csharp_style_throw_expression = true:suggestion
+dotnet_style_coalesce_expression = true:warning
+dotnet_style_null_propagation = true:warning
+
+# Code blocks
+csharp_prefer_braces = true:warning
+csharp_prefer_simple_using_statement = true:suggestion
+csharp_prefer_simple_default_expression = true:suggestion
+
+# Modifier preferences
+dotnet_style_readonly_field = true:warning
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
+
+# Field/property naming
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.style = camel_case_underscore_style
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.severity = warning
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers = readonly
+
+dotnet_naming_style.camel_case_underscore_style.required_prefix = _
+dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
+
+# Suppressing
+dotnet_diagnostic.CA1062.severity = none      # Validate arguments — false positives с nullable enabled
+dotnet_diagnostic.CA1303.severity = none      # Localize strings — не нужно для большинства проектов
+dotnet_diagnostic.CA1707.severity = none      # Underscores в names — иногда нужно
+
+# Errors as compile errors (опционально)
+dotnet_diagnostic.IDE0005.severity = warning  # Unused using
 ```
 
-**Нюанс:** `.editorconfig` работает в IDE и в build. `severity = error` блокирует build. `severity = suggestion` — только подсветка в IDE.
+### Format check в CI
+
+```bash
+# Проверка форматирования (без изменений)
+dotnet format --verify-no-changes
+
+# Применить (локально)
+dotnet format
+```
+
+В CI fail если есть неформатированный код. Single source of truth — `.editorconfig`.
 
 ---
 
-## Roslyn Analyzers — обзор
+## Built-in .NET Analyzers
 
-### Meziantou.Analyzer
+С .NET 8+ analyzers включены **по умолчанию**. Проверяют CA-rules (Code Analysis):
 
-Строгие правила: конкатенация строк → интерполяция, missing ConfigureAwait, неоптимальные паттерны. Может быть шумным — отключать правила по одному, не всё сразу.
+```xml
+<!-- .csproj -->
+<PropertyGroup>
+  <AnalysisLevel>latest-recommended</AnalysisLevel>
+  <AnalysisMode>All</AnalysisMode>
+  <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <WarningsNotAsErrors>CA1062;CS1591</WarningsNotAsErrors>
+  <Nullable>enable</Nullable>
+  <ImplicitUsings>enable</ImplicitUsings>
+</PropertyGroup>
+```
 
-### SonarAnalyzer.CSharp
+`AnalysisLevel`:
+- `latest-default` — defaults to current .NET
+- `latest-recommended` — стандарт от Microsoft
+- `latest-all` — максимум включено
+- `9.0-recommended` — фиксированная версия
 
-Code smells, баги, security hotspots. Хорошо интегрируется с SonarQube/SonarCloud в CI.
+`TreatWarningsAsErrors` — каждое warning блокирует build. `WarningsNotAsErrors` — список исключений.
 
-### Roslynator
+### Главные правила
 
-Рефакторинг, упрощения, code fixes. Менее строгий, больше convenience.
+| ID | О чём | Severity |
+|----|-------|----------|
+| **CA1062** | Validate non-null parameters | Disable если nullable enabled |
+| **CA2007** | ConfigureAwait в library code | Suggestion в ASP.NET Core |
+| **CA1707** | Underscores в имени | Disable для test method names |
+| **CA1822** | Member can be static | Warning |
+| **CA1819** | Properties не должны возвращать array | Warning |
+| **CA1860** | Use Length/Count over Any() | Warning |
+| **CA2227** | Collection properties readonly | Warning |
+| **CA2208** | ArgumentException right ctor | Warning |
+| **CA2245** | Property assigned to itself | Warning |
+| **IDE0005** | Unused using | Warning + auto-fix |
 
-### Microsoft.CodeAnalysis.NetAnalyzers
-
-Встроенные (включены по умолчанию с `AnalysisLevel`). CA-правила: performance, security, design.
-
----
-
-## Nullable Reference Types
+### Per-file overrides
 
 ```csharp
-#nullable enable  // Включать в новых проектах глобально
-
-// В legacy — включать пофайлово
-#nullable enable
-public class OrderService
+#pragma warning disable CA1062
+public void Method(string param)
 {
-    public async Task<Order?> GetAsync(Guid id, CancellationToken ct)
+    // ...
+}
+#pragma warning restore CA1062
+
+// Or for whole file
+[SuppressMessage("Performance", "CA1860:Avoid using Enumerable.Any")]
+```
+
+---
+
+## Meziantou.Analyzer
+
+Open-source расширенный набор от Gérald Barré. Покрывает что .NET-built-in пропускает.
+
+```xml
+<PackageReference Include="Meziantou.Analyzer" Version="2.0.x" PrivateAssets="all" />
+```
+
+### Top правила
+
+| ID | Что |
+|----|-----|
+| **MA0004** | `ConfigureAwait(false)` в library |
+| **MA0006** | Не использовать `Task.Run` без причины |
+| **MA0011** | Использовать `IFormatProvider` (`CultureInfo.InvariantCulture`) |
+| **MA0016** | Возвращать interface вместо concrete |
+| **MA0048** | Не используй `string.Empty` — используй `""` |
+| **MA0089** | `StringBuilder` для повторных concat |
+| **MA0099** | `LINQ` без allocations (FirstOrDefault → правильно) |
+| **MA0111** | Async-метод должен иметь имя с `Async` |
+| **MA0157** | `try-catch` без re-throw — antipattern |
+
+В крупных проектах Meziantou ловит десятки issues, которые ускользают от .NET analyzers.
+
+---
+
+## SonarAnalyzer.CSharp
+
+```xml
+<PackageReference Include="SonarAnalyzer.CSharp" Version="9.x" PrivateAssets="all" />
+```
+
+Часть SonarSource — те же rules что в SonarCloud (S-prefix). Бесплатно как analyzer:
+
+| ID | Что |
+|----|-----|
+| **S1854** | Dead store (assignment never used) |
+| **S2275** | Static methods invocation на instance |
+| **S3267** | Loops can be replaced with LINQ |
+| **S3343** | Caller info attributes order |
+| **S3358** | Avoid nested ternaries |
+| **S3878** | Array creation как parameter to params |
+| **S4144** | Methods with same logic — extract |
+| **S6603** | Override Equals/GetHashCode pair |
+
+Combined с Meziantou + .NET built-in — почти все code smells покрыты.
+
+---
+
+## SonarCloud / SonarQube
+
+**Cloud-based code quality platform.** Sonar анализирует репо после push, делает comment в PR с list issues.
+
+### Setup для GitHub Actions
+
+```yaml
+# .github/workflows/sonar.yml
+name: SonarCloud
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache Sonar
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+
+      - name: SonarCloud Scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+
+          dotnet sonarscanner begin \
+            /k:"my-org_my-repo" \
+            /o:"my-org" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths=coverage/coverage.opencover.xml
+
+          dotnet build --configuration Release
+          dotnet test --configuration Release \
+            /p:CollectCoverage=true /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput=../coverage/
+
+          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+```
+
+### Quality Gate
+
+Sonar по умолчанию имеет **Sonar way** quality gate:
+- 0 new bugs
+- 0 new vulnerabilities
+- ≤ A maintainability rating
+- Coverage ≥ 80% on new code
+- Duplications < 3% on new code
+
+Customize:
+- ≥ 70% coverage on new code
+- 0 hotspots reviewed → должны
+- Cognitive complexity per method < 15
+
+PR fail если quality gate red. Comment в PR показывает где issues.
+
+### Когда Sonar vs analyzers
+
+| | Built-in analyzers | SonarCloud |
+|--|---------------------|------------|
+| Where | IDE + CI | Cloud + PR comments |
+| Скорость | Real-time | Run в CI |
+| Coverage | Code quality | + security hotspots, duplications |
+| History | Нет | Track over time, trends |
+| Cost | Free | Free for OSS, $$$ для commercial |
+
+Combined в production:
+- **Built-in + Meziantou + SonarAnalyzer.CSharp** — для real-time IDE feedback
+- **SonarCloud** — для PR-gating + history tracking
+
+Бюджет тесный — ограничься analyzers. SonarCloud стоит для commercial.
+
+---
+
+## GlobalUsings (.NET 6+)
+
+Вместо повторения `using System;` в каждом файле — глобально:
+
+```csharp
+// GlobalUsings.cs (или прямо в .csproj)
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Microsoft.Extensions.Logging;
+global using MyApp.Domain;
+```
+
+Или через MSBuild:
+```xml
+<ItemGroup>
+  <Using Include="System" />
+  <Using Include="System.Threading.Tasks" />
+  <Using Include="MyApp.Domain" Static="true" Alias="Domain" />
+  <Using Include="MyApp.Common.Result&lt;&gt;" />
+</ItemGroup>
+```
+
+`<ImplicitUsings>enable</ImplicitUsings>` — автоматический набор для типа проекта (Web / Console / Library).
+
+### Когда стоит и не стоит
+
+| Использовать | Не использовать |
+|--------------|----------------|
+| Стандартные .NET типы (System, Linq, Tasks) | Domain types (читать `Order` без `using` мешает понимать откуда) |
+| Внутренние shared abstractions (`Result<T>`, `IClock`) | Conflicting types между namespaces |
+| Test infrastructure (`global using Xunit;`) | Каждый файл уникален |
+
+---
+
+## Custom Roslyn Analyzers
+
+Для domain-specific rules. Например, "запретить `DateTime.Now`, использовать `IClock`".
+
+```csharp
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class ForbidDateTimeNowAnalyzer : DiagnosticAnalyzer
+{
+    public static readonly DiagnosticDescriptor Rule = new(
+        "MYAPP001",
+        "Don't use DateTime.Now",
+        "Use IClock.UtcNow instead of DateTime.Now",
+        "Reliability",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
+
+    public override void Initialize(AnalysisContext context)
     {
-        // Возвращаем nullable — вызывающий ДОЛЖЕН проверить
-        return await _repo.GetByIdAsync(id, ct);
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        context.EnableConcurrentExecution();
+        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.SimpleMemberAccessExpression);
     }
 
-    public async Task<Order> GetRequiredAsync(Guid id, CancellationToken ct)
+    private static void Analyze(SyntaxNodeAnalysisContext context)
     {
-        // Non-nullable — гарантируем что не null
-        return await _repo.GetByIdAsync(id, ct)
-            ?? throw new NotFoundException("Order", id);
+        var memberAccess = (MemberAccessExpressionSyntax)context.Node;
+        if (memberAccess.Expression is IdentifierNameSyntax identifier &&
+            identifier.Identifier.Text == "DateTime" &&
+            memberAccess.Name.Identifier.Text is "Now" or "Today")
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Rule, memberAccess.GetLocation()));
+        }
     }
 }
 ```
 
-**Нюанс:** NRT — статический анализ, не runtime проверка. `string?` компилируется в тот же `string`. Но предупреждения при `TreatWarningsAsErrors` = реальная защита.
+См. [Source Generators](../CSharp/source-generators.md) — Roslyn API similar (analyzer и generator используют одни базовые types).
+
+### Когда custom
+
+- Domain-specific rules ("в этом проекте не используй X")
+- Forbidden APIs (legacy code, deprecated functions)
+- Internal architecture rules не покрытые arch-tests
+- Educational — junior получает "не делай так" message
 
 ---
 
-## IDE плагины
+## Forbidden Code Analyzer
 
-### Rider
-- **Cognitive Complexity** — сложность метода (цикломатическая + cognitive). Рефакторить если > 15.
-- **Code Metrics** — количество строк, зависимостей, coupling.
-- **Grazie** — проверка орфографии в комментариях и строках.
+Простой способ запретить APIs без custom analyzer.
 
-### Visual Studio
-- **CodeMaid** — форматирование, удаление unused using, сортировка.
-- **Spell Checker** — орфография.
-- **Code Metrics** — встроенные метрики (Maintainability Index, Cyclomatic Complexity).
+```xml
+<PackageReference Include="BannedApiAnalyzers" Version="3.x" PrivateAssets="all" />
+```
+
+```
+# BannedSymbols.txt
+M:System.DateTime.get_Now;Use IClock.UtcNow instead
+M:System.DateTime.get_Today;Use IClock.UtcNow.Date instead
+M:System.Console.WriteLine(System.String);Use ILogger
+T:Newtonsoft.Json.JsonConvert;Use System.Text.Json
+M:System.Threading.Thread.Sleep(System.Int32);Don't block — use await Task.Delay
+```
+
+Build падает если кто-то использует banned API. Документация каждого ban — почему запрещено.
 
 ---
 
-## Pre-commit hooks
+## .editorconfig + analyzer rules как ADR
+
+Каждое нестандартное правило документируй:
+
+```ini
+# .editorconfig
+
+# CA1062 disabled because Nullable references handle parameter validation
+dotnet_diagnostic.CA1062.severity = none
+
+# MA0048 — string.Empty vs "" — silent (style preference, not enforced)
+dotnet_diagnostic.MA0048.severity = silent
+```
+
+Большой `.editorconfig` без комментариев — никто не помнит почему так. Через год хочется убрать `severity = none` и лезть в git blame.
+
+---
+
+## Pre-commit hooks (опционально)
+
+Husky.NET — запуск hooks перед commit:
 
 ```bash
-# .husky/pre-commit (или .git/hooks/pre-commit)
+dotnet tool install -g Husky
+husky install
+husky add pre-commit "dotnet format --verify-no-changes"
+```
+
+Pre-commit fail → commit не проходит. Защита от "забыл format".
+
+```bash
+# .husky/pre-commit
 #!/bin/sh
-dotnet build --no-restore -warnaserror
-if [ $? -ne 0 ]; then
-    echo "Build failed. Fix errors before committing."
-    exit 1
-fi
-
-dotnet test --no-build --filter "Category=Unit"
-if [ $? -ne 0 ]; then
-    echo "Unit tests failed."
-    exit 1
-fi
+dotnet format --verify-no-changes
+dotnet test --filter Category=Architecture
 ```
 
-**Нюанс:** pre-commit hook ловит ошибки до push. Но не заменяет CI — hook можно обойти `--no-verify`. CI — обязательный gate.
+Не для всех — pre-commit hooks tend быть аnnoying если slow. Лучше CI как primary gate, hooks как opt-in для local dev.
 
 ---
 
-## Code Review — чек-лист
+## Production checklist
 
-При наличии analyzers — **не дублировать** то, что ловят автоматически. Фокус на:
-
-| Категория | Что проверять |
-|-----------|--------------|
-| **Архитектура** | Границы слоёв, направление зависимостей |
-| **Бизнес-логика** | Корректность, edge cases |
-| **Безопасность** | Инъекции, утечка данных, авторизация |
-| **Именование** | Понятные имена, единообразие |
-| **Тестируемость** | Можно ли протестировать? Есть ли тесты? |
-| **Performance** | N+1, лишние аллокации, blocking async |
+- [ ] `.editorconfig` в корне репо
+- [ ] `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` в Directory.Build.props
+- [ ] `<AnalysisLevel>latest-recommended</AnalysisLevel>`
+- [ ] Meziantou.Analyzer установлен
+- [ ] SonarAnalyzer.CSharp установлен
+- [ ] SonarCloud (или SonarQube) integrated в CI с PR comments
+- [ ] Quality Gate настроен (coverage threshold, complexity limits)
+- [ ] BannedApiAnalyzers с domain-specific banned APIs
+- [ ] Custom Roslyn analyzers если есть recurring violations
+- [ ] `dotnet format --verify-no-changes` в CI
+- [ ] GlobalUsings для повторяющихся imports
+- [ ] EditorConfig правила имеют comments / ADR ссылки
+- [ ] Все warnings → errors (не игнорировать)
+- [ ] Warnings exclusion list (`WarningsNotAsErrors`) с обоснованием
 
 ---
 
-## Suppress — когда и как
+## Common pitfalls
 
-```csharp
-// ✓ С комментарием — через месяц понятно почему
-#pragma warning disable CA1822 // Mark members as static — used by DI
-public string GetVersion() => "1.0";
-#pragma warning restore CA1822
+### 1. Bulk-suppress warnings
 
-// ✓ SuppressMessage — для конкретного члена
-[SuppressMessage("Design", "CA1062", Justification = "Validated by FluentValidation pipeline")]
-public async Task<Result<Guid>> Handle(CreateOrderCommand command, CancellationToken ct)
-
-// ✗ Плохо — глобальное подавление без причины
-// dotnet_diagnostic.CA1062.severity = none  // в .editorconfig без комментария
+```xml
+<!-- ❌ Слишком широко -->
+<NoWarn>CA1062;CA1303;CA1707;CS1591;CS8600;CS8602;CS8603;CS8604;...</NoWarn>
 ```
+Потом никто не помнит почему всё это disabled. Иногда там реальные баги.
+**Решение:** explicit `severity = none` в editorconfig с comment.
 
----
+### 2. Disabling вместо fixing
+"CA1062 fails — добавлю null check" → правильно.
+"CA1062 fails — disable" → накапливается тех долг.
 
-## Метрики качества
+### 3. WarningsAsErrors без guard
+Зеркальная проблема — все warnings = errors → новый analyzer добавил правило → весь codebase падает на build.
+**Решение:** `WarningsNotAsErrors` для известных warnings, fix gradually.
 
-| Метрика | Хорошо | Плохо |
-|---------|--------|-------|
-| Cyclomatic Complexity (метод) | < 10 | > 20 |
-| Cognitive Complexity (метод) | < 15 | > 25 |
-| Lines per method | < 30 | > 60 |
-| Code coverage (unit) | > 70% | < 40% |
-| Duplications | < 3% | > 10% |
+### 4. SonarCloud как замена code review
+Sonar — assistant, не replacement. Code review проверяет архитектуру, intent, business logic. Sonar — automatable rules.
 
-**Нюанс:** 100% code coverage — антицель. Тестировать бизнес-логику и граничные случаи. Тривиальные геттеры и фреймворк-код — не тестировать ради процентов.
+### 5. Локальный analyzer != CI
+Dev забыл обновить analyzer version → его IDE не показывает warnings, но CI fail. Lock через `Directory.Packages.props`.
 
----
+### 6. Custom analyzer без tests
+Custom analyzer пишется несколько часов — без тестов превратится в шум через 6 месяцев.
+**Решение:** snapshot tests с Verify (см. [Testing / Verify](../Testing/testing.md)).
 
-## Best Practices
+### 7. EditorConfig в проекте, но IDE не подхватывает
+Проверь IDE settings — Rider, VS, VS Code должны иметь support включён. `.editorconfig` без support = декорация.
 
-- **TreatWarningsAsErrors** — с первого дня. Не накапливать техдолг.
-- **Meziantou** — может быть шумным. Отключать правила по одному в .editorconfig.
-- **SonarAnalyzer** — в CI, не в каждом build. Локально — только при необходимости.
-- **Nullable** — включать в новых проектах. В legacy — `#nullable enable` по файлам.
-- **Central Package Management** — единые версии NuGet для всего решения.
-- **Pre-commit** — `dotnet build` в hook. Ловит ошибки до push.
-- **Code review** — не дублировать analyzers. Фокус на архитектуре, безопасности, бизнес-логике.
-- **Suppress с Justification** — без комментария через месяц никто не помнит причину.
+### 8. Не запускать `dotnet format` regularly
+Стиль drift'ит. Один раз merge'нул код в неформатированном виде — потом всем mismatch'и в diff.
+**Решение:** CI gate `dotnet format --verify-no-changes`.
+
+### 9. Слишком мало правил включено
+"Linter ничего не находит" — потому что disabled половина правил. Включай aggressive set, fix iteratively.
+
+### 10. Игнорирование security analyzers
+SonarCloud категории Security Hotspots — каждый требует ручного review. Игнорировать = serious risk.
 
 ---
 
 ## См. также
 
-- [Architecture Conventions and Tests](../../Architecture/architecture-conventions-and-tests.md)
-- [Start .NET Project 2026](../ProjectSetup/start-dotnet-project-2026.md)
+- [Architecture Tests](../Architecture/arch-tests.md) — NetArchTest для arch rules + analyzers для code rules
+- [Source Generators](../CSharp/source-generators.md) — Roslyn API для custom analyzers
+- [Project Setup](../Infrastructure/project-setup.md) — Directory.Build.props глобальная конфигурация
+- [Modern C# 8–14](../CSharp/modern-features.md) — что включено через `latest-recommended`
+- [Testing](../Testing/testing.md) — Snapshot tests для custom analyzers
+
+## Reading list
+
+- **Microsoft Learn — Code analysis** — learn.microsoft.com/dotnet/fundamentals/code-analysis/
+- **Meziantou.Analyzer** — github.com/meziantou/Meziantou.Analyzer
+- **SonarSource Rules — C#** — rules.sonarsource.com/csharp/
+- **SonarCloud quality gates** — docs.sonarcloud.io
+- **Andrew Lock — Code analysis series** — andrewlock.net
+- **Gérald Barré (Meziantou) blog** — meziantou.net (canonical для C# analyzers)
+- **Steve Smith — Clean Code analyzers** — ardalis.com
+- **Roslyn Analyzers Wiki** — github.com/dotnet/roslyn-analyzers/wiki

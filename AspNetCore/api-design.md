@@ -185,6 +185,229 @@ builder.Services.AddProblemDetails(opts =>
 
 ---
 
+## Minimal API — структура и паттерны
+
+### Минимальный setup
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+app.MapOpenApi();
+
+app.MapGet("/products/{id:guid}", async (Guid id, IProductRepository repo)
+    => await repo.GetByIdAsync(id) is { } p ? Results.Ok(p) : Results.NotFound());
+
+app.Run();
+```
+
+Быстрее запускается (меньше ceremony), работает отлично с Native AOT.
+
+### IEndpoint pattern — структурирование Minimal API под Vertical Slice
+
+**Проблема:** через месяц в `Program.cs` валятся 50+ endpoint-ов — никакого vertical slice. Решение — вынести каждый endpoint в свой класс:
+
+```csharp
+public interface IEndpoint
+{
+    void MapEndpoint(IEndpointRouteBuilder app);
+}
+
+public sealed class GetProductEndpoint : IEndpoint
+{
+    public void MapEndpoint(IEndpointRouteBuilder app) =>
+        app.MapGet("products/{id:guid}", async (
+                Guid id,
+                ISender sender,
+                CancellationToken ct) =>
+            {
+                var result = await sender.Send(new GetProductQuery(id), ct);
+                return result.Match(Results.Ok, CustomResults.Problem);
+            })
+            .WithTags("Products")
+            .WithName("GetProduct")
+            .Produces<ProductResponse>();
+}
+
+// Extension — регистрация всех IEndpoint в сборке
+public static IEndpointRouteBuilder MapEndpoints(
+    this IEndpointRouteBuilder app,
+    Assembly? assembly = null)
+{
+    var endpoints = (assembly ?? Assembly.GetExecutingAssembly())
+        .GetTypes()
+        .Where(t => typeof(IEndpoint).IsAssignableFrom(t)
+                    && t is { IsAbstract: false, IsInterface: false })
+        .Select(t => (IEndpoint)Activator.CreateInstance(t)!);
+
+    foreach (var endpoint in endpoints)
+        endpoint.MapEndpoint(app);
+
+    return app;
+}
+
+// Program.cs
+app.MapEndpoints();
+```
+
+**Структура папок (Vertical Slice):**
+
+```
+Features/
+  Products/
+    GetProduct/
+      GetProductEndpoint.cs
+      GetProductQuery.cs
+      GetProductHandler.cs
+      ProductResponse.cs
+    CreateProduct/
+      ...
+  Orders/
+    ...
+```
+
+Одна фича = одна папка. Удаление фичи = удаление папки. См. [VSA](../Architecture/patterns.md).
+
+### Альтернативы IEndpoint
+
+| Пакет | Когда | Примечание |
+|-------|-------|------------|
+| **Carter** (`ICarterModule`) | Хочешь готовое решение | Добавляет Carter mediator, минимум boilerplate |
+| **FastEndpoints** | REPR-паттерн (Request-Endpoint-Processor-Response) | Тяжелее, но больше даёт из коробки |
+| **Source generator** | NativeAOT, компайл-тайм регистрация | Убирает reflection при старте |
+
+### Minimal API vs Controllers — когда что
+
+| Сценарий | Выбор |
+|----------|-------|
+| Простой CRUD, CQRS через MediatR | Minimal API + IEndpoint |
+| Native AOT / маленький image | Minimal API |
+| Сложный model binding, filters, MVC views | Controllers |
+| Большая legacy кодовая база с [Authorize], [ApiController] | Controllers |
+
+> [!question]- **Интервью: Minimal API в больших проектах — не превращается в кашу?**
+> Превращается, если всё писать в `Program.cs`. Решение — `IEndpoint` pattern: один класс на endpoint, регистрация через reflection-scan сборки или source generator. Плюс Vertical Slice-структура папок (`Features/Products/GetProduct/*`). На выходе — чище чем контроллеры, потому что фича целиком живёт в одной папке, и нет раздутых `ProductsController` с 15-20 action-ами.
+
+---
+
+## Input Validation
+
+### Три уровня
+
+| Уровень | Инструменты | Когда |
+|---------|-------------|-------|
+| **Простой (атрибуты)** | `[Required]`, `[MaxLength]`, `[Range]`, `[EmailAddress]`, `[RegularExpression]` | CRUD с базовыми правилами. Видны в Swagger → клиент получает схему. |
+| **Бизнес-правила с DI** | Собственный `IValidator<T>` + MediatR pipeline, или OrionGuard | Валидация с обращением к БД, сервисам, конфигу. Атрибуты этого не умеют. |
+| **Domain-инварианты** | Конструкторы Value Objects, guards в entity | Инвариант агрегата (Clean Arch / DDD) — невалидное состояние недопустимо на уровне домена. |
+
+### Почему DataAnnotations упираются в потолок
+
+Атрибут — статическая метадата. В него **нельзя прокинуть зависимости через DI**. Как только нужно проверить уникальность email по базе, валидность купона через сервис или ограничения из `appsettings.json` — атрибутов не хватает.
+
+### Собственный IValidator<T> + MediatR behavior
+
+**Работает без платных библиотек**:
+
+```csharp
+public interface IValidator<in T>
+{
+    Task<ValidationResult> ValidateAsync(T instance, CancellationToken ct);
+}
+
+public sealed class CreateUserValidator : IValidator<CreateUserCommand>
+{
+    private readonly IUserRepository _users;
+    private readonly IOptions<PasswordPolicy> _policy;
+
+    public CreateUserValidator(IUserRepository users, IOptions<PasswordPolicy> policy)
+    {
+        _users = users;
+        _policy = policy;
+    }
+
+    public async Task<ValidationResult> ValidateAsync(
+        CreateUserCommand cmd, CancellationToken ct)
+    {
+        var errors = new List<ValidationError>();
+
+        if (string.IsNullOrWhiteSpace(cmd.Email))
+            errors.Add(new("Email", "Required"));
+        else if (await _users.ExistsByEmailAsync(cmd.Email, ct))
+            errors.Add(new("Email", "Already exists"));
+
+        if (cmd.Password.Length < _policy.Value.MinLength)
+            errors.Add(new("Password", $"Min length {_policy.Value.MinLength}"));
+
+        return errors.Count == 0
+            ? ValidationResult.Valid
+            : ValidationResult.Invalid(errors);
+    }
+}
+
+// MediatR Pipeline Behavior
+public sealed class ValidationBehavior<TRequest, TResponse>(
+    IEnumerable<IValidator<TRequest>> validators)
+    : IPipelineBehavior<TRequest, TResponse>
+    where TResponse : IResult
+{
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken ct)
+    {
+        foreach (var v in validators)
+        {
+            var result = await v.ValidateAsync(request, ct);
+            if (result.IsInvalid)
+                return (TResponse)Result.Fail(result.ToError());
+        }
+
+        return await next(ct);
+    }
+}
+```
+
+### FluentValidation — статус в 2026
+
+> [!warning] **FluentValidation с 2026 — платная для коммерческого использования**
+> Автор перешёл на коммерческую лицензионную модель (так же как `FluentAssertions`). Для OSS и pet-проектов — условно-бесплатно, для production — лицензия.
+>
+> **Альтернативы:**
+>
+> | Вариант | Плюсы | Минусы |
+> |---------|-------|--------|
+> | **Свой IValidator\<T\>** (см. выше) | Полный контроль, OSS, 100 строк кода | Нужно писать базовые правила руками |
+> | **OrionGuard** | Совместим с FluentValidation API → миграция regex-ом, source-generator для NativeAOT | Молодая, маленькое комьюнити — для institutional-проектов риск |
+> | **MiniValidation** + DataAnnotations | `MiniValidation.TryValidate(obj)` — атрибуты + `IValidatableObject` одной строкой | Нет DI — только простые сценарии |
+> | **Фикс версии FluentValidation до смены лицензии** | Работает как раньше | Не получаешь security-патчи, compliance-серая зона |
+
+### Валидация в Minimal API
+
+```csharp
+app.MapPost("/users", async (
+    CreateUserCommand cmd,
+    IValidator<CreateUserCommand> validator,
+    ISender sender,
+    CancellationToken ct) =>
+{
+    var validation = await validator.ValidateAsync(cmd, ct);
+    if (validation.IsInvalid)
+        return Results.ValidationProblem(validation.ToDictionary());
+
+    var result = await sender.Send(cmd, ct);
+    return result.Match(u => Results.Created($"/users/{u.Id}", u), CustomResults.Problem);
+});
+```
+
+Или через pipeline behavior — тогда валидация не дублируется в endpoint-ах.
+
+> [!question]- **Интервью: Чем DataAnnotations плохи для сложной валидации?**
+> Атрибут — статическая метадата, в него нельзя через DI прокинуть сервисы. Проверить «email уникален в базе» или «купон валиден через PricingService» — не получится. Для простых правил (`[Required]`, `[MaxLength]`) — норм, для бизнес-логики — отдельный `IValidator<T>` с DI, регистрируется в MediatR pipeline behavior. FluentValidation делал именно это, но с 2026 стал платным для коммерческого использования → либо OrionGuard (совместимый API), либо свой 100-строчный валидатор.
+
+---
+
 ## API Versioning
 
 Управление эволюцией API без поломки существующих клиентов.

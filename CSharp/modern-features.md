@@ -872,6 +872,25 @@ int[] result = condition ? [1, 2] : [3, 4];
 
 ---
 
+### Аргументы коллекции (proposal, upcoming)
+
+В csharplang обсуждается расширение: передавать аргументы в create-метод коллекции прямо внутри `[ ]` — чтобы контролировать `capacity` / `comparer` без отката к `new List<T>(capacity: N) { ... }`.
+
+```csharp
+// Текущий C# — без управления capacity не обойтись
+var xs = new List<int>(capacity: 32) { 1, 2, 3 };
+
+// Proposal (возможно C# 15+)
+List<int> xs = [args(capacity: 32); 1, 2, 3];
+//              └── аргументы конструктора ─┘  └── элементы ─┘
+```
+
+**Зачем это важно в hot-path коде:** когда размер коллекции известен (например, `count` из запроса), `capacity` убирает realloc внутри `List<T>`. Особенно критично для HFT / highload сценариев и batch-обработки.
+
+Proposal: [csharplang/collection-expression-arguments](https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md).
+
+---
+
 ## Global и File-scoped
 
 ### File-scoped Namespaces (C# 10)
@@ -1269,6 +1288,77 @@ public partial class ViewModel
     }
 }
 ```
+
+---
+
+## File-based Apps (.NET 11 Preview)
+
+### Что
+
+Начиная с **.NET 11 Preview 3** можно писать полноценное ASP.NET Core Web API в **одном `.cs` файле** без `.csproj` / `.sln`. Go-like минимализм, без отказа от типизации и экосистемы .NET.
+
+```csharp
+// app.cs
+#:package Microsoft.AspNetCore.OpenApi@9.0.0
+
+var builder = WebApplication.CreateBuilder();
+var app = builder.Build();
+
+app.MapGet("/hello/{name}", (string name) => $"Hi, {name}!");
+
+app.Run();
+```
+
+Запуск и публикация:
+
+```bash
+dotnet run app.cs                  # прямой запуск
+dotnet publish app.cs --aot -o out # Native AOT → ~30 MB single binary
+```
+
+### Зачем
+
+| Сценарий | Почему fit |
+|----------|-----------|
+| CLI-утилиты | Типизация + DI + пакеты NuGet, но без ceremony. Замена PowerShell/Bash-скриптам. |
+| Прототипы для клиентов / demo | Один файл → показал заказчику → `dotnet run` |
+| Micro-services под Native AOT | Минимальный образ, быстрый старт |
+| Онбординг новичков в .NET | Меньше шума в начале — нет XML, нет solution, нет многопроектной структуры |
+
+### Ограничения
+
+- Миграции EF Core требуют обходных решений — нет `.csproj`, который нужен design-time tools
+- Тестирование встроенное не предусмотрено — нужно выносить в отдельный проект
+- В PR-ах хуже показ изменений в NuGet-пакетах (зависимости в `#:package` директивах, а не в отдельном `.csproj`)
+- Production-grade решения всё же остаются с полноценным `.csproj` — это для скриптов и прототипов
+
+### Пример прод-полезного: CLI-утилита для своих VPS
+
+```csharp
+// deploy.cs
+#:package System.CommandLine@2.0.0-beta4
+#:package CliWrap@3.6.6
+
+using System.CommandLine;
+using CliWrap;
+
+var repoArg = new Argument<string>("repo");
+var root = new RootCommand("Deploy helper") { repoArg };
+
+root.SetHandler(async (string repo) =>
+{
+    await Cli.Wrap("git").WithArguments("pull").ExecuteAsync();
+    await Cli.Wrap("docker").WithArguments("compose up -d --build").ExecuteAsync();
+    Console.WriteLine($"Deployed {repo}");
+}, repoArg);
+
+await root.InvokeAsync(args);
+```
+
+Запуск: `dotnet run deploy.cs myapp`.
+
+> [!question]- **Интервью: Что даёт .NET 11 помимо производительности?**
+> Из практичного: file-based apps (`dotnet run app.cs`) — .NET перестал выглядеть как Windows-only enterprise и подтянулся к Go/Python по порогу входа. Работает с Native AOT → 30 MB single binary, удобно для CLI и микросервисов. Для прода с миграциями и многокомпонентной архитектурой — по-прежнему `.csproj`, но прототипы, скрипты и демо теперь пишутся на C# так же быстро, как на Python.
 
 ---
 

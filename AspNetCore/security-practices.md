@@ -154,6 +154,86 @@ public sealed class AuthService(AppDbContext context, TimeProvider timeProvider)
 
 ---
 
+### Password Hashing Migration — смена алгоритма без поломки логина
+
+**Когда нужно:** переходишь с PBKDF2 на BCrypt/Argon2id, либо увеличиваешь work factor. Простой swap реализации сломает логин всем существующим пользователям — старые хэши новый алгоритм не верифицирует.
+
+**Правильный подход — multi-algorithm support + прозрачная миграция при логине:**
+
+```csharp
+// 1. Формат хэша с metadata (PHC string style)
+// $pbkdf2-sha256$i=100000$<salt_base64>$<hash_base64>
+// $bcrypt$v=2b$c=12$<bcrypt_hash>
+// $argon2id$v=19$m=65536,t=3,p=4$<salt>$<hash>
+
+public interface IPasswordHasher
+{
+    bool CanVerify(string hashedPassword);
+    bool Verify(string password, string hashedPassword);
+    string Hash(string password);
+}
+
+public sealed class Pbkdf2Hasher : IPasswordHasher
+{
+    public bool CanVerify(string h) => h.StartsWith("$pbkdf2-");
+    public bool Verify(string pw, string hash) { /* parse params, verify */ }
+    public string Hash(string pw) { /* для legacy — не используем для новых */ }
+}
+
+public sealed class BcryptHasher : IPasswordHasher
+{
+    public bool CanVerify(string h) => h.StartsWith("$bcrypt$");
+    public bool Verify(string pw, string hash) => BCrypt.Net.BCrypt.Verify(pw, hash);
+    public string Hash(string pw) => "$bcrypt$" + BCrypt.Net.BCrypt.HashPassword(pw, 12);
+}
+
+public sealed class PasswordService
+{
+    private readonly IReadOnlyList<IPasswordHasher> _hashers;
+    private readonly IPasswordHasher _primary; // текущий (новый)
+
+    public bool Verify(string password, string storedHash)
+        => _hashers.First(h => h.CanVerify(storedHash)).Verify(password, storedHash);
+
+    public bool NeedsRehash(string storedHash) => !_primary.CanVerify(storedHash);
+
+    public string Hash(string password) => _primary.Hash(password);
+}
+```
+
+**Прозрачная миграция в LoginHandler:**
+
+```csharp
+public async Task<Result<AuthResponse>> Handle(LoginCommand cmd, CancellationToken ct)
+{
+    var user = await _users.FindByEmailAsync(cmd.Email, ct);
+    if (user is null) return Result<AuthResponse>.Fail(Error.Unauthorized(...));
+
+    if (!_passwords.Verify(cmd.Password, user.PasswordHash))
+        return Result<AuthResponse>.Fail(Error.Unauthorized(...));
+
+    // Прозрачная миграция — пересохраняем новым алгоритмом
+    if (_passwords.NeedsRehash(user.PasswordHash))
+    {
+        user.PasswordHash = _passwords.Hash(cmd.Password);
+        await _users.UpdateAsync(user, ct);
+    }
+
+    return Result<AuthResponse>.Ok(IssueTokens(user));
+}
+```
+
+**Свойства решения:**
+- Без сброса паролей, без downtime
+- Пользователи мигрируют естественно при первом логине
+- Можно параллельно поддерживать старый алгоритм и мониторить через метрику «сколько legacy-хэшей осталось»
+- Старый hasher **нельзя** удалять, пока есть хоть один такой хэш в БД → неактивные аккаунты (полгода-год без логина) форсировать через email password reset
+
+> [!question]- **Интервью: Как сменить алгоритм хэширования паролей в проде без ломания логина?**
+> Ошибка — просто заменить реализацию: старые хэши перестанут верифицироваться, массовые 401 на логине. Правильно: хранить в хэше metadata (алгоритм + параметры), поддерживать несколько hasher-ов одновременно, определять алгоритм по префиксу хэша, при успешном логине с legacy-хэшем пересохранять пароль новым алгоритмом. Для аккаунтов без активности — форсированный password reset через email. Без downtime, без сброса паролей.
+
+---
+
 ## Path Traversal Protection
 
 ### Проблема
@@ -378,6 +458,56 @@ public class ApiFixture : WebApplicationFactory<Program>
     }
 }
 ```
+
+---
+
+## Security Advisories
+
+Отслеживать [dotnet/announcements](https://github.com/dotnet/announcements/issues) и `dotnet list package --vulnerable --include-transitive` в CI.
+
+### CVE-2026-40372 — ASP.NET Core Data Protection (Апрель 2026)
+
+**Затронуты:** `Microsoft.AspNetCore.DataProtection` версий **10.0.0 – 10.0.6** включительно.
+
+**Суть:** в 10.0.6 попала регрессия — управляемый энкриптор вычислял HMAC-тег не над теми байтами полезной нагрузки, после чего результат выбрасывался. Параллельно открыта возможность повышения привилегий (elevation of privilege).
+
+**Фикс:** обновиться до **10.0.7** (внеплановый патч).
+
+```bash
+dotnet add package Microsoft.AspNetCore.DataProtection --version 10.0.7
+dotnet --info                        # проверить версию SDK
+dotnet list package --vulnerable     # по всем проектам
+```
+
+**Что задето в приложении (всё, что использует Data Protection):**
+- `IDataProtector` — явное шифрование
+- Antiforgery tokens (CSRF)
+- Authentication cookies и `TempData`
+- Identity user tokens (reset password, confirm email)
+- Protected query string parameters
+- Blazor Server (использует Data Protection для SignalR connection tokens)
+
+**После обновления:**
+1. Пересборка и передеплой
+2. Рестарт приложения — Data Protection инициализируется на старте
+3. Формат совместим с 10.0.x — существующие cookie/сессии не инвалидируются
+
+**Автоматизация в CI** (GitHub Actions):
+
+```yaml
+- name: Check vulnerable packages
+  run: |
+    dotnet restore
+    dotnet list package --vulnerable --include-transitive
+    # Fail job if any vulnerabilities found
+    if dotnet list package --vulnerable --include-transitive | grep -q '>'; then
+      echo "::error::Vulnerable packages detected"
+      exit 1
+    fi
+```
+
+> [!question]- **Интервью: Как отслеживать security advisories для .NET-зависимостей?**
+> Три слоя: (1) подписка на [dotnet/announcements](https://github.com/dotnet/announcements/issues) и Microsoft Security Advisories — приходят в RSS/email; (2) `dotnet list package --vulnerable --include-transitive` в CI на каждом build — ловит публичные CVE через NuGet feed; (3) dependabot/renovate на репо — автоматические PR на обновление. Для критичных CVE (как CVE-2026-40372) — алерт в Slack/email из CI job, отдельный hotfix-пайплайн для срочных патчей в прод.
 
 ---
 

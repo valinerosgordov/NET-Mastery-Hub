@@ -1,1 +1,30 @@
+# Backup files (created by format-fix scripts)
+*.bak
+*.bak-*
+*.backup
+
+# Claude / AI tools
 .claude/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Obsidian
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+
+# Temporary
+*.tmp
+*.temp
+~$*

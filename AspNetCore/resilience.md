@@ -1,5 +1,5 @@
 ---
-tags: [resilience, polly, httpclient, retry, circuit-breaker]
+tags: [polly, resilience, httpclient, retry, circuit-breaker, timeout, hedging, observability]
 level: Senior
 ---
 
@@ -7,279 +7,653 @@ level: Senior
 
 ## Что это, зачем и когда
 
-### Что такое Resilience?
-**Устойчивость приложения к сбоям.** Внешний сервис упал? Не падай вместе с ним — повтори запрос, подожди, верни fallback. Resilience — набор стратегий для graceful degradation.
+### Что такое resilience?
+**Способность системы продолжать работать при сбоях зависимостей.** Downstream сервис тормозит → твой сервис не валится. БД недоступна 5 секунд → пользователи не страдают.
 
-**Аналогия:** Ты звонишь другу, а он не берёт трубку. **Без resilience** — паникуешь и падаешь. **С resilience** — перезваниваешь через 5 секунд (retry), если не ответил 3 раза — шлёшь SMS (fallback), если вообще недоступен — не звонишь час (circuit breaker).
+**Аналогия:** Машина с запаской и резервным маслом. Прокол не означает «всё, машина в гараж» — едешь дальше.
 
-### Зачем?
+### Главные сценарии
 
-| Без Resilience | С Resilience |
-|---------------|-------------|
-| Внешний API вернул 500 → твой API упал | Retry через 1с → 2с → 4с → успех |
-| API медленно отвечает → все потоки заняты, приложение зависло | Timeout 5с → отменяем → возвращаем ошибку |
-| Сервис лёг → тысячи retry добивают его | Circuit Breaker: «сервис мёртв, не шли запросы 30 сек» |
-| `new HttpClient()` в каждом методе → утечка сокетов | `IHttpClientFactory` → пул соединений, DNS refresh |
+| Проблема | Pattern | Решение |
+|----------|---------|---------|
+| Transient error (5xx, network blip) | **Retry** | Повторить запрос с backoff |
+| Запрос завис | **Timeout** | Не ждать вечно, отвалиться через N сек |
+| Downstream дохлый | **Circuit Breaker** | Не насиловать его, fail fast |
+| Один replica медленный | **Hedging** | Параллельно дёрнуть второй, взять первый ответ |
+| Upstream бомбит RPS | **Rate Limiter** | Не пропускать больше N RPS |
+| Большой объём данных | **Bulkhead** | Изолировать concurrent ops |
+| Нет данных, downstream упал | **Fallback** | Вернуть default / cached |
 
-### Когда что?
+### Когда применять
 
-| Стратегия | Когда | Параметры |
-|-----------|-------|-----------|
-| **Retry** | Transient ошибки (500, timeout, сеть) | 3 попытки, exponential backoff |
-| **Circuit Breaker** | Сервис стабильно недоступен | 5 ошибок → открыть на 30 сек |
-| **Timeout** | Защита от зависших запросов | 5-30 сек в зависимости от сервиса |
-| **Fallback** | Есть запасной вариант (кеш, default) | Кешированный ответ, пустой список |
-| **Rate Limiter** | Не перегружать внешний сервис | Concurrency limit, rate per second |
+| Применять | Не применять |
+|-----------|--------------|
+| Любой external HTTP вызов | In-memory math operations |
+| DB connections (через EF retry) | Pure compute |
+| Message broker calls | Unit tests (mock'и не падают) |
+| Cache (Redis) | Конфигурационные lookup'ы |
+| File I/O в облаке (S3) | Local disk reads |
 
 ---
 
-## HttpClient — правильное использование
+## Polly v8 — основной инструмент
 
-### Проблема: `new HttpClient()`
+`Polly` — стандарт для resilience patterns в .NET. v8+ полностью переработан — pipelines vs predicates вместо chained policies.
+
+```bash
+dotnet add package Polly
+dotnet add package Microsoft.Extensions.Http.Resilience  # для HttpClient
+```
+
+### Базовый pipeline
 
 ```csharp
-// ✗ НИКОГДА — утечка сокетов (socket exhaustion)
-public class BadService
-{
-    public async Task<string> GetDataAsync()
+var pipeline = new ResiliencePipelineBuilder()
+    .AddRetry(new RetryStrategyOptions
     {
-        using var client = new HttpClient(); // каждый вызов = новый сокет!
-        return await client.GetStringAsync("https://api.example.com/data");
+        MaxRetryAttempts = 3,
+        Delay = TimeSpan.FromSeconds(1),
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        ShouldHandle = new PredicateBuilder()
+            .Handle<HttpRequestException>()
+            .Handle<TimeoutRejectedException>(),
+    })
+    .AddTimeout(TimeSpan.FromSeconds(30))
+    .AddCircuitBreaker(new CircuitBreakerStrategyOptions
+    {
+        FailureRatio = 0.5,
+        MinimumThroughput = 5,
+        SamplingDuration = TimeSpan.FromSeconds(30),
+        BreakDuration = TimeSpan.FromSeconds(15),
+    })
+    .Build();
+
+// Execute
+var result = await pipeline.ExecuteAsync(async ct =>
+{
+    return await ExternalApiCallAsync(ct);
+});
+```
+
+### Polly v7 → v8 миграция
+
+| | v7 | v8 |
+|--|-----|-----|
+| Базовый класс | `Policy` | `ResiliencePipelineBuilder` |
+| Combine | `Policy.WrapAsync(retry, timeout)` | `.AddRetry(...).AddTimeout(...)` |
+| Generic vs non-generic | `Policy<T>` отдельно | Унифицированный API |
+| Predicates | Through callbacks | `PredicateBuilder` |
+| Performance | Аллокации | Намного меньше |
+
+Если есть код на v7 — мигрируй на v8. Перформанс лучше, API чище.
+
+---
+
+## Retry
+
+### Стратегии backoff
+
+```csharp
+.AddRetry(new RetryStrategyOptions
+{
+    MaxRetryAttempts = 3,
+    BackoffType = DelayBackoffType.Exponential,  // 1s, 2s, 4s, 8s...
+    Delay = TimeSpan.FromSeconds(1),
+    UseJitter = true,                              // случайность ±25% — anti thundering herd
+    ShouldHandle = new PredicateBuilder()
+        .Handle<HttpRequestException>()
+        .Handle<TimeoutRejectedException>()
+        .HandleResult(r => r is HttpResponseMessage h &&
+            (h.StatusCode == HttpStatusCode.RequestTimeout ||
+             h.StatusCode == HttpStatusCode.ServiceUnavailable ||
+             h.StatusCode == HttpStatusCode.TooManyRequests)),
+    OnRetry = args =>
+    {
+        _logger.LogWarning(
+            "Retry #{Attempt} after {Delay}, status: {Status}",
+            args.AttemptNumber, args.RetryDelay, args.Outcome.Result);
+        return ValueTask.CompletedTask;
+    },
+});
+```
+
+| BackoffType | Когда |
+|------------|-------|
+| **Constant** | Predictable downstream — фиксированная задержка |
+| **Linear** | Лёгкая нагрузка — равномерное увеличение |
+| **Exponential** | Default — даёт downstream'у время восстановиться |
+
+**Jitter обязателен.** Без jitter тысячи инстансов retry'ятся одновременно через 1s → 2s → 4s, бомбят downstream синхронными волнами. Jitter ±25% размывает их во времени.
+
+### `RetryAfter` header
+
+Если downstream шлёт `Retry-After: 30`, уважай:
+
+```csharp
+.AddRetry(new RetryStrategyOptions
+{
+    DelayGenerator = args =>
+    {
+        if (args.Outcome.Result is HttpResponseMessage response &&
+            response.Headers.TryGetValues("Retry-After", out var values) &&
+            int.TryParse(values.FirstOrDefault(), out var seconds))
+        {
+            return ValueTask.FromResult<TimeSpan?>(TimeSpan.FromSeconds(seconds));
+        }
+        return ValueTask.FromResult<TimeSpan?>(null);  // null → стандартный backoff
+    },
+});
+```
+
+### Когда **не** retry
+
+- POST не-идемпотентные операции (если downstream не support'ит Idempotency-Key)
+- 4xx ошибки (это твоя bag, retry не поможет)
+- Аутентификация ошибки (проблема в credentials)
+- Validation errors
+
+> [!question]- **Интервью: какие 4xx стоит retry?**
+> Только некоторые:
+> - **408 Request Timeout** — downstream не успел, retry OK
+> - **429 Too Many Requests** — обязательно с уважением `Retry-After`
+> - **425 Too Early** — TLS handshake retry
+>
+> Все остальные 4xx (400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found) — это **твоя** ошибка. Retry не поможет.
+
+---
+
+## Timeout
+
+```csharp
+.AddTimeout(TimeSpan.FromSeconds(10))
+
+// или с custom logic
+.AddTimeout(new TimeoutStrategyOptions
+{
+    Timeout = TimeSpan.FromSeconds(10),
+    OnTimeout = args =>
+    {
+        _logger.LogWarning("Operation timed out after {Timeout}", args.Timeout);
+        return ValueTask.CompletedTask;
+    },
+});
+```
+
+### Pessimistic vs Optimistic timeout
+
+```csharp
+// Pessimistic — для не-cooperative операций (не support CancellationToken)
+.AddTimeout(new TimeoutStrategyOptions
+{
+    Timeout = TimeSpan.FromSeconds(10),
+    TimeoutMode = TimeoutMode.Pessimistic,  // принудительно прерывает thread
+});
+
+// Optimistic — default, через CancellationToken
+.AddTimeout(TimeSpan.FromSeconds(10));
+```
+
+**Default — optimistic.** Pessimistic прерывает thread что **опасно** (можно повредить state), используй только для legacy кода без CancellationToken.
+
+### Total vs Per-Attempt timeout
+
+```csharp
+// Per-attempt timeout (для одной попытки)
+var pipeline = new ResiliencePipelineBuilder()
+    .AddTimeout(TimeSpan.FromSeconds(5))   // ← per-attempt
+    .AddRetry(...)                          // 3 retries
+    .Build();
+// Каждая retry попытка имеет 5s таймаут. Total cap = 5 × 3 = 15s.
+
+// Total timeout (на весь pipeline вместе с retries)
+var pipeline = new ResiliencePipelineBuilder()
+    .AddTimeout(TimeSpan.FromSeconds(20))  // ← total cap
+    .AddRetry(...)
+    .AddTimeout(TimeSpan.FromSeconds(5))   // ← per-attempt
+    .Build();
+// Total 20s, одна попытка — макс 5s
+```
+
+**Порядок важен!** Outer pipeline = total cap, inner = per-attempt.
+
+---
+
+## Circuit Breaker
+
+```csharp
+.AddCircuitBreaker(new CircuitBreakerStrategyOptions
+{
+    FailureRatio = 0.5,                              // 50% failures → open
+    MinimumThroughput = 10,                          // Минимум 10 запросов за окно
+    SamplingDuration = TimeSpan.FromSeconds(30),     // Окно — 30 секунд
+    BreakDuration = TimeSpan.FromSeconds(15),        // Open на 15 секунд
+    OnOpened = args =>
+    {
+        _logger.LogError("Circuit OPENED for {Duration}", args.BreakDuration);
+        _metrics.CircuitBreakerOpened.Add(1);
+        return ValueTask.CompletedTask;
+    },
+    OnHalfOpened = args =>
+    {
+        _logger.LogInformation("Circuit HALF-OPEN — probing");
+        return ValueTask.CompletedTask;
+    },
+    OnClosed = args =>
+    {
+        _logger.LogInformation("Circuit CLOSED — recovered");
+        return ValueTask.CompletedTask;
+    },
+});
+```
+
+### State machine
+
+```
+   CLOSED  ──────────────►  OPEN
+     ▲     too many fails    │
+     │                       │ break duration
+     │                       ▼
+     │                    HALF-OPEN
+     │  success            │      │  fail
+     └────────────────────┘      └──────────► OPEN
+```
+
+| State | Что происходит |
+|-------|----------------|
+| **Closed** | Нормальная работа, считаем failures |
+| **Open** | Все запросы **сразу** падают с `BrokenCircuitException` (fast fail) |
+| **Half-Open** | Один пробный запрос — успех = Closed, fail = Open снова |
+
+### Зачем
+Без CB: downstream упал → 1000 RPS превращаются в 1000 RPS таймаутов и retry'ев → нагружаем дохлого downstream'а ещё сильнее.
+С CB: 50% requests fail → CB Open → следующие 15 секунд **0 запросов** к downstream → он рестартует — мы возобновляемся.
+
+### Pitfalls
+
+```csharp
+// ❌ MinimumThroughput слишком низкий
+options.MinimumThroughput = 1;
+options.FailureRatio = 0.5;
+// Один failure → ratio 1/1 = 100% → CB Open. Catastrophic false positive.
+
+// ✅ Reasonable threshold
+options.MinimumThroughput = 10;
+options.FailureRatio = 0.5;  // CB Open только если 5+ из 10 fail
+```
+
+> [!question]- **Интервью: что такое Half-Open state?**
+> После BreakDuration CB переходит в Half-Open. Пропускает **один** пробный запрос:
+> - **Success** → возвращается в Closed (downstream выздоровел)
+> - **Fail** → снова Open (ещё подождём BreakDuration)
+>
+> Без Half-Open мы бы либо вечно стояли в Open, либо открыли бы и сразу нагнали downstream при возврате нагрузки. Half-Open — gradual probing.
+
+---
+
+## Hedging — параллельное дублирование
+
+Если у downstream есть N replicas — можешь параллельно дёрнуть несколько, взять первый response.
+
+```csharp
+.AddHedging(new HedgingStrategyOptions<HttpResponseMessage>
+{
+    MaxHedgedAttempts = 3,
+    Delay = TimeSpan.FromMilliseconds(200),  // Через 200ms запускается второй
+    ActionGenerator = args =>
+    {
+        return () => CallAlternateReplicaAsync(args.AttemptNumber, args.ActionContext);
+    },
+});
+```
+
+### Когда применять
+
+| Применять | Не применять |
+|-----------|--------------|
+| Read-heavy operations с idempotency | Write-операции (двойной charge!) |
+| Latency-sensitive (видеостриминг, search) | Cost-sensitive (платишь за два API call) |
+| Несколько replicas/endpoints | Один downstream |
+| p99 latency критичен | p50 OK |
+
+Hedging **снижает p99 latency** на cost of дополнительного RPS на downstream. Используй для critical paths где latency важнее cost.
+
+---
+
+## Fallback
+
+Когда всё упало — вернуть default / cached / degraded response.
+
+```csharp
+.AddFallback(new FallbackStrategyOptions<HttpResponseMessage>
+{
+    FallbackAction = args =>
+    {
+        return Outcome.FromResultAsValueTask(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("[]"),  // Empty list as fallback
+        });
+    },
+    OnFallback = args =>
+    {
+        _logger.LogWarning("Falling back due to {Exception}", args.Outcome.Exception?.Message);
+        return ValueTask.CompletedTask;
+    },
+});
+```
+
+### Cache как fallback
+
+Если downstream упал — отдай stale из cache:
+
+```csharp
+public async Task<Product?> GetResilientAsync(int id, CancellationToken ct)
+{
+    try
+    {
+        var fresh = await _pipeline.ExecuteAsync(async c =>
+            await _api.GetAsync(id, c), ct);
+
+        await _cache.SetAsync($"product:{id}", fresh, TimeSpan.FromHours(24), ct);
+        return fresh;
     }
-    // Dispose не сразу закрывает соединение → TIME_WAIT 240 сек
-    // 1000 вызовов = 1000 сокетов в TIME_WAIT → SocketException
+    catch (Exception ex) when (ex is HttpRequestException or TimeoutException or BrokenCircuitException)
+    {
+        _logger.LogWarning(ex, "Downstream failed, using cached");
+        return await _cache.GetAsync<Product>($"product:{id}", ct);  // stale OK
+    }
 }
 ```
 
-### Typed HttpClient — правильный подход
+См. [Caching](caching.md) — детали cache resilience pattern.
+
+---
+
+## Bulkhead — изолированные thread pools
+
+Старая концепция Polly v7. В v8 — через `ConcurrencyLimiter`:
 
 ```csharp
-// 1. Интерфейс (Domain/Application layer)
-public interface IPaymentGateway
+.AddConcurrencyLimiter(new RateLimiterStrategyOptions
 {
-    Task<Result<PaymentResponse>> ChargeAsync(ChargeRequest request, CancellationToken ct);
-}
+    DefaultRateLimiterOptions = new ConcurrencyLimiterOptions
+    {
+        PermitLimit = 100,
+        QueueLimit = 100,
+    },
+});
+```
 
-// 2. Реализация (Infrastructure layer)
-public sealed class StripePaymentGateway(
-    HttpClient httpClient,
-    ILogger<StripePaymentGateway> logger) : IPaymentGateway
+100 параллельных операций max + 100 в queue. 201-й запрос получит rejection.
+
+### Зачем
+
+Без bulkhead: 1000 параллельных HTTP calls к slow downstream → ThreadPool starvation → весь сервис тормозит.
+С bulkhead: только 100 параллельных → быстрее fail fast для лишних → ThreadPool свободен для других операций.
+
+См. также [HFT / Low-Latency](../Performance/hft-low-latency.md) — `Channel<T>` как natural bulkhead.
+
+---
+
+## Microsoft.Extensions.Http.Resilience — для HttpClient
+
+Высокоуровневая обёртка над Polly специально для HttpClient.
+
+### Standard Resilience Handler
+
+```csharp
+builder.Services.AddHttpClient<MyApiClient>(client =>
 {
-    public async Task<Result<PaymentResponse>> ChargeAsync(
-        ChargeRequest request, CancellationToken ct)
+    client.BaseAddress = new Uri("https://api.example.com");
+})
+.AddStandardResilienceHandler();  // ВСЁ: retry + timeout + CB + total timeout + rate limiter
+```
+
+`AddStandardResilienceHandler` даёт **production-ready defaults**:
+- Total timeout 30s
+- Per-attempt timeout 10s
+- Retry: 3 attempts, exponential backoff, jitter
+- Circuit breaker: 10% failure ratio, 30s sampling
+- Rate limiter: 1000 RPS
+
+### Customization
+
+```csharp
+.AddStandardResilienceHandler(options =>
+{
+    options.Retry.MaxRetryAttempts = 5;
+    options.Retry.Delay = TimeSpan.FromSeconds(2);
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(1);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(60);
+});
+```
+
+### Hedging Handler
+
+```csharp
+.AddStandardHedgingHandler(handler =>
+{
+    handler.UrlGroupBuilder.SetUrls("https://api1.example.com", "https://api2.example.com");
+    handler.HedgingOptions.MaxHedgedAttempts = 3;
+    handler.HedgingOptions.Delay = TimeSpan.FromMilliseconds(200);
+});
+```
+
+Используй когда:
+- `Standard` — для большинства HTTP-клиентов
+- `Hedging` — когда есть несколько endpoints (geo-replicas, load-balanced backends)
+
+---
+
+## Typed HttpClient pattern
+
+```csharp
+public sealed class WeatherClient(HttpClient http, ILogger<WeatherClient> logger)
+{
+    public async Task<WeatherResponse?> GetAsync(string city, CancellationToken ct)
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync("/v1/charges", request, ct);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(ct);
-                return Result<PaymentResponse>.Fail(
-                    Error.Internal("Payment.Failed", problem?.Detail ?? "Payment failed"));
-            }
-
-            var result = await response.Content.ReadFromJsonAsync<PaymentResponse>(ct);
-            return Result<PaymentResponse>.Ok(result!);
+            return await http.GetFromJsonAsync<WeatherResponse>(
+                $"weather?city={Uri.EscapeDataString(city)}", ct);
         }
-        catch (TaskCanceledException) when (!ct.IsCancellationRequested)
+        catch (HttpRequestException ex)
         {
-            // Timeout (не user cancellation)
-            logger.LogWarning("Payment gateway timeout for {Amount}", request.Amount);
-            return Result<PaymentResponse>.Fail(
-                Error.Internal("Payment.Timeout", "Payment gateway timed out"));
+            logger.LogWarning(ex, "Weather API failure for {City}", city);
+            return null;
         }
-    }
-}
-
-// 3. Регистрация с Resilience
-builder.Services
-    .AddHttpClient<IPaymentGateway, StripePaymentGateway>(client =>
-    {
-        client.BaseAddress = new Uri("https://api.stripe.com");
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-        client.Timeout = TimeSpan.FromSeconds(30); // общий timeout
-    })
-    .AddResilienceHandler("stripe", pipeline =>
-    {
-        // Retry: 3 попытки с exponential backoff
-        pipeline.AddRetry(new HttpRetryStrategyOptions
-        {
-            MaxRetryAttempts = 3,
-            Delay = TimeSpan.FromSeconds(1),
-            BackoffType = DelayBackoffType.Exponential, // 1s → 2s → 4s
-            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-                .HandleResult(r => r.StatusCode == HttpStatusCode.TooManyRequests
-                                || r.StatusCode >= HttpStatusCode.InternalServerError)
-                .Handle<HttpRequestException>()
-                .Handle<TimeoutRejectedException>()
-        });
-
-        // Circuit Breaker: 5 ошибок за 30 сек → открыть на 15 сек
-        pipeline.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
-        {
-            FailureRatio = 0.5,          // 50% ошибок
-            SamplingDuration = TimeSpan.FromSeconds(30),
-            MinimumThroughput = 5,        // минимум 5 запросов для оценки
-            BreakDuration = TimeSpan.FromSeconds(15)
-        });
-
-        // Timeout per-attempt (внутри retry)
-        pipeline.AddTimeout(TimeSpan.FromSeconds(10));
-    });
-```
-
-**Нюанс:** `IHttpClientFactory` автоматически:
-- Пулит `HttpMessageHandler` (переиспользует соединения)
-- Обновляет DNS каждые 2 минуты (не кеширует навсегда)
-- Интегрируется с DI lifecycle
-
----
-
-## Polly через Microsoft.Extensions.Resilience
-
-### Установка
-
-```bash
-dotnet add package Microsoft.Extensions.Http.Resilience
-```
-
-### Стандартный Resilience Pipeline
-
-```csharp
-// Готовый набор: Rate Limiter → Timeout → Retry → Circuit Breaker → Timeout per attempt
-builder.Services
-    .AddHttpClient<IWeatherService, WeatherService>(client =>
-    {
-        client.BaseAddress = new Uri("https://api.weather.com");
-    })
-    .AddStandardResilienceHandler(); // включает всё из коробки
-```
-
-### Кастомизация стандартного pipeline
-
-```csharp
-builder.Services
-    .AddHttpClient<IWeatherService, WeatherService>()
-    .AddStandardResilienceHandler(options =>
-    {
-        // Переопределить retry
-        options.Retry.MaxRetryAttempts = 5;
-        options.Retry.Delay = TimeSpan.FromMilliseconds(500);
-
-        // Переопределить circuit breaker
-        options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
-
-        // Переопределить timeout
-        options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);
-        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
-    });
-```
-
-### Порядок стратегий
-
-```
-Запрос → Rate Limiter → Total Timeout → Retry ←→ Circuit Breaker → Attempt Timeout → HttpClient
-                                           ↑                                              |
-                                           └──────── retry при ошибке ─────────────────────┘
-```
-
-**Нюанс:** Порядок стратегий критичен:
-- **Total Timeout** снаружи Retry — ограничивает ОБЩЕЕ время (все попытки)
-- **Attempt Timeout** внутри Retry — ограничивает ОДНУ попытку
-- **Circuit Breaker** внутри Retry — если circuit open, retry не тратит попытку
-
----
-
-## Resilience для не-HTTP сценариев
-
-```csharp
-// Resilience pipeline для любой операции (не только HTTP)
-builder.Services.AddResiliencePipeline("database", pipeline =>
-{
-    pipeline.AddRetry(new RetryStrategyOptions
-    {
-        MaxRetryAttempts = 3,
-        Delay = TimeSpan.FromMilliseconds(200),
-        BackoffType = DelayBackoffType.Exponential,
-        ShouldHandle = new PredicateBuilder()
-            .Handle<DbUpdateConcurrencyException>()
-            .Handle<TimeoutException>()
-    });
-});
-
-// Использование
-public sealed class OrderRepository(
-    AppDbContext context,
-    [FromKeyedServices("database")] ResiliencePipeline pipeline)
-{
-    public async Task SaveWithRetryAsync(Order order, CancellationToken ct)
-    {
-        await pipeline.ExecuteAsync(async token =>
-        {
-            context.Orders.Add(order);
-            await context.SaveChangesAsync(token);
-        }, ct);
-    }
-}
-```
-
----
-
-## Retry с Idempotency Key
-
-Retry безопасен только для идемпотентных операций. POST без idempotency key может создать дубликат.
-
-```csharp
-// Добавление Idempotency Key через DelegatingHandler
-public sealed class IdempotencyKeyHandler : DelegatingHandler
-{
-    protected override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, CancellationToken ct)
-    {
-        if (request.Method == HttpMethod.Post || request.Method == HttpMethod.Put)
-        {
-            request.Headers.TryAddWithoutValidation(
-                "Idempotency-Key", Guid.NewGuid().ToString());
-        }
-        return base.SendAsync(request, ct);
     }
 }
 
 // Регистрация
-builder.Services.AddTransient<IdempotencyKeyHandler>();
-builder.Services
-    .AddHttpClient<IPaymentGateway, StripePaymentGateway>()
-    .AddHttpMessageHandler<IdempotencyKeyHandler>() // перед resilience!
-    .AddStandardResilienceHandler();
+builder.Services.AddHttpClient<WeatherClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["WeatherApi:BaseUrl"]!);
+    client.DefaultRequestHeaders.Add("X-API-Key", builder.Configuration["WeatherApi:ApiKey"]!);
+    client.Timeout = TimeSpan.FromSeconds(60);  // hard cap
+})
+.AddStandardResilienceHandler();
 ```
+
+См. [auth-security.md / OpenAI typed HttpClient](../Infrastructure/llm-rag-patterns.md#openai-через-typed-httpclient--addresiliencehandler) — расширенный пример с custom config.
 
 ---
 
-## Логирование retry
+## Observability of resilience
+
+Сама resilience политика — это **поведение системы**. Должны быть metrics:
 
 ```csharp
-pipeline.AddRetry(new HttpRetryStrategyOptions
+// Polly v8 has OpenTelemetry integration out of the box
+builder.Services
+    .ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler())
+    .AddOpenTelemetry()
+    .WithMetrics(metrics => metrics
+        .AddMeter("Polly")            // Resilience metrics
+        .AddPrometheusExporter());
+```
+
+### Что мониторить
+
+| Metric | Almuni alert |
+|--------|-------------|
+| `polly.retry.count` | Резко растёт → downstream проблема |
+| `polly.circuit_breaker.state` | Open state длительный → инцидент |
+| `polly.timeout.count` | Растут → downstream slow |
+| `polly.hedging.count` | Когда hedging активен — насколько часто |
+| `polly.fallback.count` | Каждый fallback = degraded UX |
+
+Smart alerts:
+```yaml
+- alert: CircuitBreakerStuckOpen
+  expr: polly_circuit_breaker_state{state="open"} == 1
+  for: 5m
+  severity: critical
+```
+
+См. [Observability](../Infrastructure/observability.md) — full setup.
+
+---
+
+## Custom strategies
+
+В Polly v8 можно писать свои strategies:
+
+```csharp
+public class JitteredDelayStrategy<T> : ResilienceStrategy<T>
 {
-    MaxRetryAttempts = 3,
-    Delay = TimeSpan.FromSeconds(1),
-    BackoffType = DelayBackoffType.Exponential,
-    OnRetry = args =>
+    protected override async ValueTask<Outcome<T>> ExecuteCore<TState>(
+        Func<ResilienceContext, TState, ValueTask<Outcome<T>>> callback,
+        ResilienceContext context,
+        TState state)
     {
-        logger.LogWarning(
-            "Retry {Attempt} after {Delay}ms. Outcome: {Outcome}",
-            args.AttemptNumber,
-            args.RetryDelay.TotalMilliseconds,
-            args.Outcome.Result?.StatusCode ?? default);
-        return ValueTask.CompletedTask;
+        var jitter = TimeSpan.FromMilliseconds(Random.Shared.Next(0, 100));
+        await Task.Delay(jitter, context.CancellationToken);
+        return await callback(context, state);
     }
+}
+
+// Регистрация
+.AddStrategy(new JitteredDelayStrategy<HttpResponseMessage>());
+```
+
+Полезно для domain-specific patterns (chaos engineering, custom backoff формулы, business rules).
+
+---
+
+## Chaos engineering — Polly Simmy
+
+```csharp
+.AddChaosFault(new ChaosFaultStrategyOptions
+{
+    InjectionRate = 0.1,  // 10% запросов
+    Enabled = builder.Environment.IsDevelopment(),
+    Fault = new InvalidOperationException("Chaos!"),
+});
+
+.AddChaosLatency(new ChaosLatencyStrategyOptions
+{
+    InjectionRate = 0.2,  // 20% запросов
+    Latency = TimeSpan.FromSeconds(5),
+    Enabled = builder.Environment.IsDevelopment(),
 });
 ```
+
+Включай в Dev/Staging для тестирования что система переживает random failures. **Никогда** в production.
+
+См. подробно — Netflix Chaos Monkey, AWS Fault Injection Service. Same idea — proactively добавляем хаос чтобы найти baги до prod.
+
+---
+
+## Common pitfalls
+
+### 1. Retry на 4xx
+
+```csharp
+// ❌ Retry POST который вернул 400 Bad Request — бесполезно, тело запроса плохое
+.HandleResult(r => !r.IsSuccessStatusCode)
+
+// ✅ Только transient
+.HandleResult(r => r.StatusCode == HttpStatusCode.RequestTimeout
+    || r.StatusCode == HttpStatusCode.ServiceUnavailable
+    || r.StatusCode == HttpStatusCode.TooManyRequests
+    || (int)r.StatusCode >= 500)
+```
+
+### 2. Retry без идемпотентности
+POST без Idempotency-Key + retry = двойной charge / двойной заказ.
+**Решение:** server поддерживает Idempotency-Key, или просто не retry POST.
+
+### 3. Retry-storm
+1000 instances retry'ятся одновременно через 1s → 2s → 4s — синхронные волны убивают downstream.
+**Решение:** ВСЕГДА `UseJitter = true`.
+
+### 4. Total timeout слишком маленький
+`Timeout = 10s, MaxRetries = 3, Delay = 5s` — total > 10s, но timeout = 10s → не дождавшись retry, abort.
+**Решение:** total timeout = (per-attempt × max_attempts) + buffer.
+
+### 5. CB MinimumThroughput=1
+Один failure → 100% ratio → CB Open. Catastrophic false positive.
+**Решение:** `MinimumThroughput >= 10`.
+
+### 6. Logging deeplinks с PII
+Retry log содержит request body с password / credit card.
+**Решение:** redaction layer перед logging, scrub sensitive fields.
+
+### 7. Synchronous waiting блокирует ThreadPool
+Polly thread-pool sleeping → ThreadPool starvation.
+**Решение:** v8 fully async, но проверь что callback тоже async.
+
+### 8. CB без observability
+CB Open = твоя система degraded, но никто не знает.
+**Решение:** OnOpened → metric + alert + Slack notification.
+
+### 9. Не учитывается cumulative impact
+Retry × 3 + per-attempt timeout 10s + circuit breaker delays = пользователь ждёт 60 секунд → UX terrible.
+**Решение:** real-world UX testing — фиксируй p99 latency end-to-end.
+
+### 10. Forget `AddStandardResilienceHandler`
+Каждый new HttpClient без resilience = production риск.
+**Решение:** `ConfigureHttpClientDefaults(b => b.AddStandardResilienceHandler())` глобально, opt-out для exceptions.
+
+---
+
+## Production checklist
+
+- [ ] `AddStandardResilienceHandler` для всех HttpClient
+- [ ] Per-attempt timeout < total timeout
+- [ ] Retry only on transient errors (5xx, 408, 429, 425)
+- [ ] `UseJitter = true` обязательно
+- [ ] Circuit Breaker `MinimumThroughput >= 10`
+- [ ] CB metrics + alerts (state Open за 5+ минут)
+- [ ] Hedging для read-heavy idempotent ops (если есть replicas)
+- [ ] Fallback strategy для критичных endpoints
+- [ ] PII redaction в retry logs
+- [ ] Polly OpenTelemetry meter active
+- [ ] Chaos testing в staging environment
+- [ ] EF Core `EnableRetryOnFailure` для DB transient errors
+- [ ] Documented retry policies per service (в ADR)
+- [ ] Idempotency-Key для retry-able POST endpoints
 
 ---
 
 ## См. также
 
-- [Hosting и Background](hosting-background.md) — Health Checks
-- [Messaging](../Infrastructure/messaging.md) — Resilience в message broker
-- [Async и Threading](../CSharp/async-threading.md) — CancellationToken, timeout
+- [Auth и Security](auth-security.md) — typed HttpClient + auth integration
+- [Caching](caching.md) — cache как fallback
+- [Observability](../Infrastructure/observability.md) — Polly metrics, alerting
+- [Distributed Systems](../Architecture/distributed-systems.md) — idempotency для retry safety
+- [HFT / Low-Latency](../Performance/hft-low-latency.md) — Channel<T> как bulkhead
+- [System Design](../Architecture/system-design.md) — resilience в архитектуре
+
+## Reading list
+
+- **Polly docs (v8)** — pollydocs.org
+- **Microsoft.Extensions.Http.Resilience docs** — learn.microsoft.com/dotnet/core/resilience/http-resilience
+- **Release It! (2nd ed.)** — Michael Nygard (canonical book on resilience patterns)
+- **AWS Builders' Library — Timeouts, Retries, Backoff** — aws.amazon.com/builders-library/
+- **Marc Brooker — Exponential Backoff and Jitter** — aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+- **Google SRE Workbook (Ch. Cascading Failures)** — sre.google
+- **Hystrix legacy** — Netflix' original CB pattern (concepts транслируются на Polly)
+- **Polly Cancellation discussion** — github.com/App-vNext/Polly/issues — для глубоких deep-dives
