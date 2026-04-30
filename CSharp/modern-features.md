@@ -1,140 +1,140 @@
----
+﻿---
 tags: [modern-csharp, pattern-matching, records, nullable, generics]
-level: Senior
+level: Middle to Senior
 ---
 
-# Современные возможности C# (8–14)
+# РЎРѕРІСЂРµРјРµРЅРЅС‹Рµ РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё C# (8вЂ“14)
 
-## Что это, зачем и когда
+## Р§С‚Рѕ СЌС‚Рѕ, Р·Р°С‡РµРј Рё РєРѕРіРґР°
 
-### Что такое «современный C#»?
-**Новые фичи языка** начиная с C# 8 (2019) по C# 14 (2025). Делают код короче, безопаснее и выразительнее.
+### Р§С‚Рѕ С‚Р°РєРѕРµ В«СЃРѕРІСЂРµРјРµРЅРЅС‹Р№ C#В»?
+**РќРѕРІС‹Рµ С„РёС‡Рё СЏР·С‹РєР°** РЅР°С‡РёРЅР°СЏ СЃ C# 8 (2019) РїРѕ C# 14 (2025). Р”РµР»Р°СЋС‚ РєРѕРґ РєРѕСЂРѕС‡Рµ, Р±РµР·РѕРїР°СЃРЅРµРµ Рё РІС‹СЂР°Р·РёС‚РµР»СЊРЅРµРµ.
 
-**Аналогия:** Обновление инструментов в мастерской. Можно забивать гвозди камнем (старый C#), а можно молотком (современный C#). Результат один, но с молотком быстрее и удобнее.
+**РђРЅР°Р»РѕРіРёСЏ:** РћР±РЅРѕРІР»РµРЅРёРµ РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ РІ РјР°СЃС‚РµСЂСЃРєРѕР№. РњРѕР¶РЅРѕ Р·Р°Р±РёРІР°С‚СЊ РіРІРѕР·РґРё РєР°РјРЅРµРј (СЃС‚Р°СЂС‹Р№ C#), Р° РјРѕР¶РЅРѕ РјРѕР»РѕС‚РєРѕРј (СЃРѕРІСЂРµРјРµРЅРЅС‹Р№ C#). Р РµР·СѓР»СЊС‚Р°С‚ РѕРґРёРЅ, РЅРѕ СЃ РјРѕР»РѕС‚РєРѕРј Р±С‹СЃС‚СЂРµРµ Рё СѓРґРѕР±РЅРµРµ.
 
-### Ключевые фичи — когда что?
+### РљР»СЋС‡РµРІС‹Рµ С„РёС‡Рё вЂ” РєРѕРіРґР° С‡С‚Рѕ?
 
-| Фича | Версия | Зачем | Когда |
+| Р¤РёС‡Р° | Р’РµСЂСЃРёСЏ | Р—Р°С‡РµРј | РљРѕРіРґР° |
 |------|--------|-------|-------|
-| **Nullable Reference Types** | C# 8 | Компилятор предупреждает о возможном null | Всегда включать (`<Nullable>enable</Nullable>`) |
-| **Pattern Matching** | C# 8-11 | Мощная проверка типов и значений в switch | Замена цепочки `if/else if`, обработка разных типов |
-| **Records** | C# 9 | Immutable типы с value equality из коробки | DTO, Value Objects, конфигурации |
-| **Global Usings** | C# 10 | Убрать повторяющиеся `using` из каждого файла | `global using System.Linq;` в одном файле |
-| **File-scoped Namespaces** | C# 10 | Убрать один уровень вложенности | Всегда: `namespace X;` вместо `namespace X { }` |
-| **Raw String Literals** | C# 11 | Многострочные строки без экранирования | JSON, SQL, HTML в коде |
-| **Primary Constructors** | C# 12 | DI-инъекция без boilerplate | `class OrderService(IRepo repo)` |
-| **Collection Expressions** | C# 12 | Унифицированный синтаксис `[1, 2, 3]` | Инициализация любых коллекций |
-| **`field` keyword** | C# 13 | Semi-auto properties без backing field | Валидация в setter: `set => field = value ?? throw ...` |
+| **Nullable Reference Types** | C# 8 | РљРѕРјРїРёР»СЏС‚РѕСЂ РїСЂРµРґСѓРїСЂРµР¶РґР°РµС‚ Рѕ РІРѕР·РјРѕР¶РЅРѕРј null | Р’СЃРµРіРґР° РІРєР»СЋС‡Р°С‚СЊ (`<Nullable>enable</Nullable>`) |
+| **Pattern Matching** | C# 8-11 | РњРѕС‰РЅР°СЏ РїСЂРѕРІРµСЂРєР° С‚РёРїРѕРІ Рё Р·РЅР°С‡РµРЅРёР№ РІ switch | Р—Р°РјРµРЅР° С†РµРїРѕС‡РєРё `if/else if`, РѕР±СЂР°Р±РѕС‚РєР° СЂР°Р·РЅС‹С… С‚РёРїРѕРІ |
+| **Records** | C# 9 | Immutable С‚РёРїС‹ СЃ value equality РёР· РєРѕСЂРѕР±РєРё | DTO, Value Objects, РєРѕРЅС„РёРіСѓСЂР°С†РёРё |
+| **Global Usings** | C# 10 | РЈР±СЂР°С‚СЊ РїРѕРІС‚РѕСЂСЏСЋС‰РёРµСЃСЏ `using` РёР· РєР°Р¶РґРѕРіРѕ С„Р°Р№Р»Р° | `global using System.Linq;` РІ РѕРґРЅРѕРј С„Р°Р№Р»Рµ |
+| **File-scoped Namespaces** | C# 10 | РЈР±СЂР°С‚СЊ РѕРґРёРЅ СѓСЂРѕРІРµРЅСЊ РІР»РѕР¶РµРЅРЅРѕСЃС‚Рё | Р’СЃРµРіРґР°: `namespace X;` РІРјРµСЃС‚Рѕ `namespace X { }` |
+| **Raw String Literals** | C# 11 | РњРЅРѕРіРѕСЃС‚СЂРѕС‡РЅС‹Рµ СЃС‚СЂРѕРєРё Р±РµР· СЌРєСЂР°РЅРёСЂРѕРІР°РЅРёСЏ | JSON, SQL, HTML РІ РєРѕРґРµ |
+| **Primary Constructors** | C# 12 | DI-РёРЅСЉРµРєС†РёСЏ Р±РµР· boilerplate | `class OrderService(IRepo repo)` |
+| **Collection Expressions** | C# 12 | РЈРЅРёС„РёС†РёСЂРѕРІР°РЅРЅС‹Р№ СЃРёРЅС‚Р°РєСЃРёСЃ `[1, 2, 3]` | РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Р»СЋР±С‹С… РєРѕР»Р»РµРєС†РёР№ |
+| **`field` keyword** | C# 13 | Semi-auto properties Р±РµР· backing field | Р’Р°Р»РёРґР°С†РёСЏ РІ setter: `set => field = value ?? throw ...` |
 
 ---
 
-> Справочник по фичам языка C# 8–14.
-> Теория → практика → senior-level код → вопросы интервью.
+> РЎРїСЂР°РІРѕС‡РЅРёРє РїРѕ С„РёС‡Р°Рј СЏР·С‹РєР° C# 8вЂ“14.
+> РўРµРѕСЂРёСЏ в†’ РїСЂР°РєС‚РёРєР° в†’ senior-level РєРѕРґ в†’ РІРѕРїСЂРѕСЃС‹ РёРЅС‚РµСЂРІСЊСЋ.
 
 ---
 
-## Pattern Matching (C# 8–11)
+## Pattern Matching (C# 8вЂ“11)
 
 ### Type Patterns (C# 8)
 
-Проверка типа с одновременным объявлением переменной:
+РџСЂРѕРІРµСЂРєР° С‚РёРїР° СЃ РѕРґРЅРѕРІСЂРµРјРµРЅРЅС‹Рј РѕР±СЉСЏРІР»РµРЅРёРµРј РїРµСЂРµРјРµРЅРЅРѕР№:
 
 ```csharp
 object obj = "Hello, World!";
 
-// Классический type pattern
+// РљР»Р°СЃСЃРёС‡РµСЃРєРёР№ type pattern
 if (obj is string s)
 {
     Console.WriteLine(s.ToUpper()); // HELLO, WORLD!
 }
 
-// В switch expression
+// Р’ switch expression
 string result = obj switch
 {
-    string s => $"Строка длиной {s.Length}",
-    int i    => $"Число: {i}",
+    string s => $"РЎС‚СЂРѕРєР° РґР»РёРЅРѕР№ {s.Length}",
+    int i    => $"Р§РёСЃР»Рѕ: {i}",
     null     => "null",
-    _        => $"Неизвестный тип: {obj.GetType().Name}"
+    _        => $"РќРµРёР·РІРµСЃС‚РЅС‹Р№ С‚РёРї: {obj.GetType().Name}"
 };
 ```
 
-### Declaration и Constant Patterns (C# 8)
+### Declaration Рё Constant Patterns (C# 8)
 
 ```csharp
-// Declaration pattern — объявляем переменную при совпадении
+// Declaration pattern вЂ” РѕР±СЉСЏРІР»СЏРµРј РїРµСЂРµРјРµРЅРЅСѓСЋ РїСЂРё СЃРѕРІРїР°РґРµРЅРёРё
 if (GetOrder() is Order { Status: OrderStatus.Completed } order)
 {
     ProcessCompleted(order);
 }
 
-// Constant pattern — сравнение с константой
+// Constant pattern вЂ” СЃСЂР°РІРЅРµРЅРёРµ СЃ РєРѕРЅСЃС‚Р°РЅС‚РѕР№
 if (statusCode is 200)
 {
     // OK
 }
 
-// null check через constant pattern
+// null check С‡РµСЂРµР· constant pattern
 if (name is null)
 {
     throw new ArgumentNullException(nameof(name));
 }
 
-// not null — обратная проверка
+// not null вЂ” РѕР±СЂР°С‚РЅР°СЏ РїСЂРѕРІРµСЂРєР°
 if (name is not null)
 {
     Console.WriteLine(name);
 }
 ```
 
-### Property Patterns (C# 8, расширены в C# 10)
+### Property Patterns (C# 8, СЂР°СЃС€РёСЂРµРЅС‹ РІ C# 10)
 
 ```csharp
 public record Person(string Name, int Age, Address? Address);
 public record Address(string City, string Country);
 
-// Простой property pattern
+// РџСЂРѕСЃС‚РѕР№ property pattern
 if (person is { Age: > 18, Name: not null })
 {
-    Console.WriteLine("Совершеннолетний с именем");
+    Console.WriteLine("РЎРѕРІРµСЂС€РµРЅРЅРѕР»РµС‚РЅРёР№ СЃ РёРјРµРЅРµРј");
 }
 
-// Вложенный property pattern (C# 10 — extended property patterns)
+// Р’Р»РѕР¶РµРЅРЅС‹Р№ property pattern (C# 10 вЂ” extended property patterns)
 if (person is { Address.City: "Moscow" })
 {
-    Console.WriteLine("Москвич");
+    Console.WriteLine("РњРѕСЃРєРІРёС‡");
 }
 
-// Эквивалент до C# 10 (вложенная запись):
+// Р­РєРІРёРІР°Р»РµРЅС‚ РґРѕ C# 10 (РІР»РѕР¶РµРЅРЅР°СЏ Р·Р°РїРёСЃСЊ):
 if (person is { Address: { City: "Moscow" } })
 {
-    Console.WriteLine("Москвич");
+    Console.WriteLine("РњРѕСЃРєРІРёС‡");
 }
 
-// Комбинация в switch expression
+// РљРѕРјР±РёРЅР°С†РёСЏ РІ switch expression
 string category = person switch
 {
-    { Age: < 13 }                          => "Ребёнок",
-    { Age: >= 13 and < 18 }               => "Подросток",
-    { Age: >= 18, Address.Country: "RU" }  => "Взрослый (РФ)",
-    { Age: >= 18 }                         => "Взрослый",
-    _                                       => "Неизвестно"
+    { Age: < 13 }                          => "Р РµР±С‘РЅРѕРє",
+    { Age: >= 13 and < 18 }               => "РџРѕРґСЂРѕСЃС‚РѕРє",
+    { Age: >= 18, Address.Country: "RU" }  => "Р’Р·СЂРѕСЃР»С‹Р№ (Р Р¤)",
+    { Age: >= 18 }                         => "Р’Р·СЂРѕСЃР»С‹Р№",
+    _                                       => "РќРµРёР·РІРµСЃС‚РЅРѕ"
 };
 ```
 
-### Relational и Logical Patterns (C# 9)
+### Relational Рё Logical Patterns (C# 9)
 
-Операторы сравнения `<`, `>`, `<=`, `>=` и логические комбинаторы `and`, `or`, `not`:
+РћРїРµСЂР°С‚РѕСЂС‹ СЃСЂР°РІРЅРµРЅРёСЏ `<`, `>`, `<=`, `>=` Рё Р»РѕРіРёС‡РµСЃРєРёРµ РєРѕРјР±РёРЅР°С‚РѕСЂС‹ `and`, `or`, `not`:
 
 ```csharp
 // Relational patterns
 string GetTemperatureDescription(double temp) => temp switch
 {
-    < -20                 => "Экстремальный холод",
-    >= -20 and < 0        => "Мороз",
-    >= 0 and < 15         => "Прохладно",
-    >= 15 and < 25        => "Комфортно",
-    >= 25 and < 35        => "Жарко",
-    >= 35                 => "Экстремальная жара"
+    < -20                 => "Р­РєСЃС‚СЂРµРјР°Р»СЊРЅС‹Р№ С…РѕР»РѕРґ",
+    >= -20 and < 0        => "РњРѕСЂРѕР·",
+    >= 0 and < 15         => "РџСЂРѕС…Р»Р°РґРЅРѕ",
+    >= 15 and < 25        => "РљРѕРјС„РѕСЂС‚РЅРѕ",
+    >= 25 and < 35        => "Р–Р°СЂРєРѕ",
+    >= 35                 => "Р­РєСЃС‚СЂРµРјР°Р»СЊРЅР°СЏ Р¶Р°СЂР°"
 };
 
 // Logical pattern: not
@@ -143,79 +143,79 @@ if (statusCode is not (200 or 201 or 204))
     LogError(statusCode);
 }
 
-// Комбинация and / or
+// РљРѕРјР±РёРЅР°С†РёСЏ and / or
 if (value is > 0 and < 100 or 999)
 {
-    // value в (0, 100) или равно 999
+    // value РІ (0, 100) РёР»Рё СЂР°РІРЅРѕ 999
 }
 ```
 
-### Positional Patterns с деконструкцией (C# 8)
+### Positional Patterns СЃ РґРµРєРѕРЅСЃС‚СЂСѓРєС†РёРµР№ (C# 8)
 
 ```csharp
 public readonly record struct Point(double X, double Y);
 
-// Positional pattern — деконструкция через Deconstruct
+// Positional pattern вЂ” РґРµРєРѕРЅСЃС‚СЂСѓРєС†РёСЏ С‡РµСЂРµР· Deconstruct
 string GetQuadrant(Point point) => point switch
 {
-    (0, 0)       => "Начало координат",
-    ( > 0, > 0)  => "Первая четверть",
-    ( < 0, > 0)  => "Вторая четверть",
-    ( < 0, < 0)  => "Третья четверть",
-    ( > 0, < 0)  => "Четвёртая четверть",
-    (_, 0) or (0, _) => "На оси"
+    (0, 0)       => "РќР°С‡Р°Р»Рѕ РєРѕРѕСЂРґРёРЅР°С‚",
+    ( > 0, > 0)  => "РџРµСЂРІР°СЏ С‡РµС‚РІРµСЂС‚СЊ",
+    ( < 0, > 0)  => "Р’С‚РѕСЂР°СЏ С‡РµС‚РІРµСЂС‚СЊ",
+    ( < 0, < 0)  => "РўСЂРµС‚СЊСЏ С‡РµС‚РІРµСЂС‚СЊ",
+    ( > 0, < 0)  => "Р§РµС‚РІС‘СЂС‚Р°СЏ С‡РµС‚РІРµСЂС‚СЊ",
+    (_, 0) or (0, _) => "РќР° РѕСЃРё"
 };
 
-// Деконструкция tuple
+// Р”РµРєРѕРЅСЃС‚СЂСѓРєС†РёСЏ tuple
 (int status, string? body) = GetResponse();
 var message = (status, body) switch
 {
     (200, not null) => $"OK: {body}",
-    (200, null)     => "OK: пустой ответ",
-    (404, _)        => "Не найдено",
-    (>= 500, _)     => "Ошибка сервера",
-    _               => $"Статус: {status}"
+    (200, null)     => "OK: РїСѓСЃС‚РѕР№ РѕС‚РІРµС‚",
+    (404, _)        => "РќРµ РЅР°Р№РґРµРЅРѕ",
+    (>= 500, _)     => "РћС€РёР±РєР° СЃРµСЂРІРµСЂР°",
+    _               => $"РЎС‚Р°С‚СѓСЃ: {status}"
 };
 ```
 
 ### List Patterns (C# 11)
 
-Мощный pattern matching по коллекциям и массивам:
+РњРѕС‰РЅС‹Р№ pattern matching РїРѕ РєРѕР»Р»РµРєС†РёСЏРј Рё РјР°СЃСЃРёРІР°Рј:
 
 ```csharp
 int[] numbers = [1, 2, 3, 4, 5];
 
-// Точное совпадение
+// РўРѕС‡РЅРѕРµ СЃРѕРІРїР°РґРµРЅРёРµ
 if (numbers is [1, 2, 3, 4, 5])
 {
-    Console.WriteLine("Точное совпадение");
+    Console.WriteLine("РўРѕС‡РЅРѕРµ СЃРѕРІРїР°РґРµРЅРёРµ");
 }
 
-// Discard и slice
+// Discard Рё slice
 if (numbers is [1, _, _, _, 5])
 {
-    Console.WriteLine("Начинается с 1, заканчивается на 5");
+    Console.WriteLine("РќР°С‡РёРЅР°РµС‚СЃСЏ СЃ 1, Р·Р°РєР°РЅС‡РёРІР°РµС‚СЃСЏ РЅР° 5");
 }
 
-// Slice pattern (..) — «любое количество элементов»
+// Slice pattern (..) вЂ” В«Р»СЋР±РѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІВ»
 if (numbers is [1, .., 5])
 {
-    Console.WriteLine("Начинается с 1, заканчивается на 5 (любая длина)");
+    Console.WriteLine("РќР°С‡РёРЅР°РµС‚СЃСЏ СЃ 1, Р·Р°РєР°РЅС‡РёРІР°РµС‚СЃСЏ РЅР° 5 (Р»СЋР±Р°СЏ РґР»РёРЅР°)");
 }
 
-// Захват значений
+// Р—Р°С…РІР°С‚ Р·РЅР°С‡РµРЅРёР№
 if (numbers is [var first, .., var last])
 {
-    Console.WriteLine($"Первый: {first}, Последний: {last}");
+    Console.WriteLine($"РџРµСЂРІС‹Р№: {first}, РџРѕСЃР»РµРґРЅРёР№: {last}");
 }
 
-// Захват slice
+// Р—Р°С…РІР°С‚ slice
 if (numbers is [_, .. var middle, _])
 {
     // middle = [2, 3, 4]
 }
 
-// Вложенные patterns внутри list pattern
+// Р’Р»РѕР¶РµРЅРЅС‹Рµ patterns РІРЅСѓС‚СЂРё list pattern
 string[] args = ["--verbose", "--output", "result.json"];
 var config = args switch
 {
@@ -226,20 +226,20 @@ var config = args switch
 };
 ```
 
-### Exhaustive Matching и Discard
+### Exhaustive Matching Рё Discard
 
 ```csharp
-// Компилятор предупредит, если не все случаи покрыты (для enum)
+// РљРѕРјРїРёР»СЏС‚РѕСЂ РїСЂРµРґСѓРїСЂРµРґРёС‚, РµСЃР»Рё РЅРµ РІСЃРµ СЃР»СѓС‡Р°Рё РїРѕРєСЂС‹С‚С‹ (РґР»СЏ enum)
 public enum PaymentStatus { Pending, Completed, Failed, Refunded }
 
 string GetMessage(PaymentStatus status) => status switch
 {
-    PaymentStatus.Pending   => "Ожидание",
-    PaymentStatus.Completed => "Завершён",
-    PaymentStatus.Failed    => "Ошибка",
-    PaymentStatus.Refunded  => "Возврат",
-    // _ => "Неизвестно" — discard для exhaustive matching
-    // Без _ компилятор выдаст warning, если enum расширят
+    PaymentStatus.Pending   => "РћР¶РёРґР°РЅРёРµ",
+    PaymentStatus.Completed => "Р—Р°РІРµСЂС€С‘РЅ",
+    PaymentStatus.Failed    => "РћС€РёР±РєР°",
+    PaymentStatus.Refunded  => "Р’РѕР·РІСЂР°С‚",
+    // _ => "РќРµРёР·РІРµСЃС‚РЅРѕ" вЂ” discard РґР»СЏ exhaustive matching
+    // Р‘РµР· _ РєРѕРјРїРёР»СЏС‚РѕСЂ РІС‹РґР°СЃС‚ warning, РµСЃР»Рё enum СЂР°СЃС€РёСЂСЏС‚
 };
 ```
 
@@ -256,7 +256,7 @@ public record Customer(string Name, CustomerTier Tier);
 public enum CustomerTier { Regular, Silver, Gold, Platinum }
 public enum OrderStatus { New, Processing, Shipped, Delivered, Cancelled }
 
-// Глубоко вложенный pattern matching
+// Р“Р»СѓР±РѕРєРѕ РІР»РѕР¶РµРЅРЅС‹Р№ pattern matching
 decimal CalculateDiscount(Order order) => order switch
 {
     { Status: OrderStatus.Cancelled } => 0m,
@@ -279,19 +279,19 @@ decimal CalculateDiscount(Order order) => order switch
 };
 ```
 
-### Практические примеры: валидация, парсинг, state machines
+### РџСЂР°РєС‚РёС‡РµСЃРєРёРµ РїСЂРёРјРµСЂС‹: РІР°Р»РёРґР°С†РёСЏ, РїР°СЂСЃРёРЅРі, state machines
 
 ```csharp
-// --- Валидация ---
+// --- Р’Р°Р»РёРґР°С†РёСЏ ---
 public static Result<CreateOrderCommand> Validate(CreateOrderCommand cmd) => cmd switch
 {
-    { CustomerId: <= 0 }       => Result<CreateOrderCommand>.Failure("Невалидный CustomerId"),
-    { Items: [] }              => Result<CreateOrderCommand>.Failure("Заказ без товаров"),
-    { Items: [.., { Qty: <= 0 }] } => Result<CreateOrderCommand>.Failure("Количество <= 0"),
+    { CustomerId: <= 0 }       => Result<CreateOrderCommand>.Failure("РќРµРІР°Р»РёРґРЅС‹Р№ CustomerId"),
+    { Items: [] }              => Result<CreateOrderCommand>.Failure("Р—Р°РєР°Р· Р±РµР· С‚РѕРІР°СЂРѕРІ"),
+    { Items: [.., { Qty: <= 0 }] } => Result<CreateOrderCommand>.Failure("РљРѕР»РёС‡РµСЃС‚РІРѕ <= 0"),
     _                          => Result<CreateOrderCommand>.Success(cmd)
 };
 
-// --- Парсинг CLI-аргументов ---
+// --- РџР°СЂСЃРёРЅРі CLI-Р°СЂРіСѓРјРµРЅС‚РѕРІ ---
 static CliOptions ParseArgs(string[] args) => args switch
 {
     ["-v" or "--version"]            => new(ShowVersion: true),
@@ -300,7 +300,7 @@ static CliOptions ParseArgs(string[] args) => args switch
     ["run", var file, "--watch"]     => new(Command: "run", File: file, Watch: true),
     ["build", "--release"]           => new(Command: "build", Release: true),
     []                               => CliOptions.Default,
-    _                                => throw new ArgumentException($"Неизвестные аргументы: {string.Join(' ', args)}")
+    _                                => throw new ArgumentException($"РќРµРёР·РІРµСЃС‚РЅС‹Рµ Р°СЂРіСѓРјРµРЅС‚С‹: {string.Join(' ', args)}")
 };
 
 // --- State Machine ---
@@ -313,42 +313,42 @@ public static OrderStatus NextState(OrderStatus current, OrderEvent @event) =>
         (OrderStatus.New, OrderEvent.Cancel)             => OrderStatus.Cancelled,
         (OrderStatus.Processing, OrderEvent.Cancel)      => OrderStatus.Cancelled,
         _ => throw new InvalidOperationException(
-            $"Невалидный переход: {current} + {@event}")
+            $"РќРµРІР°Р»РёРґРЅС‹Р№ РїРµСЂРµС…РѕРґ: {current} + {@event}")
     };
 ```
 
-> [!question]- **Интервью: Switch expression — exhaustive matching?**
-> Компилятор проверяет полноту для enum, bool, sealed hierarchy. Для открытых типов — `_` (discard). Warning при неполном покрытии. В production: всегда `_` с throw для защиты от новых значений.
+> [!question]- **РРЅС‚РµСЂРІСЊСЋ: Switch expression вЂ” exhaustive matching?**
+> РљРѕРјРїРёР»СЏС‚РѕСЂ РїСЂРѕРІРµСЂСЏРµС‚ РїРѕР»РЅРѕС‚Сѓ РґР»СЏ enum, bool, sealed hierarchy. Р”Р»СЏ РѕС‚РєСЂС‹С‚С‹С… С‚РёРїРѕРІ вЂ” `_` (discard). Warning РїСЂРё РЅРµРїРѕР»РЅРѕРј РїРѕРєСЂС‹С‚РёРё. Р’ production: РІСЃРµРіРґР° `_` СЃ throw РґР»СЏ Р·Р°С‰РёС‚С‹ РѕС‚ РЅРѕРІС‹С… Р·РЅР°С‡РµРЅРёР№.
 
 ---
 
 ## Nullable Reference Types (C# 8)
 
-### Включение
+### Р’РєР»СЋС‡РµРЅРёРµ
 
 ```xml
-<!-- В .csproj -->
+<!-- Р’ .csproj -->
 <PropertyGroup>
     <Nullable>enable</Nullable>
 </PropertyGroup>
 ```
 
 ```csharp
-// Или на уровне файла
+// РР»Рё РЅР° СѓСЂРѕРІРЅРµ С„Р°Р№Р»Р°
 #nullable enable
 ```
 
-### Аннотация `?` — nullable vs non-nullable
+### РђРЅРЅРѕС‚Р°С†РёСЏ `?` вЂ” nullable vs non-nullable
 
 ```csharp
-// non-nullable — компилятор гарантирует, что null не будет
-string name = "Иван";
+// non-nullable вЂ” РєРѕРјРїРёР»СЏС‚РѕСЂ РіР°СЂР°РЅС‚РёСЂСѓРµС‚, С‡С‚Рѕ null РЅРµ Р±СѓРґРµС‚
+string name = "РРІР°РЅ";
 // name = null; // CS8600 warning
 
-// nullable — явно говорим: «здесь может быть null»
+// nullable вЂ” СЏРІРЅРѕ РіРѕРІРѕСЂРёРј: В«Р·РґРµСЃСЊ РјРѕР¶РµС‚ Р±С‹С‚СЊ nullВ»
 string? middleName = null; // OK
 
-// Возврат nullable
+// Р’РѕР·РІСЂР°С‚ nullable
 public string? FindUserName(int id)
 {
     return _users.TryGetValue(id, out var user) ? user.Name : null;
@@ -357,30 +357,30 @@ public string? FindUserName(int id)
 
 ### Null-forgiving operator `!`
 
-Используем **только** когда точно знаем, что значение не null, но компилятор не может это доказать:
+РСЃРїРѕР»СЊР·СѓРµРј **С‚РѕР»СЊРєРѕ** РєРѕРіРґР° С‚РѕС‡РЅРѕ Р·РЅР°РµРј, С‡С‚Рѕ Р·РЅР°С‡РµРЅРёРµ РЅРµ null, РЅРѕ РєРѕРјРїРёР»СЏС‚РѕСЂ РЅРµ РјРѕР¶РµС‚ СЌС‚Рѕ РґРѕРєР°Р·Р°С‚СЊ:
 
 ```csharp
-// Допустимо: после проверки в другом месте
-var item = cache.Get(key); // возвращает T?
+// Р”РѕРїСѓСЃС‚РёРјРѕ: РїРѕСЃР»Рµ РїСЂРѕРІРµСЂРєРё РІ РґСЂСѓРіРѕРј РјРµСЃС‚Рµ
+var item = cache.Get(key); // РІРѕР·РІСЂР°С‰Р°РµС‚ T?
 Debug.Assert(item is not null);
-Process(item!); // мы уже проверили
+Process(item!); // РјС‹ СѓР¶Рµ РїСЂРѕРІРµСЂРёР»Рё
 
-// Допустимо: EF Core navigation property (заполняется ORM)
+// Р”РѕРїСѓСЃС‚РёРјРѕ: EF Core navigation property (Р·Р°РїРѕР»РЅСЏРµС‚СЃСЏ ORM)
 public class Order
 {
     public int CustomerId { get; set; }
-    public Customer Customer { get; set; } = null!; // EF заполнит
+    public Customer Customer { get; set; } = null!; // EF Р·Р°РїРѕР»РЅРёС‚
 }
 
-// ЗАПРЕЩЕНО: слепое подавление warnings
+// Р—РђРџР Р•Р©Р•РќРћ: СЃР»РµРїРѕРµ РїРѕРґР°РІР»РµРЅРёРµ warnings
 string? x = GetValue();
-Console.WriteLine(x!.Length); // опасно — может быть null
+Console.WriteLine(x!.Length); // РѕРїР°СЃРЅРѕ вЂ” РјРѕР¶РµС‚ Р±С‹С‚СЊ null
 ```
 
 ### Null Guards
 
 ```csharp
-// .NET 6+ — самый короткий способ
+// .NET 6+ вЂ” СЃР°РјС‹Р№ РєРѕСЂРѕС‚РєРёР№ СЃРїРѕСЃРѕР±
 public void Process(string name, Order order)
 {
     ArgumentNullException.ThrowIfNull(name);
@@ -388,7 +388,7 @@ public void Process(string name, Order order)
     // ...
 }
 
-// .NET 7+ — для строк
+// .NET 7+ вЂ” РґР»СЏ СЃС‚СЂРѕРє
 public void SetName(string name)
 {
     ArgumentException.ThrowIfNullOrEmpty(name);
@@ -396,110 +396,110 @@ public void SetName(string name)
 }
 ```
 
-### Операторы `??`, `??=`, `?.`, `?[]`
+### РћРїРµСЂР°С‚РѕСЂС‹ `??`, `??=`, `?.`, `?[]`
 
 ```csharp
-// ?? — null-coalescing
-string displayName = user.NickName ?? user.FullName ?? "Аноним";
+// ?? вЂ” null-coalescing
+string displayName = user.NickName ?? user.FullName ?? "РђРЅРѕРЅРёРј";
 
-// ??= — null-coalescing assignment
+// ??= вЂ” null-coalescing assignment
 _cache ??= new Dictionary<string, object>();
 
-// ?. — null-conditional member access
+// ?. вЂ” null-conditional member access
 int? length = text?.Length;
 string? upper = text?.ToUpper();
 
-// ?[] — null-conditional element access
+// ?[] вЂ” null-conditional element access
 int? first = numbers?[0];
 
-// Цепочка
+// Р¦РµРїРѕС‡РєР°
 string? city = order?.Customer?.Address?.City;
 
-// Комбинация ?. и ??
-string city = order?.Customer?.Address?.City ?? "Неизвестно";
+// РљРѕРјР±РёРЅР°С†РёСЏ ?. Рё ??
+string city = order?.Customer?.Address?.City ?? "РќРµРёР·РІРµСЃС‚РЅРѕ";
 ```
 
-### Nullable-атрибуты (System.Diagnostics.CodeAnalysis)
+### Nullable-Р°С‚СЂРёР±СѓС‚С‹ (System.Diagnostics.CodeAnalysis)
 
 ```csharp
 using System.Diagnostics.CodeAnalysis;
 
-// [NotNull] — после вызова метода параметр гарантированно не null
+// [NotNull] вЂ” РїРѕСЃР»Рµ РІС‹Р·РѕРІР° РјРµС‚РѕРґР° РїР°СЂР°РјРµС‚СЂ РіР°СЂР°РЅС‚РёСЂРѕРІР°РЅРЅРѕ РЅРµ null
 public void EnsureInitialized([NotNull] ref string? value)
 {
     value ??= "default";
 }
 
-// [MaybeNull] — generic T может вернуть null
+// [MaybeNull] вЂ” generic T РјРѕР¶РµС‚ РІРµСЂРЅСѓС‚СЊ null
 [return: MaybeNull]
 public T Find<T>(int id) where T : class
 {
     return _store.TryGetValue(id, out var item) ? (T)item : default;
 }
 
-// [NotNullWhen] — параметр не null, когда метод возвращает true/false
+// [NotNullWhen] вЂ” РїР°СЂР°РјРµС‚СЂ РЅРµ null, РєРѕРіРґР° РјРµС‚РѕРґ РІРѕР·РІСЂР°С‰Р°РµС‚ true/false
 public bool TryGetUser(int id, [NotNullWhen(true)] out User? user)
 {
     return _users.TryGetValue(id, out user);
 }
 
-// [MemberNotNull] — после вызова метода поле гарантированно не null
+// [MemberNotNull] вЂ” РїРѕСЃР»Рµ РІС‹Р·РѕРІР° РјРµС‚РѕРґР° РїРѕР»Рµ РіР°СЂР°РЅС‚РёСЂРѕРІР°РЅРЅРѕ РЅРµ null
 [MemberNotNull(nameof(_connection))]
 private void EnsureConnected()
 {
     _connection ??= CreateConnection();
 }
 
-// [AllowNull] — можно передать null, даже если тип non-nullable
+// [AllowNull] вЂ” РјРѕР¶РЅРѕ РїРµСЂРµРґР°С‚СЊ null, РґР°Р¶Рµ РµСЃР»Рё С‚РёРї non-nullable
 public string Title
 {
     get => _title;
     [param: AllowNull]
-    set => _title = value ?? "Без названия";
+    set => _title = value ?? "Р‘РµР· РЅР°Р·РІР°РЅРёСЏ";
 }
 ```
 
-### Лучшие практики
+### Р›СѓС‡С€РёРµ РїСЂР°РєС‚РёРєРё
 
 ```csharp
-// 1. Всегда включать <Nullable>enable</Nullable> в новых проектах.
-// 2. Стремиться к нулю nullable warnings.
-// 3. Не злоупотреблять ! — каждое использование = потенциальный баг.
-// 4. Для DTO/API models — string? для опциональных полей.
-// 5. Для domain models — string (non-nullable), инварианты в конструкторе.
-// 6. Использовать [NotNullWhen], [MaybeNull] для точного контракта API.
+// 1. Р’СЃРµРіРґР° РІРєР»СЋС‡Р°С‚СЊ <Nullable>enable</Nullable> РІ РЅРѕРІС‹С… РїСЂРѕРµРєС‚Р°С….
+// 2. РЎС‚СЂРµРјРёС‚СЊСЃСЏ Рє РЅСѓР»СЋ nullable warnings.
+// 3. РќРµ Р·Р»РѕСѓРїРѕС‚СЂРµР±Р»СЏС‚СЊ ! вЂ” РєР°Р¶РґРѕРµ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ = РїРѕС‚РµРЅС†РёР°Р»СЊРЅС‹Р№ Р±Р°Рі.
+// 4. Р”Р»СЏ DTO/API models вЂ” string? РґР»СЏ РѕРїС†РёРѕРЅР°Р»СЊРЅС‹С… РїРѕР»РµР№.
+// 5. Р”Р»СЏ domain models вЂ” string (non-nullable), РёРЅРІР°СЂРёР°РЅС‚С‹ РІ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРµ.
+// 6. РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ [NotNullWhen], [MaybeNull] РґР»СЏ С‚РѕС‡РЅРѕРіРѕ РєРѕРЅС‚СЂР°РєС‚Р° API.
 ```
 
-> [!question]- **Интервью: Nullable Reference Types — как включить и что даёт?**
-> `<Nullable>enable</Nullable>` в csproj. Компилятор предупреждает при присвоении null в non-nullable, разыменовании без проверки. Это **только аннотации** — в runtime проверок нет.
+> [!question]- **РРЅС‚РµСЂРІСЊСЋ: Nullable Reference Types вЂ” РєР°Рє РІРєР»СЋС‡РёС‚СЊ Рё С‡С‚Рѕ РґР°С‘С‚?**
+> `<Nullable>enable</Nullable>` РІ csproj. РљРѕРјРїРёР»СЏС‚РѕСЂ РїСЂРµРґСѓРїСЂРµР¶РґР°РµС‚ РїСЂРё РїСЂРёСЃРІРѕРµРЅРёРё null РІ non-nullable, СЂР°Р·С‹РјРµРЅРѕРІР°РЅРёРё Р±РµР· РїСЂРѕРІРµСЂРєРё. Р­С‚Рѕ **С‚РѕР»СЊРєРѕ Р°РЅРЅРѕС‚Р°С†РёРё** вЂ” РІ runtime РїСЂРѕРІРµСЂРѕРє РЅРµС‚.
 >
-> **Атрибуты:** `[NotNull]`, `[MaybeNull]`, `[NotNullWhen(true)]` — тонкий контроль flow analysis.
+> **РђС‚СЂРёР±СѓС‚С‹:** `[NotNull]`, `[MaybeNull]`, `[NotNullWhen(true)]` вЂ” С‚РѕРЅРєРёР№ РєРѕРЅС‚СЂРѕР»СЊ flow analysis.
 
 ---
 
-## Records (C# 9–10)
+## Records (C# 9вЂ“10)
 
-### record class — reference type (C# 9)
+### record class вЂ” reference type (C# 9)
 
 ```csharp
-// Positional syntax — самый частый вариант
+// Positional syntax вЂ” СЃР°РјС‹Р№ С‡Р°СЃС‚С‹Р№ РІР°СЂРёР°РЅС‚
 public record Person(string Name, int Age);
 
-// Компилятор генерирует:
-// - Конструктор Person(string, int)
-// - Свойства Name { get; init; } и Age { get; init; }
+// РљРѕРјРїРёР»СЏС‚РѕСЂ РіРµРЅРµСЂРёСЂСѓРµС‚:
+// - РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ Person(string, int)
+// - РЎРІРѕР№СЃС‚РІР° Name { get; init; } Рё Age { get; init; }
 // - Deconstruct(out string, out int)
 // - Value equality (Equals, GetHashCode, ==, !=)
-// - ToString() → "Person { Name = Иван, Age = 30 }"
+// - ToString() в†’ "Person { Name = РРІР°РЅ, Age = 30 }"
 // - with-expression support
 
-// Расширенная запись с телом
+// Р Р°СЃС€РёСЂРµРЅРЅР°СЏ Р·Р°РїРёСЃСЊ СЃ С‚РµР»РѕРј
 public record Person(string Name, int Age)
 {
-    // Дополнительное свойство
+    // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕРµ СЃРІРѕР№СЃС‚РІРѕ
     public string DisplayName => $"{Name} ({Age})";
 
-    // Переопределение ToString через PrintMembers
+    // РџРµСЂРµРѕРїСЂРµРґРµР»РµРЅРёРµ ToString С‡РµСЂРµР· PrintMembers
     protected virtual bool PrintMembers(StringBuilder sb)
     {
         sb.Append($"Name = {Name}, Age = {Age}");
@@ -508,112 +508,112 @@ public record Person(string Name, int Age)
 }
 ```
 
-### record struct — value type (C# 10)
+### record struct вЂ” value type (C# 10)
 
 ```csharp
-// По умолчанию — mutable!
+// РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ вЂ” mutable!
 public record struct Coordinate(double Lat, double Lon);
 
-// Для immutability — добавляем readonly
+// Р”Р»СЏ immutability вЂ” РґРѕР±Р°РІР»СЏРµРј readonly
 public readonly record struct Money(decimal Amount, string Currency);
 
 var m = new Money(100m, "RUB");
-// m.Amount = 200m; // CS8852 — readonly
+// m.Amount = 200m; // CS8852 вЂ” readonly
 ```
 
 ### with-expressions
 
 ```csharp
-var person = new Person("Иван", 30);
+var person = new Person("РРІР°РЅ", 30);
 var older = person with { Age = 31 };
 
-Console.WriteLine(person); // Person { Name = Иван, Age = 30 }
-Console.WriteLine(older);  // Person { Name = Иван, Age = 31 }
+Console.WriteLine(person); // Person { Name = РРІР°РЅ, Age = 30 }
+Console.WriteLine(older);  // Person { Name = РРІР°РЅ, Age = 31 }
 Console.WriteLine(person == older); // False
 
-// Deep copy с одинаковыми значениями
+// Deep copy СЃ РѕРґРёРЅР°РєРѕРІС‹РјРё Р·РЅР°С‡РµРЅРёСЏРјРё
 var copy = person with { };
 Console.WriteLine(person == copy);           // True (value equality)
-Console.WriteLine(ReferenceEquals(person, copy)); // False (разные объекты)
+Console.WriteLine(ReferenceEquals(person, copy)); // False (СЂР°Р·РЅС‹Рµ РѕР±СЉРµРєС‚С‹)
 ```
 
 ### Value Equality
 
 ```csharp
-var p1 = new Person("Иван", 30);
-var p2 = new Person("Иван", 30);
+var p1 = new Person("РРІР°РЅ", 30);
+var p2 = new Person("РРІР°РЅ", 30);
 
-Console.WriteLine(p1 == p2);      // True — value equality
+Console.WriteLine(p1 == p2);      // True вЂ” value equality
 Console.WriteLine(p1.Equals(p2)); // True
 Console.WriteLine(ReferenceEquals(p1, p2)); // False
 
-// class — reference equality по умолчанию
-// record — value equality по умолчанию
+// class вЂ” reference equality РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+// record вЂ” value equality РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
 ```
 
-### Inheritance с records
+### Inheritance СЃ records
 
 ```csharp
 public record Animal(string Name);
 public record Dog(string Name, string Breed) : Animal(Name);
 
-var dog = new Dog("Шарик", "Лабрадор");
+var dog = new Dog("РЁР°СЂРёРє", "Р›Р°Р±СЂР°РґРѕСЂ");
 Animal animal = dog;
 
-// Equality учитывает runtime-тип (EqualityContract)
-var animal2 = new Animal("Шарик");
-Console.WriteLine(dog == animal2); // False — разные типы
+// Equality СѓС‡РёС‚С‹РІР°РµС‚ runtime-С‚РёРї (EqualityContract)
+var animal2 = new Animal("РЁР°СЂРёРє");
+Console.WriteLine(dog == animal2); // False вЂ” СЂР°Р·РЅС‹Рµ С‚РёРїС‹
 
-// ОГРАНИЧЕНИЯ:
-// - record class может наследоваться только от record class
-// - record struct не поддерживает наследование (как любой struct)
-// - sealed record — запрет наследования
+// РћР“Р РђРќРР§Р•РќРРЇ:
+// - record class РјРѕР¶РµС‚ РЅР°СЃР»РµРґРѕРІР°С‚СЊСЃСЏ С‚РѕР»СЊРєРѕ РѕС‚ record class
+// - record struct РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚ РЅР°СЃР»РµРґРѕРІР°РЅРёРµ (РєР°Рє Р»СЋР±РѕР№ struct)
+// - sealed record вЂ” Р·Р°РїСЂРµС‚ РЅР°СЃР»РµРґРѕРІР°РЅРёСЏ
 public sealed record Immutable(string Value);
 ```
 
-### record vs class vs struct — таблица сравнения
+### record vs class vs struct вЂ” С‚Р°Р±Р»РёС†Р° СЃСЂР°РІРЅРµРЅРёСЏ
 
 ```
-| Аспект              | class          | record class   | struct         | record struct     |
+| РђСЃРїРµРєС‚              | class          | record class   | struct         | record struct     |
 |---------------------|----------------|----------------|----------------|-------------------|
-| Тип                 | Reference      | Reference      | Value          | Value             |
+| РўРёРї                 | Reference      | Reference      | Value          | Value             |
 | Equality            | Reference      | Value          | Value          | Value             |
-| Immutable           | Нет            | По умолчанию   | Нет            | Нет (readonly да) |
-| Inheritance         | Да             | Да (records)   | Нет            | Нет               |
-| with-expression     | Нет            | Да             | Нет            | Да                |
-| Deconstruct         | Ручной         | Авто           | Ручной         | Авто              |
-| ToString            | Тип            | Все свойства   | Тип            | Все свойства      |
+| Immutable           | РќРµС‚            | РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ   | РќРµС‚            | РќРµС‚ (readonly РґР°) |
+| Inheritance         | Р”Р°             | Р”Р° (records)   | РќРµС‚            | РќРµС‚               |
+| with-expression     | РќРµС‚            | Р”Р°             | РќРµС‚            | Р”Р°                |
+| Deconstruct         | Р СѓС‡РЅРѕР№         | РђРІС‚Рѕ           | Р СѓС‡РЅРѕР№         | РђРІС‚Рѕ              |
+| ToString            | РўРёРї            | Р’СЃРµ СЃРІРѕР№СЃС‚РІР°   | РўРёРї            | Р’СЃРµ СЃРІРѕР№СЃС‚РІР°      |
 | Heap/Stack          | Heap           | Heap           | Stack*         | Stack*            |
 ```
 
-> [!question]- **Интервью: record class vs record struct — различия?**
-> **record class** — reference (heap), value equality, наследование, `with` копирует объект. Для DTO, API-моделей.
+> [!question]- **РРЅС‚РµСЂРІСЊСЋ: record class vs record struct вЂ” СЂР°Р·Р»РёС‡РёСЏ?**
+> **record class** вЂ” reference (heap), value equality, РЅР°СЃР»РµРґРѕРІР°РЅРёРµ, `with` РєРѕРїРёСЂСѓРµС‚ РѕР±СЉРµРєС‚. Р”Р»СЏ DTO, API-РјРѕРґРµР»РµР№.
 >
-> **record struct** — value (stack), value equality, без наследования. Для маленьких value-объектов в hot path. `readonly record struct` — предпочтительная форма.
+> **record struct** вЂ” value (stack), value equality, Р±РµР· РЅР°СЃР»РµРґРѕРІР°РЅРёСЏ. Р”Р»СЏ РјР°Р»РµРЅСЊРєРёС… value-РѕР±СЉРµРєС‚РѕРІ РІ hot path. `readonly record struct` вЂ” РїСЂРµРґРїРѕС‡С‚РёС‚РµР»СЊРЅР°СЏ С„РѕСЂРјР°.
 
-> [!question]- **Интервью: Ковариантность и контравариантность?**
-> **Ковариантность (`out T`):** `IEnumerable<Cat>` → `IEnumerable<Animal>`. Только чтение.
+> [!question]- **РРЅС‚РµСЂРІСЊСЋ: РљРѕРІР°СЂРёР°РЅС‚РЅРѕСЃС‚СЊ Рё РєРѕРЅС‚СЂР°РІР°СЂРёР°РЅС‚РЅРѕСЃС‚СЊ?**
+> **РљРѕРІР°СЂРёР°РЅС‚РЅРѕСЃС‚СЊ (`out T`):** `IEnumerable<Cat>` в†’ `IEnumerable<Animal>`. РўРѕР»СЊРєРѕ С‡С‚РµРЅРёРµ.
 >
-> **Контравариантность (`in T`):** `IComparer<Animal>` → `IComparer<Cat>`. Только приём.
+> **РљРѕРЅС‚СЂР°РІР°СЂРёР°РЅС‚РЅРѕСЃС‚СЊ (`in T`):** `IComparer<Animal>` в†’ `IComparer<Cat>`. РўРѕР»СЊРєРѕ РїСЂРёС‘Рј.
 >
-> **Инвариантность:** `List<Cat>` НЕ → `List<Animal>` — List и пишет, и читает.
+> **РРЅРІР°СЂРёР°РЅС‚РЅРѕСЃС‚СЊ:** `List<Cat>` РќР• в†’ `List<Animal>` вЂ” List Рё РїРёС€РµС‚, Рё С‡РёС‚Р°РµС‚.
 
 ---
 
-## Init-only и Required (C# 9, 11)
+## Init-only Рё Required (C# 9, 11)
 
 ### init accessor (C# 9)
 
 ```csharp
 public class UserDto
 {
-    public string Name { get; init; }    // можно задать только при инициализации
+    public string Name { get; init; }    // РјРѕР¶РЅРѕ Р·Р°РґР°С‚СЊ С‚РѕР»СЊРєРѕ РїСЂРё РёРЅРёС†РёР°Р»РёР·Р°С†РёРё
     public string Email { get; init; }
     public int Age { get; init; }
 }
 
-var user = new UserDto { Name = "Иван", Email = "ivan@mail.ru", Age = 30 };
-// user.Name = "Пётр"; // CS8852 — init-only
+var user = new UserDto { Name = "РРІР°РЅ", Email = "ivan@mail.ru", Age = 30 };
+// user.Name = "РџС‘С‚СЂ"; // CS8852 вЂ” init-only
 ```
 
 ### required modifier (C# 11)
@@ -624,19 +624,19 @@ public class CreateOrderDto
     public required string ProductName { get; init; }
     public required int Quantity { get; init; }
     public required decimal Price { get; init; }
-    public string? Notes { get; init; } // опциональное
+    public string? Notes { get; init; } // РѕРїС†РёРѕРЅР°Р»СЊРЅРѕРµ
 }
 
-// Компилятор заставит указать все required свойства:
+// РљРѕРјРїРёР»СЏС‚РѕСЂ Р·Р°СЃС‚Р°РІРёС‚ СѓРєР°Р·Р°С‚СЊ РІСЃРµ required СЃРІРѕР№СЃС‚РІР°:
 var dto = new CreateOrderDto
 {
-    ProductName = "Клавиатура",
+    ProductName = "РљР»Р°РІРёР°С‚СѓСЂР°",
     Quantity = 1,
     Price = 5000m
 };
 
-// var bad = new CreateOrderDto { ProductName = "Мышь" };
-// CS9035 — Quantity и Price обязательны
+// var bad = new CreateOrderDto { ProductName = "РњС‹С€СЊ" };
+// CS9035 вЂ” Quantity Рё Price РѕР±СЏР·Р°С‚РµР»СЊРЅС‹
 ```
 
 ### SetsRequiredMembers
@@ -647,7 +647,7 @@ public class OrderEntity
     public required int Id { get; init; }
     public required string Name { get; init; }
 
-    // Конструктор, который заполняет все required members
+    // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ, РєРѕС‚РѕСЂС‹Р№ Р·Р°РїРѕР»РЅСЏРµС‚ РІСЃРµ required members
     [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
     public OrderEntity(int id, string name)
     {
@@ -655,19 +655,19 @@ public class OrderEntity
         Name = name;
     }
 
-    // Параметрless constructor для EF Core — без SetsRequiredMembers
+    // РџР°СЂР°РјРµС‚СЂless constructor РґР»СЏ EF Core вЂ” Р±РµР· SetsRequiredMembers
     public OrderEntity() { }
 }
 
-// Оба варианта компилируются:
+// РћР±Р° РІР°СЂРёР°РЅС‚Р° РєРѕРјРїРёР»РёСЂСѓСЋС‚СЃСЏ:
 var a = new OrderEntity(1, "Test");
 var b = new OrderEntity { Id = 2, Name = "Test2" };
 ```
 
-### Идеальный DTO: required + init
+### РРґРµР°Р»СЊРЅС‹Р№ DTO: required + init
 
 ```csharp
-// Паттерн для API DTOs — обязательные поля, иммутабельность
+// РџР°С‚С‚РµСЂРЅ РґР»СЏ API DTOs вЂ” РѕР±СЏР·Р°С‚РµР»СЊРЅС‹Рµ РїРѕР»СЏ, РёРјРјСѓС‚Р°Р±РµР»СЊРЅРѕСЃС‚СЊ
 public sealed class CreateUserRequest
 {
     public required string Email { get; init; }
@@ -682,10 +682,10 @@ public sealed class CreateUserRequest
 
 ## Primary Constructors (C# 12)
 
-### Базовый синтаксис
+### Р‘Р°Р·РѕРІС‹Р№ СЃРёРЅС‚Р°РєСЃРёСЃ
 
 ```csharp
-// До C# 12 — явный конструктор + поля
+// Р”Рѕ C# 12 вЂ” СЏРІРЅС‹Р№ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ + РїРѕР»СЏ
 public sealed class OrderService
 {
     private readonly IOrderRepository _orderRepo;
@@ -699,33 +699,33 @@ public sealed class OrderService
 
     public async Task<Order> GetAsync(int id)
     {
-        _logger.LogInformation("Получение заказа {Id}", id);
+        _logger.LogInformation("РџРѕР»СѓС‡РµРЅРёРµ Р·Р°РєР°Р·Р° {Id}", id);
         return await _orderRepo.GetByIdAsync(id);
     }
 }
 
-// C# 12 — primary constructor
+// C# 12 вЂ” primary constructor
 public sealed class OrderService(
     IOrderRepository orderRepo,
     ILogger<OrderService> logger)
 {
     public async Task<Order> GetAsync(int id)
     {
-        logger.LogInformation("Получение заказа {Id}", id);
+        logger.LogInformation("РџРѕР»СѓС‡РµРЅРёРµ Р·Р°РєР°Р·Р° {Id}", id);
         return await orderRepo.GetByIdAsync(id);
     }
 }
 ```
 
-### Захват параметров — как работает
+### Р—Р°С…РІР°С‚ РїР°СЂР°РјРµС‚СЂРѕРІ вЂ” РєР°Рє СЂР°Р±РѕС‚Р°РµС‚
 
 ```csharp
-// Параметры primary constructor захватываются как скрытые поля.
-// Они НЕ являются readonly — это важно!
+// РџР°СЂР°РјРµС‚СЂС‹ primary constructor Р·Р°С…РІР°С‚С‹РІР°СЋС‚СЃСЏ РєР°Рє СЃРєСЂС‹С‚С‹Рµ РїРѕР»СЏ.
+// РћРЅРё РќР• СЏРІР»СЏСЋС‚СЃСЏ readonly вЂ” СЌС‚Рѕ РІР°Р¶РЅРѕ!
 
 public class Counter(int initial)
 {
-    // initial — mutable capture, можно менять
+    // initial вЂ” mutable capture, РјРѕР¶РЅРѕ РјРµРЅСЏС‚СЊ
     public int Increment() => ++initial;
     public int Value => initial;
 }
@@ -735,27 +735,27 @@ c.Increment(); // 1
 c.Increment(); // 2
 ```
 
-### Когда создавать явное поле
+### РљРѕРіРґР° СЃРѕР·РґР°РІР°С‚СЊ СЏРІРЅРѕРµ РїРѕР»Рµ
 
 ```csharp
 public sealed class UserService(
     IUserRepository userRepo,
     ILogger<UserService> logger)
 {
-    // Если нужен readonly — создаём поле явно
+    // Р•СЃР»Рё РЅСѓР¶РµРЅ readonly вЂ” СЃРѕР·РґР°С‘Рј РїРѕР»Рµ СЏРІРЅРѕ
     private readonly IUserRepository _userRepo = userRepo;
 
-    // Не обращайтесь к `userRepo` после присвоения в поле —
-    // это два разных хранилища!
+    // РќРµ РѕР±СЂР°С‰Р°Р№С‚РµСЃСЊ Рє `userRepo` РїРѕСЃР»Рµ РїСЂРёСЃРІРѕРµРЅРёСЏ РІ РїРѕР»Рµ вЂ”
+    // СЌС‚Рѕ РґРІР° СЂР°Р·РЅС‹С… С…СЂР°РЅРёР»РёС‰Р°!
     public async Task<User?> FindAsync(int id)
     {
-        logger.LogInformation("Поиск пользователя {Id}", id);
+        logger.LogInformation("РџРѕРёСЃРє РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ {Id}", id);
         return await _userRepo.GetByIdAsync(id);
     }
 }
 ```
 
-### DI с primary constructors — рекомендуемый стиль
+### DI СЃ primary constructors вЂ” СЂРµРєРѕРјРµРЅРґСѓРµРјС‹Р№ СЃС‚РёР»СЊ
 
 ```csharp
 public sealed class CreateOrderCommandHandler(
@@ -768,7 +768,7 @@ public sealed class CreateOrderCommandHandler(
         CreateOrderCommand request,
         CancellationToken ct)
     {
-        logger.LogInformation("Создание заказа для клиента {CustomerId}", request.CustomerId);
+        logger.LogInformation("РЎРѕР·РґР°РЅРёРµ Р·Р°РєР°Р·Р° РґР»СЏ РєР»РёРµРЅС‚Р° {CustomerId}", request.CustomerId);
 
         var order = Order.Create(request.CustomerId, request.Items);
         orderRepo.Add(order);
@@ -782,30 +782,30 @@ public sealed class CreateOrderCommandHandler(
 ### Gotchas
 
 ```csharp
-// 1. Mutable capture — параметры НЕ readonly
+// 1. Mutable capture вЂ” РїР°СЂР°РјРµС‚СЂС‹ РќР• readonly
 public class Danger(string name)
 {
     public void Mutate()
     {
-        name = "Changed!"; // Компилируется! Нет ошибки.
+        name = "Changed!"; // РљРѕРјРїРёР»РёСЂСѓРµС‚СЃСЏ! РќРµС‚ РѕС€РёР±РєРё.
     }
 }
 
-// 2. Struct — primary constructor параметры тоже mutable
+// 2. Struct вЂ” primary constructor РїР°СЂР°РјРµС‚СЂС‹ С‚РѕР¶Рµ mutable
 public struct Point(double x, double y)
 {
-    // x и y можно менять внутри методов
+    // x Рё y РјРѕР¶РЅРѕ РјРµРЅСЏС‚СЊ РІРЅСѓС‚СЂРё РјРµС‚РѕРґРѕРІ
 }
 
-// 3. Не смешивайте capture и field assignment
+// 3. РќРµ СЃРјРµС€РёРІР°Р№С‚Рµ capture Рё field assignment
 public class Bad(IService service)
 {
     private readonly IService _service = service;
 
     public void Do()
     {
-        // service и _service — ДВА разных хранилища!
-        // Используйте только _service.
+        // service Рё _service вЂ” Р”Р’Рђ СЂР°Р·РЅС‹С… С…СЂР°РЅРёР»РёС‰Р°!
+        // РСЃРїРѕР»СЊР·СѓР№С‚Рµ С‚РѕР»СЊРєРѕ _service.
         _service.Execute();
     }
 }
@@ -815,14 +815,14 @@ public class Bad(IService service)
 
 ## Collection Expressions (C# 12)
 
-### Базовый синтаксис
+### Р‘Р°Р·РѕРІС‹Р№ СЃРёРЅС‚Р°РєСЃРёСЃ
 
 ```csharp
 // Array
 int[] numbers = [1, 2, 3, 4, 5];
 
 // List<T>
-List<string> names = ["Иван", "Пётр", "Анна"];
+List<string> names = ["РРІР°РЅ", "РџС‘С‚СЂ", "РђРЅРЅР°"];
 
 // Span<T>
 Span<int> span = [10, 20, 30];
@@ -844,59 +844,59 @@ int[] emptyArr = [];
 int[] first = [1, 2, 3];
 int[] second = [4, 5, 6];
 
-// Объединение коллекций
+// РћР±СЉРµРґРёРЅРµРЅРёРµ РєРѕР»Р»РµРєС†РёР№
 int[] all = [..first, ..second];         // [1, 2, 3, 4, 5, 6]
 int[] withExtra = [0, ..first, 99];      // [0, 1, 2, 3, 99]
 
-// Spread из любого IEnumerable
+// Spread РёР· Р»СЋР±РѕРіРѕ IEnumerable
 IEnumerable<int> query = Enumerable.Range(1, 5);
 int[] fromQuery = [..query, 100];        // [1, 2, 3, 4, 5, 100]
 
-// Spread в List
-List<string> combined = [..existingList, "новый элемент"];
+// Spread РІ List
+List<string> combined = [..existingList, "РЅРѕРІС‹Р№ СЌР»РµРјРµРЅС‚"];
 ```
 
 ### Target Typing
 
 ```csharp
-// Компилятор выбирает тип коллекции по контексту
+// РљРѕРјРїРёР»СЏС‚РѕСЂ РІС‹Р±РёСЂР°РµС‚ С‚РёРї РєРѕР»Р»РµРєС†РёРё РїРѕ РєРѕРЅС‚РµРєСЃС‚Сѓ
 void Process(ReadOnlySpan<int> data) { /* ... */ }
-Process([1, 2, 3]); // автоматически создаёт ReadOnlySpan<int>
+Process([1, 2, 3]); // Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°С‘С‚ ReadOnlySpan<int>
 
-// Возврат из метода
+// Р’РѕР·РІСЂР°С‚ РёР· РјРµС‚РѕРґР°
 public IReadOnlyList<string> GetDefaults() => ["default1", "default2"];
 
-// Тернарный оператор — оба варианта должны быть collection expression
+// РўРµСЂРЅР°СЂРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ вЂ” РѕР±Р° РІР°СЂРёР°РЅС‚Р° РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ collection expression
 int[] result = condition ? [1, 2] : [3, 4];
 ```
 
 ---
 
-### Аргументы коллекции (proposal, upcoming)
+### РђСЂРіСѓРјРµРЅС‚С‹ РєРѕР»Р»РµРєС†РёРё (proposal, upcoming)
 
-В csharplang обсуждается расширение: передавать аргументы в create-метод коллекции прямо внутри `[ ]` — чтобы контролировать `capacity` / `comparer` без отката к `new List<T>(capacity: N) { ... }`.
+Р’ csharplang РѕР±СЃСѓР¶РґР°РµС‚СЃСЏ СЂР°СЃС€РёСЂРµРЅРёРµ: РїРµСЂРµРґР°РІР°С‚СЊ Р°СЂРіСѓРјРµРЅС‚С‹ РІ create-РјРµС‚РѕРґ РєРѕР»Р»РµРєС†РёРё РїСЂСЏРјРѕ РІРЅСѓС‚СЂРё `[ ]` вЂ” С‡С‚РѕР±С‹ РєРѕРЅС‚СЂРѕР»РёСЂРѕРІР°С‚СЊ `capacity` / `comparer` Р±РµР· РѕС‚РєР°С‚Р° Рє `new List<T>(capacity: N) { ... }`.
 
 ```csharp
-// Текущий C# — без управления capacity не обойтись
+// РўРµРєСѓС‰РёР№ C# вЂ” Р±РµР· СѓРїСЂР°РІР»РµРЅРёСЏ capacity РЅРµ РѕР±РѕР№С‚РёСЃСЊ
 var xs = new List<int>(capacity: 32) { 1, 2, 3 };
 
-// Proposal (возможно C# 15+)
+// Proposal (РІРѕР·РјРѕР¶РЅРѕ C# 15+)
 List<int> xs = [args(capacity: 32); 1, 2, 3];
-//              └── аргументы конструктора ─┘  └── элементы ─┘
+//              в””в”Ђв”Ђ Р°СЂРіСѓРјРµРЅС‚С‹ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂР° в”Ђв”  в””в”Ђв”Ђ СЌР»РµРјРµРЅС‚С‹ в”Ђв”
 ```
 
-**Зачем это важно в hot-path коде:** когда размер коллекции известен (например, `count` из запроса), `capacity` убирает realloc внутри `List<T>`. Особенно критично для HFT / highload сценариев и batch-обработки.
+**Р—Р°С‡РµРј СЌС‚Рѕ РІР°Р¶РЅРѕ РІ hot-path РєРѕРґРµ:** РєРѕРіРґР° СЂР°Р·РјРµСЂ РєРѕР»Р»РµРєС†РёРё РёР·РІРµСЃС‚РµРЅ (РЅР°РїСЂРёРјРµСЂ, `count` РёР· Р·Р°РїСЂРѕСЃР°), `capacity` СѓР±РёСЂР°РµС‚ realloc РІРЅСѓС‚СЂРё `List<T>`. РћСЃРѕР±РµРЅРЅРѕ РєСЂРёС‚РёС‡РЅРѕ РґР»СЏ HFT / highload СЃС†РµРЅР°СЂРёРµРІ Рё batch-РѕР±СЂР°Р±РѕС‚РєРё.
 
 Proposal: [csharplang/collection-expression-arguments](https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md).
 
 ---
 
-## Global и File-scoped
+## Global Рё File-scoped
 
 ### File-scoped Namespaces (C# 10)
 
 ```csharp
-// До C# 10 — block-scoped
+// Р”Рѕ C# 10 вЂ” block-scoped
 namespace MyApp.Services
 {
     public class UserService
@@ -905,7 +905,7 @@ namespace MyApp.Services
     }
 }
 
-// C# 10 — file-scoped (экономит один уровень отступа)
+// C# 10 вЂ” file-scoped (СЌРєРѕРЅРѕРјРёС‚ РѕРґРёРЅ СѓСЂРѕРІРµРЅСЊ РѕС‚СЃС‚СѓРїР°)
 namespace MyApp.Services;
 
 public class UserService
@@ -917,19 +917,19 @@ public class UserService
 ### Global Usings (C# 10)
 
 ```csharp
-// В отдельном файле GlobalUsings.cs
+// Р’ РѕС‚РґРµР»СЊРЅРѕРј С„Р°Р№Р»Рµ GlobalUsings.cs
 global using System.Collections.Immutable;
 global using System.Text.Json;
 global using Microsoft.Extensions.Logging;
 global using MediatR;
 
-// В .csproj — implicit usings
+// Р’ .csproj вЂ” implicit usings
 // <ImplicitUsings>enable</ImplicitUsings>
-// Автоматически добавляет: System, System.Linq, System.Collections.Generic и т.д.
+// РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё РґРѕР±Р°РІР»СЏРµС‚: System, System.Linq, System.Collections.Generic Рё С‚.Рґ.
 ```
 
 ```xml
-<!-- Или явно в csproj -->
+<!-- РР»Рё СЏРІРЅРѕ РІ csproj -->
 <ItemGroup>
     <Using Include="System.Text.Json" />
     <Using Include="Microsoft.Extensions.Logging" />
@@ -944,7 +944,7 @@ global using MediatR;
 ### File-scoped Types (C# 11)
 
 ```csharp
-// Тип виден только внутри файла — не экспортируется из assembly
+// РўРёРї РІРёРґРµРЅ С‚РѕР»СЊРєРѕ РІРЅСѓС‚СЂРё С„Р°Р№Р»Р° вЂ” РЅРµ СЌРєСЃРїРѕСЂС‚РёСЂСѓРµС‚СЃСЏ РёР· assembly
 file class InternalHelper
 {
     public static int Calculate(int x) => x * 2;
@@ -957,31 +957,31 @@ file interface ILocalProcessor
     void Process();
 }
 
-// Использование: source generators, вспомогательные типы,
-// которые не должны утекать в публичный API.
+// РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: source generators, РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ С‚РёРїС‹,
+// РєРѕС‚РѕСЂС‹Рµ РЅРµ РґРѕР»Р¶РЅС‹ СѓС‚РµРєР°С‚СЊ РІ РїСѓР±Р»РёС‡РЅС‹Р№ API.
 ```
 
 ---
 
 ## Raw String Literals (C# 11)
 
-### Multi-line строки
+### Multi-line СЃС‚СЂРѕРєРё
 
 ```csharp
-// Минимум три кавычки """, можно больше при необходимости
+// РњРёРЅРёРјСѓРј С‚СЂРё РєР°РІС‹С‡РєРё """, РјРѕР¶РЅРѕ Р±РѕР»СЊС€Рµ РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё
 string json = """
     {
-        "name": "Иван",
+        "name": "РРІР°РЅ",
         "age": 30,
         "address": {
-            "city": "Москва"
+            "city": "РњРѕСЃРєРІР°"
         }
     }
     """;
-// Отступ trimming — отступ закрывающих """ определяет базовый уровень.
-// Всё, что левее закрывающих """ — ошибка компиляции.
+// РћС‚СЃС‚СѓРї trimming вЂ” РѕС‚СЃС‚СѓРї Р·Р°РєСЂС‹РІР°СЋС‰РёС… """ РѕРїСЂРµРґРµР»СЏРµС‚ Р±Р°Р·РѕРІС‹Р№ СѓСЂРѕРІРµРЅСЊ.
+// Р’СЃС‘, С‡С‚Рѕ Р»РµРІРµРµ Р·Р°РєСЂС‹РІР°СЋС‰РёС… """ вЂ” РѕС€РёР±РєР° РєРѕРјРїРёР»СЏС†РёРё.
 
-// SQL-запрос
+// SQL-Р·Р°РїСЂРѕСЃ
 string sql = """
     SELECT u.Id, u.Name, o.Total
     FROM Users u
@@ -995,26 +995,26 @@ string sql = """
 ### Interpolated raw strings
 
 ```csharp
-string name = "Иван";
+string name = "РРІР°РЅ";
 int age = 30;
 
-// $ перед """ — интерполяция
+// $ РїРµСЂРµРґ """ вЂ” РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ
 string json = $"""
     {{
         "name": "{name}",
         "age": {age}
     }}
     """;
-// {{ }} — экранирование фигурных скобок (удваиваем)
+// {{ }} вЂ” СЌРєСЂР°РЅРёСЂРѕРІР°РЅРёРµ С„РёРіСѓСЂРЅС‹С… СЃРєРѕР±РѕРє (СѓРґРІР°РёРІР°РµРј)
 
-// $$ — два доллара, тогда интерполяция через {{ }}
+// $$ вЂ” РґРІР° РґРѕР»Р»Р°СЂР°, С‚РѕРіРґР° РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ С‡РµСЂРµР· {{ }}
 string template = $$"""
     {
         "name": "{{name}}",
         "jsonTemplate": "{ "key": "{value}" }"
     }
     """;
-// Одиночные { } — литеральные, для интерполяции нужны {{ }}
+// РћРґРёРЅРѕС‡РЅС‹Рµ { } вЂ” Р»РёС‚РµСЂР°Р»СЊРЅС‹Рµ, РґР»СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёРё РЅСѓР¶РЅС‹ {{ }}
 ```
 
 ---
@@ -1022,21 +1022,21 @@ string template = $$"""
 ## UTF-8 String Literals (C# 11)
 
 ```csharp
-// Суффикс u8 — создаёт ReadOnlySpan<byte> в UTF-8
+// РЎСѓС„С„РёРєСЃ u8 вЂ” СЃРѕР·РґР°С‘С‚ ReadOnlySpan<byte> РІ UTF-8
 ReadOnlySpan<byte> greeting = "Hello, World!"u8;
 
-// Зачем: zero-allocation при работе с HTTP, JSON, протоколами
-// До C# 11:
-byte[] header = Encoding.UTF8.GetBytes("Content-Type"); // аллокация
+// Р—Р°С‡РµРј: zero-allocation РїСЂРё СЂР°Р±РѕС‚Рµ СЃ HTTP, JSON, РїСЂРѕС‚РѕРєРѕР»Р°РјРё
+// Р”Рѕ C# 11:
+byte[] header = Encoding.UTF8.GetBytes("Content-Type"); // Р°Р»Р»РѕРєР°С†РёСЏ
 
 // C# 11:
 ReadOnlySpan<byte> header = "Content-Type"u8; // compile-time, zero-alloc
 
-// Пример: HTTP header
+// РџСЂРёРјРµСЂ: HTTP header
 static ReadOnlySpan<byte> ContentTypeJson => "application/json"u8;
 static ReadOnlySpan<byte> AuthorizationHeader => "Authorization"u8;
 
-// Сравнение
+// РЎСЂР°РІРЅРµРЅРёРµ
 ReadOnlySpan<byte> input = GetHeaderValue();
 if (input.SequenceEqual("Bearer"u8))
 {
@@ -1048,13 +1048,13 @@ if (input.SequenceEqual("Bearer"u8))
 
 ## Generic Math (C# 11)
 
-### Интерфейсы для generic-арифметики
+### РРЅС‚РµСЂС„РµР№СЃС‹ РґР»СЏ generic-Р°СЂРёС„РјРµС‚РёРєРё
 
 ```csharp
-// INumber<T> — базовый интерфейс для числовых операций
-// IAdditionOperators, IMultiplyOperators, IComparisonOperators и т.д.
+// INumber<T> вЂ” Р±Р°Р·РѕРІС‹Р№ РёРЅС‚РµСЂС„РµР№СЃ РґР»СЏ С‡РёСЃР»РѕРІС‹С… РѕРїРµСЂР°С†РёР№
+// IAdditionOperators, IMultiplyOperators, IComparisonOperators Рё С‚.Рґ.
 
-// Generic метод суммирования — работает с int, double, decimal и т.д.
+// Generic РјРµС‚РѕРґ СЃСѓРјРјРёСЂРѕРІР°РЅРёСЏ вЂ” СЂР°Р±РѕС‚Р°РµС‚ СЃ int, double, decimal Рё С‚.Рґ.
 public static T Sum<T>(ReadOnlySpan<T> values) where T : INumber<T>
 {
     T result = T.Zero;
@@ -1065,12 +1065,12 @@ public static T Sum<T>(ReadOnlySpan<T> values) where T : INumber<T>
     return result;
 }
 
-// Использование
+// РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ
 int intSum = Sum<int>([1, 2, 3, 4, 5]);            // 15
 double doubleSum = Sum<double>([1.5, 2.5, 3.0]);   // 7.0
 decimal decSum = Sum<decimal>([10.5m, 20.3m]);      // 30.8
 
-// Generic среднее
+// Generic СЃСЂРµРґРЅРµРµ
 public static T Average<T>(ReadOnlySpan<T> values)
     where T : INumber<T>
 {
@@ -1087,7 +1087,7 @@ public static T Clamp<T>(T value, T min, T max)
     return value;
 }
 
-// Static abstract members в интерфейсах (C# 11)
+// Static abstract members РІ РёРЅС‚РµСЂС„РµР№СЃР°С… (C# 11)
 public interface IFactory<TSelf> where TSelf : IFactory<TSelf>
 {
     static abstract TSelf Create();
@@ -1100,10 +1100,10 @@ public interface IFactory<TSelf> where TSelf : IFactory<TSelf>
 ## Params Collections (C# 13)
 
 ```csharp
-// До C# 13: params только с массивами
-public void LogOld(params string[] messages) { /* аллокация массива */ }
+// Р”Рѕ C# 13: params С‚РѕР»СЊРєРѕ СЃ РјР°СЃСЃРёРІР°РјРё
+public void LogOld(params string[] messages) { /* Р°Р»Р»РѕРєР°С†РёСЏ РјР°СЃСЃРёРІР° */ }
 
-// C# 13: params работает с Span, ReadOnlySpan, IEnumerable
+// C# 13: params СЂР°Р±РѕС‚Р°РµС‚ СЃ Span, ReadOnlySpan, IEnumerable
 public void Log(params ReadOnlySpan<string> messages)
 {
     foreach (var msg in messages)
@@ -1111,19 +1111,19 @@ public void Log(params ReadOnlySpan<string> messages)
         Console.WriteLine(msg);
     }
 }
-// Вызов — zero-allocation на стеке!
-Log("info", "Запуск приложения", "OK");
+// Р’С‹Р·РѕРІ вЂ” zero-allocation РЅР° СЃС‚РµРєРµ!
+Log("info", "Р—Р°РїСѓСЃРє РїСЂРёР»РѕР¶РµРЅРёСЏ", "OK");
 
-// params с IEnumerable<T>
+// params СЃ IEnumerable<T>
 public int Sum(params IEnumerable<int> numbers) => numbers.Sum();
 
-// params с List<T>
+// params СЃ List<T>
 public void Process(params List<string> items)
 {
     foreach (var item in items) { /* ... */ }
 }
 
-// Разрешение перегрузок: ReadOnlySpan > Span > Array > IEnumerable
+// Р Р°Р·СЂРµС€РµРЅРёРµ РїРµСЂРµРіСЂСѓР·РѕРє: ReadOnlySpan > Span > Array > IEnumerable
 ```
 
 ---
@@ -1131,7 +1131,7 @@ public void Process(params List<string> items)
 ## Lock Object (C# 13)
 
 ```csharp
-// До C# 13 — lock на object
+// Р”Рѕ C# 13 вЂ” lock РЅР° object
 private readonly object _syncRoot = new();
 
 public void ThreadSafeMethod()
@@ -1142,19 +1142,19 @@ public void ThreadSafeMethod()
     }
 }
 
-// C# 13 — System.Threading.Lock
-// Более эффективная реализация, заточенная под lock
+// C# 13 вЂ” System.Threading.Lock
+// Р‘РѕР»РµРµ СЌС„С„РµРєС‚РёРІРЅР°СЏ СЂРµР°Р»РёР·Р°С†РёСЏ, Р·Р°С‚РѕС‡РµРЅРЅР°СЏ РїРѕРґ lock
 private readonly Lock _lock = new();
 
 public void ThreadSafeMethod()
 {
-    lock (_lock) // компилятор использует Lock.EnterScope()
+    lock (_lock) // РєРѕРјРїРёР»СЏС‚РѕСЂ РёСЃРїРѕР»СЊР·СѓРµС‚ Lock.EnterScope()
     {
         // critical section
     }
 }
 
-// Ручное управление (Scope — ref struct, Dispose вызывает Exit)
+// Р СѓС‡РЅРѕРµ СѓРїСЂР°РІР»РµРЅРёРµ (Scope вЂ” ref struct, Dispose РІС‹Р·С‹РІР°РµС‚ Exit)
 public void ManualLock()
 {
     using (_lock.EnterScope())
@@ -1163,11 +1163,11 @@ public void ManualLock()
     }
 }
 
-// Преимущества Lock vs object:
-// 1. Нет boxing/unboxing
-// 2. Компилятор генерирует более оптимальный код
-// 3. Семантически ясный тип — понятно назначение
-// 4. Ref struct scope — не может утечь в async контекст
+// РџСЂРµРёРјСѓС‰РµСЃС‚РІР° Lock vs object:
+// 1. РќРµС‚ boxing/unboxing
+// 2. РљРѕРјРїРёР»СЏС‚РѕСЂ РіРµРЅРµСЂРёСЂСѓРµС‚ Р±РѕР»РµРµ РѕРїС‚РёРјР°Р»СЊРЅС‹Р№ РєРѕРґ
+// 3. РЎРµРјР°РЅС‚РёС‡РµСЃРєРё СЏСЃРЅС‹Р№ С‚РёРї вЂ” РїРѕРЅСЏС‚РЅРѕ РЅР°Р·РЅР°С‡РµРЅРёРµ
+// 4. Ref struct scope вЂ” РЅРµ РјРѕР¶РµС‚ СѓС‚РµС‡СЊ РІ async РєРѕРЅС‚РµРєСЃС‚
 ```
 
 ---
@@ -1177,13 +1177,13 @@ public void ManualLock()
 ### Extension Members
 
 ```csharp
-// До C# 14 — только extension methods (static class)
+// Р”Рѕ C# 14 вЂ” С‚РѕР»СЊРєРѕ extension methods (static class)
 public static class StringExtensions
 {
     public static bool IsNullOrEmpty(this string? s) => string.IsNullOrEmpty(s);
 }
 
-// C# 14 — extension блок: properties, indexers, static members
+// C# 14 вЂ” extension Р±Р»РѕРє: properties, indexers, static members
 public extension StringExtensions for string
 {
     // Extension property
@@ -1196,16 +1196,16 @@ public extension StringExtensions for string
     public static string Empty => string.Empty;
 }
 
-// Использование
+// РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ
 string name = "Hello";
 bool empty = name.IsEmpty;       // false
 char last = name.FromEnd[1];     // 'o'
 ```
 
-### field keyword в auto-properties
+### field keyword РІ auto-properties
 
 ```csharp
-// До C# 14 — нужно backing field для валидации
+// Р”Рѕ C# 14 вЂ” РЅСѓР¶РЅРѕ backing field РґР»СЏ РІР°Р»РёРґР°С†РёРё
 private string _name = "";
 public string Name
 {
@@ -1217,7 +1217,7 @@ public string Name
     }
 }
 
-// C# 14 — field keyword ссылается на автоматическое backing field
+// C# 14 вЂ” field keyword СЃСЃС‹Р»Р°РµС‚СЃСЏ РЅР° Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ backing field
 public string Name
 {
     get => field;
@@ -1228,13 +1228,13 @@ public string Name
     }
 }
 
-// Удобно для lazy initialization
+// РЈРґРѕР±РЅРѕ РґР»СЏ lazy initialization
 public List<Order> Orders
 {
     get => field ??= [];
 }
 
-// Удобно для change notification (INotifyPropertyChanged)
+// РЈРґРѕР±РЅРѕ РґР»СЏ change notification (INotifyPropertyChanged)
 public string Title
 {
     get => field;
@@ -1245,18 +1245,18 @@ public string Title
 ### Null-conditional Assignment
 
 ```csharp
-// До C# 14
+// Р”Рѕ C# 14
 if (customer?.Address is not null)
 {
-    customer.Address.City = "Москва";
+    customer.Address.City = "РњРѕСЃРєРІР°";
 }
 
-// C# 14 — null-conditional assignment
-customer?.Address?.City = "Москва";
-// Если customer == null ИЛИ Address == null — присвоение не выполняется.
-// NullReferenceException не возникает. Без второго ?. при Address == null будет NRE!
+// C# 14 вЂ” null-conditional assignment
+customer?.Address?.City = "РњРѕСЃРєРІР°";
+// Р•СЃР»Рё customer == null РР›Р Address == null вЂ” РїСЂРёСЃРІРѕРµРЅРёРµ РЅРµ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ.
+// NullReferenceException РЅРµ РІРѕР·РЅРёРєР°РµС‚. Р‘РµР· РІС‚РѕСЂРѕРіРѕ ?. РїСЂРё Address == null Р±СѓРґРµС‚ NRE!
 
-// Работает и с индексаторами
+// Р Р°Р±РѕС‚Р°РµС‚ Рё СЃ РёРЅРґРµРєСЃР°С‚РѕСЂР°РјРё
 list?[0] = newValue;
 dictionary?["key"] = newValue;
 ```
@@ -1264,21 +1264,21 @@ dictionary?["key"] = newValue;
 ### Lambda Parameter Modifiers
 
 ```csharp
-// C# 14 — можно использовать ref, in, out в лямбдах с явными типами
+// C# 14 вЂ” РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ ref, in, out РІ Р»СЏРјР±РґР°С… СЃ СЏРІРЅС‹РјРё С‚РёРїР°РјРё
 Span<int> numbers = [3, 1, 4, 1, 5];
 numbers.Sort((ref int a, ref int b) => a.CompareTo(b));
 ```
 
-### Partial Constructors и Events (дополнение к partial methods/properties)
+### Partial Constructors Рё Events (РґРѕРїРѕР»РЅРµРЅРёРµ Рє partial methods/properties)
 
 ```csharp
-// Partial constructor — часть реализации в одном файле, часть в другом
+// Partial constructor вЂ” С‡Р°СЃС‚СЊ СЂРµР°Р»РёР·Р°С†РёРё РІ РѕРґРЅРѕРј С„Р°Р№Р»Рµ, С‡Р°СЃС‚СЊ РІ РґСЂСѓРіРѕРј
 public partial class ViewModel
 {
     public partial ViewModel(string title);
 }
 
-// В другом файле (например, generated code)
+// Р’ РґСЂСѓРіРѕРј С„Р°Р№Р»Рµ (РЅР°РїСЂРёРјРµСЂ, generated code)
 public partial class ViewModel
 {
     public partial ViewModel(string title)
@@ -1293,9 +1293,9 @@ public partial class ViewModel
 
 ## File-based Apps (.NET 11 Preview)
 
-### Что
+### Р§С‚Рѕ
 
-Начиная с **.NET 11 Preview 3** можно писать полноценное ASP.NET Core Web API в **одном `.cs` файле** без `.csproj` / `.sln`. Go-like минимализм, без отказа от типизации и экосистемы .NET.
+РќР°С‡РёРЅР°СЏ СЃ **.NET 11 Preview 3** РјРѕР¶РЅРѕ РїРёСЃР°С‚СЊ РїРѕР»РЅРѕС†РµРЅРЅРѕРµ ASP.NET Core Web API РІ **РѕРґРЅРѕРј `.cs` С„Р°Р№Р»Рµ** Р±РµР· `.csproj` / `.sln`. Go-like РјРёРЅРёРјР°Р»РёР·Рј, Р±РµР· РѕС‚РєР°Р·Р° РѕС‚ С‚РёРїРёР·Р°С†РёРё Рё СЌРєРѕСЃРёСЃС‚РµРјС‹ .NET.
 
 ```csharp
 // app.cs
@@ -1309,30 +1309,30 @@ app.MapGet("/hello/{name}", (string name) => $"Hi, {name}!");
 app.Run();
 ```
 
-Запуск и публикация:
+Р—Р°РїСѓСЃРє Рё РїСѓР±Р»РёРєР°С†РёСЏ:
 
 ```bash
-dotnet run app.cs                  # прямой запуск
-dotnet publish app.cs --aot -o out # Native AOT → ~30 MB single binary
+dotnet run app.cs                  # РїСЂСЏРјРѕР№ Р·Р°РїСѓСЃРє
+dotnet publish app.cs --aot -o out # Native AOT в†’ ~30 MB single binary
 ```
 
-### Зачем
+### Р—Р°С‡РµРј
 
-| Сценарий | Почему fit |
+| РЎС†РµРЅР°СЂРёР№ | РџРѕС‡РµРјСѓ fit |
 |----------|-----------|
-| CLI-утилиты | Типизация + DI + пакеты NuGet, но без ceremony. Замена PowerShell/Bash-скриптам. |
-| Прототипы для клиентов / demo | Один файл → показал заказчику → `dotnet run` |
-| Micro-services под Native AOT | Минимальный образ, быстрый старт |
-| Онбординг новичков в .NET | Меньше шума в начале — нет XML, нет solution, нет многопроектной структуры |
+| CLI-СѓС‚РёР»РёС‚С‹ | РўРёРїРёР·Р°С†РёСЏ + DI + РїР°РєРµС‚С‹ NuGet, РЅРѕ Р±РµР· ceremony. Р—Р°РјРµРЅР° PowerShell/Bash-СЃРєСЂРёРїС‚Р°Рј. |
+| РџСЂРѕС‚РѕС‚РёРїС‹ РґР»СЏ РєР»РёРµРЅС‚РѕРІ / demo | РћРґРёРЅ С„Р°Р№Р» в†’ РїРѕРєР°Р·Р°Р» Р·Р°РєР°Р·С‡РёРєСѓ в†’ `dotnet run` |
+| Micro-services РїРѕРґ Native AOT | РњРёРЅРёРјР°Р»СЊРЅС‹Р№ РѕР±СЂР°Р·, Р±С‹СЃС‚СЂС‹Р№ СЃС‚Р°СЂС‚ |
+| РћРЅР±РѕСЂРґРёРЅРі РЅРѕРІРёС‡РєРѕРІ РІ .NET | РњРµРЅСЊС€Рµ С€СѓРјР° РІ РЅР°С‡Р°Р»Рµ вЂ” РЅРµС‚ XML, РЅРµС‚ solution, РЅРµС‚ РјРЅРѕРіРѕРїСЂРѕРµРєС‚РЅРѕР№ СЃС‚СЂСѓРєС‚СѓСЂС‹ |
 
-### Ограничения
+### РћРіСЂР°РЅРёС‡РµРЅРёСЏ
 
-- Миграции EF Core требуют обходных решений — нет `.csproj`, который нужен design-time tools
-- Тестирование встроенное не предусмотрено — нужно выносить в отдельный проект
-- В PR-ах хуже показ изменений в NuGet-пакетах (зависимости в `#:package` директивах, а не в отдельном `.csproj`)
-- Production-grade решения всё же остаются с полноценным `.csproj` — это для скриптов и прототипов
+- РњРёРіСЂР°С†РёРё EF Core С‚СЂРµР±СѓСЋС‚ РѕР±С…РѕРґРЅС‹С… СЂРµС€РµРЅРёР№ вЂ” РЅРµС‚ `.csproj`, РєРѕС‚РѕСЂС‹Р№ РЅСѓР¶РµРЅ design-time tools
+- РўРµСЃС‚РёСЂРѕРІР°РЅРёРµ РІСЃС‚СЂРѕРµРЅРЅРѕРµ РЅРµ РїСЂРµРґСѓСЃРјРѕС‚СЂРµРЅРѕ вЂ” РЅСѓР¶РЅРѕ РІС‹РЅРѕСЃРёС‚СЊ РІ РѕС‚РґРµР»СЊРЅС‹Р№ РїСЂРѕРµРєС‚
+- Р’ PR-Р°С… С…СѓР¶Рµ РїРѕРєР°Р· РёР·РјРµРЅРµРЅРёР№ РІ NuGet-РїР°РєРµС‚Р°С… (Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РІ `#:package` РґРёСЂРµРєС‚РёРІР°С…, Р° РЅРµ РІ РѕС‚РґРµР»СЊРЅРѕРј `.csproj`)
+- Production-grade СЂРµС€РµРЅРёСЏ РІСЃС‘ Р¶Рµ РѕСЃС‚Р°СЋС‚СЃСЏ СЃ РїРѕР»РЅРѕС†РµРЅРЅС‹Рј `.csproj` вЂ” СЌС‚Рѕ РґР»СЏ СЃРєСЂРёРїС‚РѕРІ Рё РїСЂРѕС‚РѕС‚РёРїРѕРІ
 
-### Пример прод-полезного: CLI-утилита для своих VPS
+### РџСЂРёРјРµСЂ РїСЂРѕРґ-РїРѕР»РµР·РЅРѕРіРѕ: CLI-СѓС‚РёР»РёС‚Р° РґР»СЏ СЃРІРѕРёС… VPS
 
 ```csharp
 // deploy.cs
@@ -1355,34 +1355,34 @@ root.SetHandler(async (string repo) =>
 await root.InvokeAsync(args);
 ```
 
-Запуск: `dotnet run deploy.cs myapp`.
+Р—Р°РїСѓСЃРє: `dotnet run deploy.cs myapp`.
 
-> [!question]- **Интервью: Что даёт .NET 11 помимо производительности?**
-> Из практичного: file-based apps (`dotnet run app.cs`) — .NET перестал выглядеть как Windows-only enterprise и подтянулся к Go/Python по порогу входа. Работает с Native AOT → 30 MB single binary, удобно для CLI и микросервисов. Для прода с миграциями и многокомпонентной архитектурой — по-прежнему `.csproj`, но прототипы, скрипты и демо теперь пишутся на C# так же быстро, как на Python.
+> [!question]- **РРЅС‚РµСЂРІСЊСЋ: Р§С‚Рѕ РґР°С‘С‚ .NET 11 РїРѕРјРёРјРѕ РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕСЃС‚Рё?**
+> РР· РїСЂР°РєС‚РёС‡РЅРѕРіРѕ: file-based apps (`dotnet run app.cs`) вЂ” .NET РїРµСЂРµСЃС‚Р°Р» РІС‹РіР»СЏРґРµС‚СЊ РєР°Рє Windows-only enterprise Рё РїРѕРґС‚СЏРЅСѓР»СЃСЏ Рє Go/Python РїРѕ РїРѕСЂРѕРіСѓ РІС…РѕРґР°. Р Р°Р±РѕС‚Р°РµС‚ СЃ Native AOT в†’ 30 MB single binary, СѓРґРѕР±РЅРѕ РґР»СЏ CLI Рё РјРёРєСЂРѕСЃРµСЂРІРёСЃРѕРІ. Р”Р»СЏ РїСЂРѕРґР° СЃ РјРёРіСЂР°С†РёСЏРјРё Рё РјРЅРѕРіРѕРєРѕРјРїРѕРЅРµРЅС‚РЅРѕР№ Р°СЂС…РёС‚РµРєС‚СѓСЂРѕР№ вЂ” РїРѕ-РїСЂРµР¶РЅРµРјСѓ `.csproj`, РЅРѕ РїСЂРѕС‚РѕС‚РёРїС‹, СЃРєСЂРёРїС‚С‹ Рё РґРµРјРѕ С‚РµРїРµСЂСЊ РїРёС€СѓС‚СЃСЏ РЅР° C# С‚Р°Рє Р¶Рµ Р±С‹СЃС‚СЂРѕ, РєР°Рє РЅР° Python.
 
 ---
 
-## Дополнительные фичи по версиям
+## Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ С„РёС‡Рё РїРѕ РІРµСЂСЃРёСЏРј
 
 ### Using Declarations (C# 8)
 
 ```csharp
-// До C# 8 — using block
+// Р”Рѕ C# 8 вЂ” using block
 using (var stream = File.OpenRead("file.txt"))
 {
     // ...
-} // Dispose здесь
+} // Dispose Р·РґРµСЃСЊ
 
-// C# 8 — using declaration (без блока)
+// C# 8 вЂ” using declaration (Р±РµР· Р±Р»РѕРєР°)
 using var stream = File.OpenRead("file.txt");
-// ... используем stream
-// Dispose при выходе из scope (метод, блок if/for и т.д.)
+// ... РёСЃРїРѕР»СЊР·СѓРµРј stream
+// Dispose РїСЂРё РІС‹С…РѕРґРµ РёР· scope (РјРµС‚РѕРґ, Р±Р»РѕРє if/for Рё С‚.Рґ.)
 ```
 
 ### Async Streams (C# 8)
 
 ```csharp
-// IAsyncEnumerable<T> — асинхронная итерация
+// IAsyncEnumerable<T> вЂ” Р°СЃРёРЅС…СЂРѕРЅРЅР°СЏ РёС‚РµСЂР°С†РёСЏ
 public async IAsyncEnumerable<Order> GetOrdersAsync(
     [EnumeratorCancellation] CancellationToken ct = default)
 {
@@ -1399,7 +1399,7 @@ public async IAsyncEnumerable<Order> GetOrdersAsync(
     }
 }
 
-// Потребление
+// РџРѕС‚СЂРµР±Р»РµРЅРёРµ
 await foreach (var order in GetOrdersAsync(ct))
 {
     Process(order);
@@ -1409,21 +1409,21 @@ await foreach (var order in GetOrdersAsync(ct))
 ### Target-typed new (C# 9)
 
 ```csharp
-// Тип выводится из контекста
+// РўРёРї РІС‹РІРѕРґРёС‚СЃСЏ РёР· РєРѕРЅС‚РµРєСЃС‚Р°
 Dictionary<string, List<int>> map = new();
-List<string> names = new() { "Иван", "Пётр" };
+List<string> names = new() { "РРІР°РЅ", "РџС‘С‚СЂ" };
 
-// В аргументах метода
+// Р’ Р°СЂРіСѓРјРµРЅС‚Р°С… РјРµС‚РѕРґР°
 Process(new OrderOptions { Timeout = TimeSpan.FromSeconds(30) });
 
-// В return
+// Р’ return
 public CancellationTokenSource CreateCts() => new(TimeSpan.FromMinutes(5));
 ```
 
 ### Top-level Statements (C# 9)
 
 ```csharp
-// Файл без класса Program и метода Main
+// Р¤Р°Р№Р» Р±РµР· РєР»Р°СЃСЃР° Program Рё РјРµС‚РѕРґР° Main
 using Microsoft.Extensions.Hosting;
 
 var builder = Host.CreateDefaultBuilder(args);
@@ -1435,16 +1435,16 @@ await app.RunAsync();
 ### Constant Interpolated Strings (C# 10)
 
 ```csharp
-// Интерполяция в const — если все части const
+// РРЅС‚РµСЂРїРѕР»СЏС†РёСЏ РІ const вЂ” РµСЃР»Рё РІСЃРµ С‡Р°СЃС‚Рё const
 const string Scheme = "https";
 const string Host = "api.example.com";
-const string BaseUrl = $"{Scheme}://{Host}"; // OK в C# 10
+const string BaseUrl = $"{Scheme}://{Host}"; // OK РІ C# 10
 ```
 
 ### Alias Any Type (C# 12)
 
 ```csharp
-// using alias для любого типа, включая tuples и generics
+// using alias РґР»СЏ Р»СЋР±РѕРіРѕ С‚РёРїР°, РІРєР»СЋС‡Р°СЏ tuples Рё generics
 using Point = (double X, double Y);
 using OrderId = int;
 using JsonDict = System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>;
@@ -1457,16 +1457,16 @@ JsonDict data = new() { ["key"] = JsonDocument.Parse("1").RootElement };
 ### Default Lambda Parameters (C# 12)
 
 ```csharp
-// Параметры по умолчанию в лямбдах
-var greet = (string name, string greeting = "Привет") => $"{greeting}, {name}!";
-Console.WriteLine(greet("Иван"));            // Привет, Иван!
-Console.WriteLine(greet("Иван", "Здравствуй")); // Здравствуй, Иван!
+// РџР°СЂР°РјРµС‚СЂС‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РІ Р»СЏРјР±РґР°С…
+var greet = (string name, string greeting = "РџСЂРёРІРµС‚") => $"{greeting}, {name}!";
+Console.WriteLine(greet("РРІР°РЅ"));            // РџСЂРёРІРµС‚, РРІР°РЅ!
+Console.WriteLine(greet("РРІР°РЅ", "Р—РґСЂР°РІСЃС‚РІСѓР№")); // Р—РґСЂР°РІСЃС‚РІСѓР№, РРІР°РЅ!
 ```
 
 ### ref struct Interfaces (C# 13)
 
 ```csharp
-// ref struct теперь может реализовывать интерфейсы (с ограничениями)
+// ref struct С‚РµРїРµСЂСЊ РјРѕР¶РµС‚ СЂРµР°Р»РёР·РѕРІС‹РІР°С‚СЊ РёРЅС‚РµСЂС„РµР№СЃС‹ (СЃ РѕРіСЂР°РЅРёС‡РµРЅРёСЏРјРё)
 public interface IBufferWriter
 {
     void Write(ReadOnlySpan<byte> data);
@@ -1484,8 +1484,8 @@ public ref struct StackBuffer : IBufferWriter
     }
 }
 
-// Ограничение: нельзя использовать через boxing (IBufferWriter переменная)
-// Только через generics с allows ref struct constraint
+// РћРіСЂР°РЅРёС‡РµРЅРёРµ: РЅРµР»СЊР·СЏ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ С‡РµСЂРµР· boxing (IBufferWriter РїРµСЂРµРјРµРЅРЅР°СЏ)
+// РўРѕР»СЊРєРѕ С‡РµСЂРµР· generics СЃ allows ref struct constraint
 public static void WriteAll<T>(T writer, ReadOnlySpan<byte> data)
     where T : IBufferWriter, allows ref struct
 {
@@ -1496,18 +1496,18 @@ public static void WriteAll<T>(T writer, ReadOnlySpan<byte> data)
 ### Escape Sequence `\e` (C# 13)
 
 ```csharp
-// \e = ESC (0x1B) — для ANSI escape codes в терминале
-Console.WriteLine("\e[31mКрасный текст\e[0m");
-Console.WriteLine("\e[1;32mЖирный зелёный\e[0m");
+// \e = ESC (0x1B) вЂ” РґР»СЏ ANSI escape codes РІ С‚РµСЂРјРёРЅР°Р»Рµ
+Console.WriteLine("\e[31mРљСЂР°СЃРЅС‹Р№ С‚РµРєСЃС‚\e[0m");
+Console.WriteLine("\e[1;32mР–РёСЂРЅС‹Р№ Р·РµР»С‘РЅС‹Р№\e[0m");
 
-// До C# 13: '\x1B' или '\u001B'
+// Р”Рѕ C# 13: '\x1B' РёР»Рё '\u001B'
 ```
 
 ---
 
-## Таблица фич по версиям
+## РўР°Р±Р»РёС†Р° С„РёС‡ РїРѕ РІРµСЂСЃРёСЏРј
 
-| Версия | Год  | .NET   | Ключевые фичи                                                                    |
+| Р’РµСЂСЃРёСЏ | Р“РѕРґ  | .NET   | РљР»СЋС‡РµРІС‹Рµ С„РёС‡Рё                                                                    |
 |--------|------|--------|-----------------------------------------------------------------------------------|
 | C# 8   | 2019 | Core 3 | Nullable refs, pattern matching, default interface methods, using declarations, async streams, indices/ranges |
 | C# 9   | 2020 | 5      | Records, init-only, top-level statements, target-typed new, logical patterns      |
@@ -1519,10 +1519,10 @@ Console.WriteLine("\e[1;32mЖирный зелёный\e[0m");
 
 ---
 
-## См. также
+## РЎРј. С‚Р°РєР¶Рµ
 
-- [Типы и память](types-and-memory.md)
-- [ООП и классы](oop.md)
-- [Delegates и Events](delegates-events.md)
-- [Collections и LINQ](collections-linq.md)
-- [Async и потоки](async-threading.md)
+- [РўРёРїС‹ Рё РїР°РјСЏС‚СЊ](types-and-memory.md)
+- [РћРћРџ Рё РєР»Р°СЃСЃС‹](oop.md)
+- [Delegates Рё Events](delegates-events.md)
+- [Collections Рё LINQ](collections-linq.md)
+- [Async Рё РїРѕС‚РѕРєРё](async-threading.md)

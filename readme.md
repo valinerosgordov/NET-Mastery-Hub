@@ -2,7 +2,7 @@
 
 > **Comprehensive C# / .NET knowledge base** вЂ” from Junior fundamentals to Senior architecture and distributed systems.
 >
-> **138 deep-dive notes / ~3.4 MB**, organized by topic. Russian primary, English technical terms.
+> **142 deep-dive notes / ~3.6 MB**, organized by topic. Russian primary, English technical terms.
 
 ---
 
