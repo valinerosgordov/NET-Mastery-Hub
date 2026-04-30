@@ -1,6 +1,6 @@
 ﻿---
 tags: [collections, linq, dictionary, hashset, generics]
-level: Junior to Senior
+level: Junior
 ---
 
 # Collections Рё LINQ

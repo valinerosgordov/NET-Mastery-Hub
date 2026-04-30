@@ -1,6 +1,6 @@
----
+﻿---
 tags: [sql, basics, fundamentals, ddl, dml, joins, transactions, normalization]
-level: Junior to Senior
+level: Junior
 date: 2026-04-30
 ---
 

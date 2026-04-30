@@ -1,6 +1,6 @@
----
+﻿---
 tags: [testing, fundamentals, junior, types-of-tests, tdd, pyramid]
-level: Junior to Senior
+level: Junior
 date: 2026-04-30
 ---
 

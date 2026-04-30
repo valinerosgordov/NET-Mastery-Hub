@@ -1,6 +1,6 @@
----
+﻿---
 tags: [csharp, anonymous-types, linq, projections, junior, middle]
-level: Junior to Middle
+level: Junior
 date: 2026-04-30
 ---
 

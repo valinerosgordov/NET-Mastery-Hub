@@ -1,6 +1,6 @@
----
+﻿---
 tags: [csharp, strings, regex, encoding, culture, performance]
-level: Junior to Senior
+level: Junior
 date: 2026-04-30
 ---
 

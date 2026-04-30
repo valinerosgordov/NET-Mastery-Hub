@@ -1,6 +1,6 @@
----
+﻿---
 tags: [quality, clean-code, naming, principles, junior, fundamentals]
-level: Junior to Senior
+level: Junior
 date: 2026-04-30
 ---
 

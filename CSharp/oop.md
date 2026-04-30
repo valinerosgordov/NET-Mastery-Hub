@@ -1,6 +1,6 @@
 ﻿---
 tags: [oop, classes, interfaces, inheritance, records]
-level: Junior to Senior
+level: Junior
 ---
 
 # РћРћРџ Рё РєР»Р°СЃСЃС‹

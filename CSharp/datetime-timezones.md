@@ -1,6 +1,6 @@
----
+﻿---
 tags: [csharp, datetime, timezone, dateonly, timeonly, nodatime]
-level: Junior to Senior
+level: Junior
 date: 2026-04-30
 ---
 
