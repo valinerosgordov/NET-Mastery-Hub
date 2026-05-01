@@ -812,6 +812,73 @@ Testability time?
 
 ---
 
+## Case Studies
+
+### Case Study #1 — Banking — все timestamps в UTC
+
+**Сценарий:** Платёжная система. Транзакции записываются в DB. Bug: некоторые показывают будущее время.
+
+**Причина:** часть serverов в EU/Moscow timezone, часть — UTC. `DateTime.Now` возвращает local time → mixed data.
+
+**❌ Wrong:**
+```csharp
+var now = DateTime.Now;  // зависит от server timezone!
+db.Transactions.Add(new { Amount = 100, Timestamp = now });
+```
+
+**✅ Correct:**
+```csharp
+var now = DateTime.UtcNow;  // всегда UTC
+db.Transactions.Add(new { Amount = 100, Timestamp = now });
+
+// При показе пользователю — convert в его timezone
+var userLocal = TimeZoneInfo.ConvertTimeFromUtc(now, userTimezone);
+```
+
+**Lesson:** Store **UTC** в DB, **convert на display**. `DateTime.UtcNow` — default в production.
+
+---
+
+### Case Study #2 — Recurring meetings — DST trap
+
+**Сценарий:** Calendar app. User создаёт meeting "Каждый понедельник 10:00" в Moscow timezone. Bug: после перехода на летнее время — meeting сдвигается на час.
+
+**❌ Wrong:**
+```csharp
+var meetingTime = new DateTime(2026, 3, 30, 10, 0, 0, DateTimeKind.Utc);
+// Saved as UTC, но local time зависит от DST
+```
+
+**✅ NodaTime — proper DST handling:**
+```csharp
+using NodaTime;
+
+var moscowZone = DateTimeZoneProviders.Tzdb["Europe/Moscow"];
+var localPattern = new LocalDateTime(2026, 3, 30, 10, 0);
+var zoned = moscowZone.AtStrictly(localPattern);
+// At DST transition — throws AmbiguousTimeException или SkippedTimeException
+```
+
+**Lesson:** Recurring events — store **wall clock time + timezone** (Europe/Moscow), не UTC. Resolve UTC при display.
+
+---
+
+### Case Study #3 — Performance — DateTime parsing
+
+**Сценарий:** Log parser обрабатывает 1M lines с timestamps. `DateTime.Parse` slow.
+
+**Benchmark:**
+```csharp
+DateTime.Parse(s)              // 1500 ns/parse
+DateTime.ParseExact(s, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)  // 200 ns
+```
+
+7x faster — exact format known.
+
+**Lesson:** `ParseExact` для known format. `Parse` только для user input.
+
+---
+
 ## См. также
 
 - [[modern-features|Modern C# Features]] — DateOnly, TimeOnly, TimeProvider

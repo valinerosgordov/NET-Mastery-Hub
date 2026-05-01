@@ -1,4 +1,4 @@
----
+﻿---
 tags: [infrastructure, cicd, github-actions, ci-cd, pipeline, dotnet, middle]
 level: Middle
 date: 2026-04-30
@@ -817,6 +817,114 @@ concurrency:
 └── Cross-repo workflow
     → workflow_call (reusable workflows)
 ```
+
+---
+
+## Case Studies
+
+### Case Study #1 — Multi-stage build с testing
+
+**Сценарий:** ASP.NET Core app, нужен CI: build → test → publish to staging → manual approval → production.
+
+```yaml
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '10.0.x' }
+      
+      - name: Restore
+        run: dotnet restore
+      
+      - name: Build
+        run: dotnet build -c Release --no-restore
+      
+      - name: Test
+        run: dotnet test -c Release --no-build --collect:"XPlat Code Coverage"
+      
+      - name: Publish artifacts
+        run: dotnet publish src/MyApp.Api -c Release -o ./publish --no-build
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-package
+          path: ./publish
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: app-package }
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: myapp-staging
+          publish-profile: SECRET_REF_AZURE_STAGING
+
+  deploy-prod:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production  # требует manual approval в GitHub
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: app-package }
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: myapp-prod
+          publish-profile: SECRET_REF_AZURE_PROD
+```
+
+---
+
+### Case Study #2 — Docker image build + push в registry
+
+```yaml
+- name: Login to GHCR
+  uses: docker/login-action@v3
+  with:
+    registry: ghcr.io
+    username: GITHUB_ACTOR_REF
+    password: GITHUB_TOKEN_REF
+
+- name: Build and push
+  uses: docker/build-push-action@v5
+  with:
+    context: .
+    push: true
+    tags: |
+      ghcr.io/REPO_REF:SHA_REF
+      ghcr.io/REPO_REF:latest
+```
+
+---
+
+### Case Study #3 — Secrets management
+
+```yaml
+# Read connection string из GitHub secrets
+- name: Run integration tests
+  env:
+    ConnectionStrings__Default: SECRET_DB_CONN
+    ApiKeys__Stripe: SECRET_STRIPE_KEY
+  run: dotnet test
+```
+
+> [!warning] Никогда не коммить secrets в repo
+> Используй GitHub Secrets, environment-specific secrets, или OIDC для cloud auth.
+
+См. [[../AspNetCore/auth-security|Auth & Security]].
+
 
 ---
 

@@ -1,4 +1,4 @@
----
+﻿---
 tags: [csharp, generics, variance, generic-math, constraints, type-system]
 level: Middle to Senior
 date: 2026-04-30
@@ -1150,6 +1150,91 @@ public T Get<T>(object instance)
 └── Generic constraint pattern?
     → where T : class, IEntity, new()
 ```
+
+---
+
+## Case Studies
+
+### Case Study #1 — Type-safe Result\<T, E\>
+
+**Проблема:** Methods могут fail. Throw exceptions для validation — не идиоматично.
+
+**✅ Generic Result:**
+```csharp
+public readonly record struct Result<T, E>
+{
+    public T? Value { get; init; }
+    public E? Error { get; init; }
+    public bool IsSuccess { get; init; }
+    
+    public static Result<T, E> Ok(T value) => new() { Value = value, IsSuccess = true };
+    public static Result<T, E> Fail(E error) => new() { Error = error };
+}
+
+public Result<User, string> CreateUser(string email)
+{
+    if (!email.Contains("@")) return Result<User, string>.Fail("Invalid email");
+    var user = new User { Email = email };
+    return Result<User, string>.Ok(user);
+}
+
+// Use
+var result = CreateUser("test@example.com");
+if (result.IsSuccess)
+    Console.WriteLine($"User: {result.Value!.Email}");
+else
+    Console.WriteLine($"Error: {result.Error}");
+```
+
+---
+
+### Case Study #2 — Variance — IEnumerable\<T\> covariance
+
+**Проблема:** Хочется передать `List<Dog>` где expected `IEnumerable<Animal>`.
+
+**✅ Covariance — out:**
+```csharp
+// IEnumerable<T> объявлен с out → covariant
+public interface IEnumerable<out T> { /* ... */ }
+
+List<Dog> dogs = new() { new Dog(), new Dog() };
+IEnumerable<Animal> animals = dogs;  // OK — covariance!
+
+foreach (Animal a in animals) Console.WriteLine(a.Name);
+```
+
+**vs Contravariance — in:**
+```csharp
+// IComparer<T> с in → contravariant
+public interface IComparer<in T> { /* ... */ }
+
+IComparer<Animal> animalComparer = new AnimalComparer();
+IComparer<Dog> dogComparer = animalComparer;  // OK — contravariance!
+```
+
+---
+
+### Case Study #3 — Generic math (.NET 7+)
+
+**Проблема:** До .NET 7 — нельзя generic math operations.
+
+**✅ INumber\<T\>:**
+```csharp
+public T Sum<T>(IEnumerable<T> values) where T : INumber<T>
+{
+    T sum = T.Zero;
+    foreach (var v in values) sum += v;
+    return sum;
+}
+
+// Works for any numeric type
+int s1 = Sum(new[] { 1, 2, 3 });           // 6
+double s2 = Sum(new[] { 1.5, 2.5, 3.5 });  // 7.5
+decimal s3 = Sum(new[] { 1m, 2m, 3m });    // 6m
+```
+
+См. [[numeric-types-math|Numeric Types & Math]].
+
 
 ---
 

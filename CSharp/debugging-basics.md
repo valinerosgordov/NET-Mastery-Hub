@@ -1,4 +1,4 @@
----
+﻿---
 tags: [csharp, debugging, junior, visual-studio, breakpoints, debugger, tools]
 level: Junior
 date: 2026-04-30
@@ -796,3 +796,28 @@ _logger.LogError("Argument {Param} was null", nameof(userId));
 - **Tess Ferrandez blog** — debugging blog (классика по managed debugging)
 - **Sasha Goldstein — Pro .NET Performance** (книга)
 - **Konrad Kokosa — Pro .NET Memory Management** (deep memory debugging)
+
+---
+
+## Decision tree
+
+```
+Какой подход к отладке?
+│
+├── Lokal development?
+│   ├── Reproducible bug → debugger (F9 breakpoint, F5 run, F10 step over)
+│   ├── Сложно reproduce → conditional breakpoint
+│   ├── Глубоко в stack → Call Stack window
+│   └── Bug в LINQ chain → разбить на отдельные variables
+│
+├── Production?
+│   ├── Crash / exception → structured logging + Exception filter
+│   ├── Slow performance → Stopwatch logging или dotTrace
+│   ├── Memory leak → Diagnostic Tools snapshots или dotnet-dump
+│   └── Distributed bug → correlation ID + Loki/Seq queries
+│
+└── Bug непонятен?
+    ├── Сначала reproduce — write failing test
+    ├── Затем binary search — half code suspect, проверить middle
+    └── Read errors carefully — stack trace говорит почти всё
+```

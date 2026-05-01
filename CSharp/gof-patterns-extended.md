@@ -1,4 +1,4 @@
----
+﻿---
 tags: [csharp, design-patterns, gof, command, visitor, composite, proxy, memento, bridge, flyweight, prototype, senior]
 level: Senior
 date: 2026-04-30
@@ -1759,6 +1759,66 @@ public class Renderer { /* ... */ }
 // Code complexity — high
 // Не стоит того
 ```
+
+---
+
+## Best Practices
+
+### General
+
+- **Знай 23 GoF паттерна, но не используй их все.** Для большинства задач хватит 5-7 (Strategy, Factory, Observer, Decorator, Template Method).
+- **Pattern matching pattern** — modern C# (switch expressions, records) часто заменяет classic patterns на 1-2 строки.
+- **Dependency Injection** в .NET native — заменяет необходимость многих creational patterns.
+
+### По паттернам
+
+**Command:**
+- Используй для undo/redo, queueing, scheduling
+- В CQRS — каждый Command = реализация pattern'а
+- Для async — Task / IRequest (MediatR) интерфейс
+
+**Visitor:**
+- Только когда **иерархия стабильна, операций много**
+- Для простых случаев — switch expression проще
+- AST traversal в compilers — classic use case
+
+**Composite:**
+- Tree-like структуры с polymorphism
+- Filesystem, DOM, UI elements
+- Recursion работает естественно
+
+**Proxy:**
+- Lazy loading expensive resources (EF lazy loading через proxy)
+- Caching layer (decorator pattern для service)
+- AOP cross-cutting (logging, metrics) через interception
+
+**Memento:**
+- Undo/redo, save/load state
+- Form wizards с back navigation
+- Records + with — modern lightweight implementation
+
+**Bridge:**
+- Когда два orthogonal измерения (cross-platform UI / multi-DB)
+- Избегай для простых случаев — использовать Strategy
+
+**Flyweight:**
+- Только когда memory — bottleneck
+- Game development (particles, glyphs)
+- ImmutableArray/List — built-in flyweights в .NET
+
+**Prototype:**
+- Records + with — modern Prototype в C# 9+
+- Game spawning, document templates
+- Deep clone — JSON serialize/deserialize trick
+
+### When NOT to use patterns
+
+- ❌ "Educational" — добавлять pattern чтобы выглядеть Senior
+- ❌ Простой код "усложнять" GoF паттерном
+- ❌ Premature abstraction (YAGNI)
+- ❌ Pattern для performance (кроме Flyweight)
+
+> Pattern — **общий язык** между разработчиками. Используй имя pattern'а в code review / docs только когда это **действительно** этот pattern.
 
 ---
 

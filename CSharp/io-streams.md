@@ -1,4 +1,4 @@
----
+﻿---
 tags: [csharp, io, streams, files, async, middle]
 level: Middle
 date: 2026-04-30
@@ -908,6 +908,83 @@ File.ReadAllText(@"\\?\C:\very\long\path...");
 └── Process IPC?
     → Named Pipes (см. ipc-named-pipes-grpc)
 ```
+
+---
+
+## Case Studies
+
+### Case Study #1 — Reading 10 GB log file
+
+**Сценарий:** Парсинг 10 GB log file.
+
+**❌ Wrong — OOM:**
+```csharp
+var allLines = File.ReadAllLines("huge.log");  // 10 GB → OutOfMemoryException
+foreach (var line in allLines) ProcessLine(line);
+```
+
+**✅ Stream + foreach:**
+```csharp
+foreach (var line in File.ReadLines("huge.log"))  // lazy, line-by-line
+{
+    ProcessLine(line);
+}
+```
+
+**Async вариант:**
+```csharp
+await using var stream = File.OpenRead("huge.log");
+using var reader = new StreamReader(stream);
+string? line;
+while ((line = await reader.ReadLineAsync()) is not null)
+{
+    await ProcessLineAsync(line);
+}
+```
+
+---
+
+### Case Study #2 — Copying file с progress
+
+**Сценарий:** Upload large file с progress bar для UI.
+
+**✅ Buffer + progress:**
+```csharp
+public async Task CopyWithProgressAsync(Stream source, Stream dest, IProgress<long> progress, CancellationToken ct)
+{
+    var buffer = new byte[81920];  // 80 KB chunks
+    long total = 0;
+    int read;
+    while ((read = await source.ReadAsync(buffer, ct)) > 0)
+    {
+        await dest.WriteAsync(buffer.AsMemory(0, read), ct);
+        total += read;
+        progress.Report(total);
+    }
+}
+```
+
+---
+
+### Case Study #3 — Binary protocol parser
+
+**Сценарий:** TCP сервер парсит messages: 4-byte length + payload.
+
+**✅ Stream + BinaryReader:**
+```csharp
+using var network = client.GetStream();
+using var reader = new BinaryReader(network);
+
+while (true)
+{
+    int length = reader.ReadInt32();
+    byte[] payload = reader.ReadBytes(length);
+    await ProcessAsync(payload);
+}
+```
+
+> [!info] Production
+> Modern .NET — `System.IO.Pipelines` для high-perf network code. См. [[../Infrastructure/ipc-named-pipes-grpc|IPC]].
 
 ---
 

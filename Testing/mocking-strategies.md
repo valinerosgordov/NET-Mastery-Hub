@@ -1,4 +1,4 @@
----
+﻿---
 tags: [testing, mocking, nsubstitute, moq, fakes, stubs, test-doubles]
 level: Middle to Senior
 date: 2026-04-30
@@ -721,6 +721,134 @@ API endpoints, EF queries, message handlers — лучше integration tests с 
 | External API | Mock interface или WireMock.NET |
 | File system | `IFileSystem` (System.IO.Abstractions) |
 | `IOptions<T>` | `Options.Create(new T())` |
+
+---
+
+## Case Studies
+
+### Case Study #1 — Test service с DB зависимостью
+
+**❌ Real DB в unit test — медленно, fragile:**
+```csharp
+[Fact]
+public async Task CreateOrder_charges_payment()
+{
+    var db = new AppDbContext(realConnString);  // ⚠️ slow!
+    var service = new OrderService(db, ...);
+    var result = await service.CreateAsync(new());
+    // Test depends on DB state
+}
+```
+
+**✅ Mock through interface:**
+```csharp
+[Fact]
+public async Task CreateOrder_charges_payment()
+{
+    var orderRepo = Substitute.For<IOrderRepository>();
+    orderRepo.AddAsync(Arg.Any<Order>()).Returns(Task.CompletedTask);
+    
+    var paymentService = Substitute.For<IPaymentService>();
+    paymentService.ChargeAsync(Arg.Any<decimal>()).Returns(true);
+    
+    var service = new OrderService(orderRepo, paymentService);
+    var result = await service.CreateAsync(new() { Total = 100 });
+    
+    await paymentService.Received(1).ChargeAsync(100);
+}
+```
+
+---
+
+### Case Study #2 — Mock vs Stub vs Fake
+
+**Stub** — returns hardcoded data:
+```csharp
+emailService.SendAsync(Arg.Any<string>()).Returns(true);  // always true
+```
+
+**Mock** — verifies interaction:
+```csharp
+await emailService.Received(1).SendAsync("test@example.com");
+```
+
+**Fake** — working implementation для tests:
+```csharp
+public class FakeEmailService : IEmailService
+{
+    public List<Email> Sent { get; } = new();
+    public Task SendAsync(string to, string body)
+    {
+        Sent.Add(new(to, body));
+        return Task.CompletedTask;
+    }
+}
+```
+
+**Use:**
+- **Stub** для simple inputs
+- **Mock** когда verifying behavior critical
+- **Fake** для integration-like tests с in-memory state
+
+---
+
+### Case Study #3 — TestContainers вместо mocks для DB
+
+**✅ Real Postgres в test:**
+```csharp
+public class OrderRepositoryTests : IAsyncLifetime
+{
+    private PostgreSqlContainer _db = new PostgreSqlBuilder().Build();
+    
+    public Task InitializeAsync() => _db.StartAsync();
+    public Task DisposeAsync() => _db.DisposeAsync().AsTask();
+    
+    [Fact]
+    public async Task SaveAsync_persists_order()
+    {
+        var ctx = new AppDbContext(_db.GetConnectionString());
+        await ctx.Database.EnsureCreatedAsync();
+        var repo = new OrderRepository(ctx);
+        
+        await repo.SaveAsync(new Order { /* ... */ });
+        
+        var saved = await repo.GetByIdAsync(1);
+        saved.Should().NotBeNull();
+    }
+}
+```
+
+См. [[integration-testing|Integration Testing]].
+
+---
+
+## Decision tree
+
+```
+Что нужно mock'ать?
+│
+├── Interface для tests?
+│   ├── Simple input/output → Stub
+│   ├── Verify interaction → Mock
+│   └── Stateful behavior → Fake (custom class)
+│
+├── DB зависимость?
+│   ├── Unit test (logic only) → Mock IRepository
+│   ├── Integration test → TestContainers (real DB)
+│   └── Existing DbContext → InMemory provider (limited)
+│
+├── External HTTP call?
+│   ├── Predictable response → HttpMessageHandler mock
+│   └── Real API contract testing → WireMock.Net
+│
+├── Time / DateTime?
+│   ├── ITimeProvider abstraction (.NET 8+)
+│   └── Mock через interface
+│
+└── Файловая система?
+    └── System.IO.Abstractions + MockFileSystem
+```
+
 
 ---
 

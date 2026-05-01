@@ -1,4 +1,4 @@
----
+﻿---
 tags: [dotnet, cli, junior, getting-started, sdk, project-templates, basics]
 level: Junior
 date: 2026-04-30
@@ -876,3 +876,36 @@ obj/
 - **NuGet documentation** — learn.microsoft.com/nuget
 - **dotnet/sdk GitHub** — github.com/dotnet/sdk
 - **Andrew Lock blog** — andrewlock.net (.NET CLI tips)
+
+---
+
+## Decision tree
+
+```
+Что нужно сделать?
+│
+├── Создать новый проект?
+│   ├── Console app → dotnet new console
+│   ├── Web API → dotnet new webapi
+│   ├── MVC → dotnet new mvc
+│   ├── Class library → dotnet new classlib
+│   ├── Tests → dotnet new xunit
+│   └── Solution → dotnet new sln
+│
+├── Управление dependencies?
+│   ├── Установить → dotnet add package PackageName
+│   ├── Удалить → dotnet remove package PackageName
+│   ├── Update outdated → dotnet list package --outdated
+│   └── Vulnerabilities → dotnet list package --vulnerable
+│
+├── Build / Run?
+│   ├── Development → dotnet watch run
+│   ├── Production build → dotnet publish -c Release
+│   ├── Self-contained → dotnet publish -r linux-x64 --self-contained
+│   └── Native AOT → dotnet publish -p:PublishAot=true
+│
+└── Tests?
+    ├── Все → dotnet test
+    ├── С coverage → dotnet test --collect:"XPlat Code Coverage"
+    └── По filter → dotnet test --filter "Category=Integration"
+```

@@ -1,4 +1,4 @@
----
+﻿---
 tags: [csharp, naming, conventions, junior, code-style, readability]
 level: Junior
 date: 2026-04-30
@@ -876,3 +876,39 @@ public class OrderFilterService
 - **Clean Code** — Robert Martin (chapter "Meaningful Names")
 - **Code Complete** — Steve McConnell (chapter про naming)
 - **The Art of Readable Code** — Boswell & Foucher
+
+---
+
+## Decision tree
+
+```
+Что именовать?
+│
+├── Class / struct / record → PascalCase (OrderService, UserDto)
+│
+├── Interface → I + PascalCase (IOrderService)
+│
+├── Method?
+│   ├── Read, throws if not found → GetXxx
+│   ├── Read, returns null → FindXxx
+│   ├── Bool + out → TryXxx
+│   ├── Returns bool → Is/Has/Can/Should + Adjective
+│   ├── Action → Verb + Noun (CreateOrder, SendEmail)
+│   ├── Async → + Async suffix
+│   └── Conversion → ToXxx / FromXxx
+│
+├── Variable / parameter?
+│   ├── Loop iterator (3-5 lines) → i, j, k OK
+│   ├── Local в method → meaningful name
+│   ├── Class field → _camelCase (private), PascalCase (public)
+│   └── Boolean → yes/no question (isActive, hasPermission)
+│
+├── Generic parameter?
+│   ├── Single generic → T
+│   ├── Specific role → TKey, TValue, TResult, TException
+│   └── Multiple → T + descriptive (TRequest, TResponse)
+│
+└── File / namespace?
+    ├── File name → main type internal (OrderService.cs)
+    └── Namespace → mirror folder structure (MyApp.Services.Orders)
+```
