@@ -1,8 +1,8 @@
 # SQL — relational databases
 
-> 4 файла / 110 KB. SQL fundamentals + index internals + PostgreSQL deep features.
+> 8 файлов / ~193 KB. SQL fundamentals + index internals + PostgreSQL deep features + concurrency + safe migrations + security.
 
-[← Главный README](../README.md) · [Полный INDEX](../INDEX.md)
+[← Главный README]() · [Полный INDEX]()
 
 ---
 
@@ -10,26 +10,44 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Junior, только начинаю | [`sql-basics.md`](sql-basics.md) |
-| Slow queries, нужно оптимизировать | [`optimization.md`](optimization.md) → [`indexes-deep.md`](indexes-deep.md) |
-| Работаю с PostgreSQL | [`postgresql-deep.md`](postgresql-deep.md) |
-| Готовлюсь к Senior собесу | Все 4 файла last week |
+| Junior, только начинаю | [`sql-basics.md`]() |
+| Slow queries, нужно оптимизировать | [`optimization.md`]() → [`indexes-deep.md`]() |
+| Работаю с PostgreSQL | [`postgresql-deep.md`]() |
+| Хранимки / триггеры / raw SQL | [`postgres-functions-triggers.md`]() |
+| Конкурентность, блокировки, очереди задач | [`mvcc-and-locking.md`]() |
+| Меняю схему на проде без даунтайма | [`zero-downtime-migrations.md`]() |
+| Безопасность: инъекции, роли, привилегии | [`sql-security.md`]() |
+| Готовлюсь к Senior собесу | Все 8 файлов |
 
 ---
 
-## 📚 Все 4 файла
+## 📚 Все 8 файлов
 
 | Файл | Уровень | Описание |
 |------|---------|----------|
-| [`sql-basics.md`](sql-basics.md) | Junior/Middle | JOIN, transactions, isolation, ACID |
-| [`indexes-deep.md`](indexes-deep.md) | Senior | B-tree, query plans, index types ⭐ |
-| [`optimization.md`](optimization.md) | Senior | Query optimization, EXPLAIN, statistics |
-| [`postgresql-deep.md`](postgresql-deep.md) | Senior | JSONB, RLS, advanced PG features |
+| [`sql-basics.md`]() | Junior/Middle | JOIN, transactions, isolation, ACID, normalization |
+| [`indexes-deep.md`]() | Middle/Senior | B-tree, query plans, index types ⭐ |
+| [`optimization.md`]() | Senior | Query optimization, EXPLAIN, partitioning, PgBouncer |
+| [`postgresql-deep.md`]() | Senior | JSONB, RLS, pgvector, VACUUM, advanced PG features |
+| [`postgres-functions-triggers.md`]() | Senior | PL/pgSQL функции, процедуры, триггеры, вызов из Npgsql/EF |
+| [`mvcc-and-locking.md`]() | Senior | MVCC, xmin/xmax, lock modes, SKIP LOCKED, UPSERT, LISTEN/NOTIFY ⭐ |
+| [`zero-downtime-migrations.md`]() | Senior | Безопасный DDL, lock_timeout, CONCURRENTLY, expand-contract, EF Core ⭐ |
+| [`sql-security.md`]() | Senior | SQL injection, roles/GRANT, least privilege, SECURITY DEFINER, TLS |
+
+---
+
+## 🗺️ Как связаны Senior-файлы
+
+- **MVCC** ([[mvcc-and-locking]]) объясняет dead tuples → **VACUUM/bloat** ([[postgresql-deep]])
+- **Lock modes** ([[mvcc-and-locking]]) — фундамент для **безопасного DDL** ([[zero-downtime-migrations]])
+- **Триггеры** ([[postgres-functions-triggers]]) часто шлют **LISTEN/NOTIFY** ([[mvcc-and-locking]]) и используются для **аудита** ([[sql-security]])
+- **RLS** ([[postgresql-deep]]) + **роли** ([[sql-security]]) = multi-tenant безопасность
+- **Backfill** ([[zero-downtime-migrations]]) использует **процедуры с COMMIT** ([[postgres-functions-triggers]])
 
 ---
 
 ## 🔗 Связанные папки
 
 - [`EFCore/`](../EFCore/) — ORM поверх SQL
-- [`EFCore/dapper-comparison`](../EFCore/dapper-comparison.md) — raw SQL alternatives
+- [`EFCore/dapper-comparison`]() — raw SQL alternatives
 - [`Performance/`](../Performance/) — DB performance в общем контексте

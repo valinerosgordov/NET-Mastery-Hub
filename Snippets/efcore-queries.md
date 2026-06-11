@@ -155,5 +155,5 @@ public async Task<List<OrderReportDto>> GetMonthlyReportAsync(
 
 ## См. также
 
-- [[Topics/SQL/sql-query-optimization|SQL Optimization]]
-- [[Topics/NetQuestions150/efcore/04-queries|EF Core Queries]]
+- [[SQL Optimization|SQL Optimization]]
+- [[EF Core Queries|EF Core Queries]]

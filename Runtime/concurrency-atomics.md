@@ -827,7 +827,7 @@ async Task ConsumeAsync(CancellationToken ct)
 
 Если ты гарантируешь что reader один (или writer один) — оптимизация. Channel не использует CAS на этих путях.
 
-См. [Async и Threading](../CSharp/async-threading.md) — глубже про channels.
+См. [Async и Threading]() — глубже про channels.
 
 ---
 
@@ -1293,8 +1293,8 @@ ArmBase.MemoryBarrier();  // ARM DMB
 - [.NET Runtime: компиляция](compilation-jit.md)
 - [GC и память](gc-memory.md)
 - [Span и Memory Layout](span-layout.md)
-- [Async и потоки](../CSharp/async-threading.md)
-- [HFT/Low-Latency](../Performance/hft-low-latency.md) — channels, lock-free для trading
+- [Async и потоки]()
+- [HFT/Low-Latency]() — channels, lock-free для trading
 
 ## Reading list
 

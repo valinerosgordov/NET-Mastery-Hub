@@ -110,5 +110,5 @@ public async Task<Result<OrderConfirmation>> ProcessOrderAsync(
 
 ## См. также
 
-- [[Topics/ResultPattern/result-pattern-cqrs|Result Pattern + CQRS]]
-- [[Topics/Snippets/snippet-mediatr-handlers|MediatR Handlers]]
+- [[Result Pattern + CQRS|Result Pattern + CQRS]]
+- [[MediatR Handlers|MediatR Handlers]]

@@ -9,13 +9,13 @@ date: 2026-04-30
 > **Дополнение к топ-7 наиболее важным файлам vault'а**: реальные production кейсы, какие проблемы возникают, как решаются. Читать после или параллельно с основными файлами.
 
 Этот файл дополняет:
-- [[../CSharp/async-threading|async-threading.md]]
-- [[../CSharp/oop|oop.md]]
-- [[../CSharp/collections-linq|collections-linq.md]]
-- [[../CSharp/error-handling|error-handling.md]]
-- [[../EFCore/basics-tracking|EFCore/basics-tracking.md]]
-- [[../EFCore/queries-performance|EFCore/queries-performance.md]]
-- [[../AspNetCore/auth-security|AspNetCore/auth-security.md]]
+- [[async-threading|async-threading.md]]
+- [[oop|oop.md]]
+- [[collections-linq|collections-linq.md]]
+- [[error-handling|error-handling.md]]
+- [[basics-tracking|EFCore/basics-tracking.md]]
+- [[queries-performance|EFCore/queries-performance.md]]
+- [[auth-security|AspNetCore/auth-security.md]]
 
 ---
 
@@ -79,7 +79,7 @@ public class OrderService
 
 **Lesson.** **`async all the way`**. Один `.Result` или `.Wait()` в production = potential disaster.
 
-См. [[../CSharp/async-threading|async-threading.md]] и [[../Runtime/threading-basics|threading-basics.md]].
+См. [[async-threading|async-threading.md]] и [[threading-basics|threading-basics.md]].
 
 ---
 
@@ -238,7 +238,7 @@ var simpleMd = new FileEditor(new MarkdownLoader(), new MarkdownSaver(), new Mar
 
 **Lesson.** **"Favor composition over inheritance"** (GoF). Inheritance — `is-a` (Manager `is-a` Employee). Composition — `has-a` (Editor `has-a` Loader, Saver, Renderer).
 
-См. [[../CSharp/oop|oop.md]].
+См. [[oop|oop.md]].
 
 ---
 
@@ -436,7 +436,7 @@ var stats = await _db.Orders
 
 **Lesson.** `IQueryable` lazy — каждый terminal operator (`Count`, `Sum`, `ToList`, `foreach`) выполняет SQL. Materialize один раз!
 
-См. [[../CSharp/collections-linq|collections-linq.md]] и [[../EFCore/queries-performance|EF Queries Performance]].
+См. [[collections-linq|collections-linq.md]] и [[queries-performance|EF Queries Performance]].
 
 ---
 
@@ -494,7 +494,7 @@ var orders = await _db.Orders
     .ToListAsync();
 ```
 
-См. [[../EFCore/queries-performance|EF Queries Performance]].
+См. [[queries-performance|EF Queries Performance]].
 
 ---
 
@@ -587,7 +587,7 @@ public async Task<IActionResult> Register(RegisterRequest req)
 
 **Lesson.** **Exceptions для exceptional**. Validation failures — это normal flow. Result<T> делает их explicit.
 
-См. [[../CSharp/error-handling|error-handling.md]] и [[../Snippets/result-pattern|Result Pattern Snippet]].
+См. [[error-handling|error-handling.md]] и [[result-pattern|Result Pattern Snippet]].
 
 ---
 
@@ -645,7 +645,7 @@ public async Task<PaymentResult> Charge(Order order)
 - **Circuit Breaker** — после 5 failures блокирует все вызовы на 1 минуту → не DDoS payment service
 - **Idempotency** — конкретные scenarios (TransientHttpError) не дублируют side effects
 
-См. [[../AspNetCore/resilience|Resilience]].
+См. [[resilience|Resilience]].
 
 ---
 
@@ -695,7 +695,7 @@ public async Task<User> Get(int id)
 - Reports / analytics
 - Read replica scenarios
 
-См. [[../EFCore/basics-tracking|EFCore basics-tracking.md]].
+См. [[basics-tracking|EFCore basics-tracking.md]].
 
 ---
 
@@ -754,7 +754,7 @@ public async Task<List<OrderDto>> GetOrders()
 
 **Lesson.** Включи **`AsSplitQuery`** или **`AsSingleQuery`** explicit для понятности. Используй EF logging чтобы видеть SQL.
 
-См. [[../EFCore/queries-performance|EFCore queries-performance.md]].
+См. [[queries-performance|EFCore queries-performance.md]].
 
 ---
 
@@ -794,7 +794,7 @@ await _db.Database.ExecuteSqlAsync($@"
     WHERE LastLoginAt < {DateTime.UtcNow.AddYears(-1)}");
 ```
 
-См. [[../EFCore/dapper-comparison|Dapper vs EF]].
+См. [[dapper-comparison|Dapper vs EF]].
 
 ---
 
@@ -853,7 +853,7 @@ builder.Services.AddAuthentication("Bearer")
 - Rotate periodically
 - **NEVER** в git!
 
-См. [[../AspNetCore/auth-security|auth-security.md]].
+См. [[auth-security|auth-security.md]].
 
 ---
 
@@ -907,7 +907,7 @@ public class PasswordHasher
 
 **Or use `Microsoft.AspNetCore.Identity.PasswordHasher<TUser>`** — built-in, battle-tested.
 
-См. [[../AspNetCore/auth-security|auth-security.md]].
+См. [[auth-security|auth-security.md]].
 
 ---
 
@@ -940,7 +940,7 @@ public async Task<User?> Find(string username)
 
 EF Core делает это автоматом, но в Dapper / `ExecuteSqlRaw` — easy mistake.
 
-См. [[../AspNetCore/security-practices|Security Practices]] и [[../EFCore/dapper-comparison|Dapper vs EF]].
+См. [[security-practices|Security Practices]] и [[dapper-comparison|Dapper vs EF]].
 
 ---
 
@@ -972,16 +972,16 @@ EF Core делает это автоматом, но в Dapper / `ExecuteSqlRaw`
 
 ## См. также
 
-- [[../CSharp/async-threading|async-threading.md]] — fundamentals async
-- [[../CSharp/oop|oop.md]] — OOP basics
-- [[../CSharp/collections-linq|collections-linq.md]] — LINQ deep
-- [[../CSharp/error-handling|error-handling.md]] — strategies
-- [[../EFCore/basics-tracking|EFCore basics-tracking.md]]
-- [[../EFCore/queries-performance|EFCore queries-performance.md]]
-- [[../AspNetCore/auth-security|AspNetCore auth-security.md]]
-- [[../AspNetCore/resilience|Resilience]] — Polly deep
-- [[../Architecture/real-world-scenarios|Real-World Scenarios]] — system-level cases
-- [[../Architecture/patterns-decision-guide|Patterns Decision Guide]] — выбор pattern
+- [[async-threading|async-threading.md]] — fundamentals async
+- [[oop|oop.md]] — OOP basics
+- [[collections-linq|collections-linq.md]] — LINQ deep
+- [[error-handling|error-handling.md]] — strategies
+- [[basics-tracking|EFCore basics-tracking.md]]
+- [[queries-performance|EFCore queries-performance.md]]
+- [[auth-security|AspNetCore auth-security.md]]
+- [[resilience|Resilience]] — Polly deep
+- [[real-world-scenarios|Real-World Scenarios]] — system-level cases
+- [[patterns-decision-guide|Patterns Decision Guide]] — выбор pattern
 
 ## Reading list
 

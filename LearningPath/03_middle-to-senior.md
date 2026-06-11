@@ -42,14 +42,14 @@ Senior не достигается просто чтением — нужен **
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 1 | GC и память | [[Runtime/gc-memory\|gc-memory]] | 8-10 ч |
-| 2 | Compilation / JIT | [[Runtime/compilation-jit\|compilation-jit]] | 4-5 ч |
-| 3 | Span и Layout | [[Runtime/span-layout\|span-layout]] | 6-7 ч |
-| 4 | Concurrency atomics | [[Runtime/concurrency-atomics\|concurrency-atomics]] | 6-7 ч |
-| 5 | Diagnostics tools | [[Runtime/diagnostics-tools\|diagnostics-tools]] | 5-6 ч |
-| 6 | Interop / P/Invoke | [[Runtime/interop-pinvoke\|interop-pinvoke]] | 4-5 ч |
-| 7 | Reflection & Expression Trees | [[CSharp/reflection-expression-trees\|reflection-expression-trees]] | 6-7 ч |
-| 8 | Source Generators | [[CSharp/source-generators\|source-generators]] | 4-5 ч |
+| 1 | GC и память | [[gc-memory\|gc-memory]] | 8-10 ч |
+| 2 | Compilation / JIT | [[compilation-jit\|compilation-jit]] | 4-5 ч |
+| 3 | Span и Layout | [[span-layout\|span-layout]] | 6-7 ч |
+| 4 | Concurrency atomics | [[concurrency-atomics\|concurrency-atomics]] | 6-7 ч |
+| 5 | Diagnostics tools | [[diagnostics-tools\|diagnostics-tools]] | 5-6 ч |
+| 6 | Interop / P/Invoke | [[interop-pinvoke\|interop-pinvoke]] | 4-5 ч |
+| 7 | Reflection & Expression Trees | [[reflection-expression-trees\|reflection-expression-trees]] | 6-7 ч |
+| 8 | Source Generators | [[source-generators\|source-generators]] | 4-5 ч |
 
 ### Practice
 
@@ -76,9 +76,9 @@ Senior не достигается просто чтением — нужен **
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 9 | Functional C# | [[CSharp/functional-csharp\|functional-csharp]] | 5-6 ч |
-| 10 | C# Language Design | [[CSharp/csharp-language-design\|csharp-language-design]] | 3-4 ч |
-| 11 | C# vs other languages | [[CSharp/csharp-vs-other-langs\|csharp-vs-other-langs]] | 3-4 ч |
+| 9 | Functional C# | [[functional-csharp\|functional-csharp]] | 5-6 ч |
+| 10 | C# Language Design | [[csharp-language-design\|csharp-language-design]] | 3-4 ч |
+| 11 | C# vs other languages | [[csharp-vs-other-langs\|csharp-vs-other-langs]] | 3-4 ч |
 
 ### Practice
 
@@ -95,14 +95,14 @@ Senior не достигается просто чтением — нужен **
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 12 | Architecture Patterns deep | [[Architecture/patterns\|patterns]] | 8-10 ч |
-| 13 | DDD на практике | [[Architecture/ddd\|ddd]] | 7-8 ч |
-| 14 | CQRS + MediatR глубоко | [[Architecture/cqrs-mediatr\|cqrs-mediatr]] | 5-6 ч |
-| 15 | Distributed Systems | [[Architecture/distributed-systems\|distributed-systems]] | 8-10 ч |
-| 16 | System Design | [[Architecture/system-design\|system-design]] | 6-8 ч |
-| 17 | Architecture Tests | [[Architecture/arch-tests\|arch-tests]] | 2-3 ч |
-| 18 | ADRs | [[Architecture/architecture-decisions\|architecture-decisions]] | 3-4 ч |
-| 19 | EF Patterns | [[EFCore/patterns\|patterns]] | 5-6 ч |
+| 12 | Architecture Patterns deep | [[C# and NET/Architecture/patterns\|patterns]] | 8-10 ч |
+| 13 | DDD на практике | [[ddd\|ddd]] | 7-8 ч |
+| 14 | CQRS + MediatR глубоко | [[cqrs-mediatr\|cqrs-mediatr]] | 5-6 ч |
+| 15 | Distributed Systems | [[distributed-systems\|distributed-systems]] | 8-10 ч |
+| 16 | System Design | [[system-design\|system-design]] | 6-8 ч |
+| 17 | Architecture Tests | [[arch-tests\|arch-tests]] | 2-3 ч |
+| 18 | ADRs | [[architecture-decisions\|architecture-decisions]] | 3-4 ч |
+| 19 | EF Patterns | [[C# and NET/EFCore/patterns\|patterns]] | 5-6 ч |
 
 ### Practice
 
@@ -129,12 +129,12 @@ Senior не достигается просто чтением — нужен **
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 20 | GraphQL | [[AspNetCore/graphql\|graphql]] | 5-6 ч |
-| 21 | SignalR | [[AspNetCore/signalr\|signalr]] | 5-6 ч |
-| 22 | gRPC / IPC | [[Infrastructure/ipc-named-pipes-grpc\|ipc-named-pipes-grpc]] | 4-5 ч |
-| 23 | Native AOT | [[AspNetCore/native-aot\|native-aot]] | 3-4 ч |
-| 24 | Blazor WASM | [[AspNetCore/blazor-wasm\|blazor-wasm]] | 4-5 ч |
-| 25 | Blazor Server | [[AspNetCore/blazor-server\|blazor-server]] | 3-4 ч |
+| 20 | GraphQL | [[graphql\|graphql]] | 5-6 ч |
+| 21 | SignalR | [[signalr\|signalr]] | 5-6 ч |
+| 22 | gRPC / IPC | [[ipc-named-pipes-grpc\|ipc-named-pipes-grpc]] | 4-5 ч |
+| 23 | Native AOT | [[native-aot\|native-aot]] | 3-4 ч |
+| 24 | Blazor WASM | [[blazor-wasm\|blazor-wasm]] | 4-5 ч |
+| 25 | Blazor Server | [[blazor-server\|blazor-server]] | 3-4 ч |
 
 ### Practice
 
@@ -150,14 +150,14 @@ Senior не достигается просто чтением — нужен **
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 26 | Observability deep | [[Infrastructure/observability\|observability]] | 5-6 ч |
-| 27 | Messaging | [[Infrastructure/messaging\|messaging]] | 5-6 ч |
-| 28 | Performance | [[Performance/performance\|performance]] | 5-6 ч |
-| 29 | HFT / Low Latency | [[Performance/hft-low-latency\|hft-low-latency]] | 4-5 ч |
-| 30 | Docker production | [[Infrastructure/docker\|docker]] | 5-6 ч |
-| 31 | LLM/RAG patterns | [[Infrastructure/llm-rag-patterns\|llm-rag-patterns]] | 5-6 ч |
-| 32 | Security practices | [[AspNetCore/security-practices\|security-practices]] | 4-5 ч |
-| 33 | Testing deep | [[Testing/testing\|testing]] | 5-6 ч |
+| 26 | Observability deep | [[observability\|observability]] | 5-6 ч |
+| 27 | Messaging | [[messaging\|messaging]] | 5-6 ч |
+| 28 | Performance | [[performance\|performance]] | 5-6 ч |
+| 29 | HFT / Low Latency | [[hft-low-latency\|hft-low-latency]] | 4-5 ч |
+| 30 | Docker production | [[docker\|docker]] | 5-6 ч |
+| 31 | LLM/RAG patterns | [[llm-rag-patterns\|llm-rag-patterns]] | 5-6 ч |
+| 32 | Security practices | [[security-practices\|security-practices]] | 4-5 ч |
+| 33 | Testing deep | [[testing\|testing]] | 5-6 ч |
 
 ### Practice
 
@@ -183,11 +183,11 @@ Senior не достигается просто чтением — нужен **
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 34 | CLI tools / scripting | [[CSharp/cli-tools-scripting\|cli-tools-scripting]] | 3-4 ч |
-| 35 | Desktop frameworks | [[CSharp/desktop-frameworks\|desktop-frameworks]] | 3-4 ч |
-| 36 | WPF Production (если применимо) | [[Infrastructure/wpf-production\|wpf-production]] | 4-5 ч |
-| 37 | Web/AI architecture | [[Architecture/webai-csharp-architecture\|webai-csharp-architecture]] | 3-4 ч |
-| 38 | Semantic Kernel | [[Infrastructure/semantic-kernel\|semantic-kernel]] | 2-3 ч |
+| 34 | CLI tools / scripting | [[cli-tools-scripting\|cli-tools-scripting]] | 3-4 ч |
+| 35 | Desktop frameworks | [[desktop-frameworks\|desktop-frameworks]] | 3-4 ч |
+| 36 | WPF Production (если применимо) | [[wpf-production\|wpf-production]] | 4-5 ч |
+| 37 | Web/AI architecture | [[webai-csharp-architecture\|webai-csharp-architecture]] | 3-4 ч |
+| 38 | Semantic Kernel | [[semantic-kernel\|semantic-kernel]] | 2-3 ч |
 
 ---
 

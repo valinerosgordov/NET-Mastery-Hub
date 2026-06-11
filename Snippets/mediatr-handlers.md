@@ -141,5 +141,5 @@ builder.Services.AddValidatorsFromAssembly(typeof(CreateOrderCommandValidator).A
 
 ## См. также
 
-- [[Topics/ResultPattern/result-pattern-cqrs|Result Pattern + CQRS]]
-- [[Topics/Snippets/snippet-result-pattern|Result Usage]]
+- [[Result Pattern + CQRS|Result Pattern + CQRS]]
+- [[Result Usage|Result Usage]]

@@ -2,7 +2,7 @@
 
 > 5 файлов / 32 KB. Готовые куски кода которые можно скопировать и адаптировать.
 
-[← Главный README](../README.md) · [Полный INDEX](../INDEX.md)
+[← Главный README]() · [Полный INDEX]()
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 🔗 Связанные папки
 
-- [`CSharp/error-handling`](../CSharp/error-handling.md) — Result pattern explained
-- [`Architecture/cqrs-mediatr`](../Architecture/cqrs-mediatr.md) — MediatR в context
+- [`CSharp/error-handling`]() — Result pattern explained
+- [`Architecture/cqrs-mediatr`]() — MediatR в context
 - [`EFCore/`](../EFCore/) — EF queries в context
-- [`AspNetCore/api-design`](../AspNetCore/api-design.md) — CRUD API design
+- [`AspNetCore/api-design`]() — CRUD API design

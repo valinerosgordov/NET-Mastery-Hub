@@ -1,8 +1,8 @@
 # LearningPath — roadmaps и interview prep
 
-> 8 файлов / 80 KB. Куда двигаться: Junior → Middle → Senior + interview prep + reading list.
+> 9 файлов / ~93 KB. Куда двигаться: Junior → Middle → Senior + interview prep + reading list.
 
-[← Главный README](../README.md) · [Полный INDEX](../INDEX.md)
+[← Главный README]() · [Полный INDEX]()
 
 ---
 
@@ -10,6 +10,7 @@
 
 | Ты сейчас | Цель | Читай |
 |-----------|------|-------|
+| Учу/повторяю язык системно | — | [`01_language-map.md`](01_language-map.md) — 15 блоков языка → файлы |
 | Никогда не писал | Junior | [`00_overview.md`](00_overview.md) |
 | Junior | Middle | [`02_junior-to-middle.md`](02_junior-to-middle.md) — 3-6 месячный план |
 | Middle | Senior | [`03_middle-to-senior.md`](03_middle-to-senior.md) |
@@ -21,11 +22,12 @@
 
 ---
 
-## 📚 Все 8 файлов
+## 📚 Все 9 файлов
 
 | Файл | Описание |
 |------|----------|
 | [`00_overview.md`](00_overview.md) | Главная навигация по learning path |
+| [`01_language-map.md`](01_language-map.md) | Карта языка: 15 блоков C# → canonical-файлы + статус глубины |
 | [`02_junior-to-middle.md`](02_junior-to-middle.md) | Roadmap Junior → Middle (3-6 мес) |
 | [`03_middle-to-senior.md`](03_middle-to-senior.md) | Roadmap Middle → Senior |
 | [`04_interview-prep.md`](04_interview-prep.md) | 1-2 недели спринт перед собесом |
@@ -41,5 +43,5 @@
 ## 🔗 Связанные папки
 
 - Все папки vault'а — application of learning path
-- ⭐ [`Architecture/real-world-scenarios`](../Architecture/real-world-scenarios.md) — практика в проектах
-- ⭐ [`Architecture/patterns-decision-guide`](../Architecture/patterns-decision-guide.md) — decision-making
+- ⭐ [`Architecture/real-world-scenarios`]() — практика в проектах
+- ⭐ [`Architecture/patterns-decision-guide`]() — decision-making

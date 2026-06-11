@@ -447,4 +447,4 @@ crossgen2 --print-repro-instructions MyApp.dll
 - [GC, LOH и POH](gc-memory.md)
 - [Span и Memory Layout](span-layout.md)
 - [Concurrency и атомарность](concurrency-atomics.md)
-- [Типы и память](../CSharp/types-and-memory.md)
+- [Типы и память]()

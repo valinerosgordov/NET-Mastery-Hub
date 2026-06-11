@@ -1217,11 +1217,11 @@ ProcessData(rented.Span);
 
 - [GC, LOH и POH](gc-memory.md)
 - [Concurrency и атомарность](concurrency-atomics.md)
-- [Performance](../Performance/performance.md)
-- [HFT/Low-Latency](../Performance/hft-low-latency.md) — Channels, ring buffers, latency budgets
-- [Типы и память](../CSharp/types-and-memory.md)
+- [Performance]()
+- [HFT/Low-Latency]() — Channels, ring buffers, latency budgets
+- [Типы и память]()
 - [Compilation/JIT](compilation-jit.md) — SIMD intrinsics ASM-уровень
-- [IPC: Named Pipes & gRPC](../Infrastructure/ipc-named-pipes-grpc.md) — MMF ring buffer
+- [IPC: Named Pipes & gRPC]() — MMF ring buffer
 
 ## Reading list
 

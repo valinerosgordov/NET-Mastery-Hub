@@ -402,7 +402,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
 ## См. также
 
-- [API Design](../AspNetCore/api-design.md) — Minimal API vs Controllers, OpenAPI
-- [DDD на практике](../Architecture/ddd.md) — Domain logic, Value Objects
+- [API Design]() — Minimal API vs Controllers, OpenAPI
+- [DDD на практике]() — Domain logic, Value Objects
 - [EF Core Queries](efcore-queries.md) — Оптимизация запросов, пагинация
 - [Result Pattern](result-pattern.md) — Result\<T\> детально

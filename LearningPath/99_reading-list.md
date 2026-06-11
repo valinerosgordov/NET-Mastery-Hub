@@ -25,9 +25,9 @@ level: All
 
 ### Архитектура
 
-- [ ] [N-Layered vs Clean vs Vertical Slice Architecture](https://antondevtips.com/blog/n-layered-vs-clean-vs-vertical-slice-architecture) — сравнение подходов → см. [Architecture/patterns.md](../Architecture/patterns.md)
+- [ ] [N-Layered vs Clean vs Vertical Slice Architecture](https://antondevtips.com/blog/n-layered-vs-clean-vs-vertical-slice-architecture) — сравнение подходов → см. [Architecture/patterns.md]()
 - [ ] [Лучшая структура .NET-проектов с Clean Architecture и Vertical Slices](https://antondevtips.com/blog/the-best-way-to-structure-your-dotnet-projects-with-clean-architecture-and-vertical-slices)
-- [ ] [Зачем писать архитектурные тесты](https://antondevtips.com/blog/why-do-you-need-to-write-architecture-tests-in-dotnet) → уже в [Architecture/arch-tests.md](../Architecture/arch-tests.md)
+- [ ] [Зачем писать архитектурные тесты](https://antondevtips.com/blog/why-do-you-need-to-write-architecture-tests-in-dotnet) → уже в [Architecture/arch-tests.md]()
 - [ ] [От модульного монолита к микросервисам](https://antondevtips.com/blog/migrating-modular-monolith-to-microservices-in-dotnet)
 
 ### API и Backend
@@ -40,25 +40,25 @@ level: All
 
 ### EF Core и данные
 
-- [ ] [Почему не нужен Repository поверх EF Core](https://antondevtips.com/blog/why-you-dont-need-a-repository-in-ef-core) → см. [EFCore/patterns.md](../EFCore/patterns.md)
+- [ ] [Почему не нужен Repository поверх EF Core](https://antondevtips.com/blog/why-you-dont-need-a-repository-in-ef-core) → см. [EFCore/patterns.md]()
 - [ ] [5 скрытых NuGet-пакетов для EF Core](https://antondevtips.com/blog/5-hidden-efcore-nuget-packages) — **ценно, прочитать**
-- [ ] [Кеширование в .NET](https://antondevtips.com/blog/how-to-implement-caching-strategies-in-dotnet) → см. [AspNetCore/caching.md](../AspNetCore/caching.md)
+- [ ] [Кеширование в .NET](https://antondevtips.com/blog/how-to-implement-caching-strategies-in-dotnet) → см. [AspNetCore/caching.md]()
 
 ### Resilience и инфраструктура
 
-- [ ] [Retry с Polly и Microsoft Resilience](https://antondevtips.com/blog/how-to-implement-retries-and-resilience-patterns-with-polly-and-microsoft-resilience) → см. [AspNetCore/resilience.md](../AspNetCore/resilience.md)
+- [ ] [Retry с Polly и Microsoft Resilience](https://antondevtips.com/blog/how-to-implement-retries-and-resilience-patterns-with-polly-and-microsoft-resilience) → см. [AspNetCore/resilience.md]()
 - [ ] [Job Scheduler TickerQ — замена Quartz и Hangfire](https://antondevtips.com/blog/tickerq-the-modern-dotnet-job-scheduler-that-beats-quartz-and-hangfire) — альтернативы для hosting-background
 - [ ] [Деплой в Azure с Neon Postgres и .NET Aspire](https://antondevtips.com/blog/how-to-deploy-dotnet-application-to-azure-using-neon-postgres-and-dotnet-aspire)
 - [ ] [Aspire integration testing best practices](https://antondevtips.com/blog/dotnet-aspire-integration-testing-best-practices-for-distributed-applications)
 
 ### Observability
 
-- [ ] [Старт с OpenTelemetry, Jaeger и Seq](https://antondevtips.com/blog/getting-started-with-open-telemetry-in-dotnet-with-jaeger-and-seq) → см. [Infrastructure/observability.md](../Infrastructure/observability.md)
+- [ ] [Старт с OpenTelemetry, Jaeger и Seq](https://antondevtips.com/blog/getting-started-with-open-telemetry-in-dotnet-with-jaeger-and-seq) → см. [Infrastructure/observability.md]()
 
 ### Язык C#
 
 - [ ] [Новые фичи .NET 10 и C# 14](https://antondevtips.com/blog/new-features-in-dotnet-10-and-csharp-14)
-- [ ] [Extension Members в C# 14](https://antondevtips.com/blog/extension-members-in-csharp14-changed-how-we-write-code-forever) → см. [CSharp/modern-features.md](../CSharp/modern-features.md)
+- [ ] [Extension Members в C# 14](https://antondevtips.com/blog/extension-members-in-csharp14-changed-how-we-write-code-forever) → см. [CSharp/modern-features.md]()
 - [ ] [Как писать чище код в .NET](https://antondevtips.com/blog/how-to-write-better-and-cleaner-code-in-dotnet)
 
 ### Ошибки разработчиков (**must-read**)
@@ -77,8 +77,8 @@ level: All
 
 Сильные материалы по архитектуре, EF Core, Semantic Kernel.
 
-- [ ] [Semantic Search с Amazon S3 Vectors и Semantic Kernel](https://milanjovanovic.tech/blog/building-semantic-search-with-amazon-s3-vectors-and-semantic-kernel) → см. [Infrastructure/semantic-kernel.md](../Infrastructure/semantic-kernel.md)
-- [ ] [Improving code quality in C# with static code analysis](https://milanjovanovic.tech/blog/improving-code-quality-in-csharp-with-static-code-analysis) → см. [Quality/code-quality.md](../Quality/code-quality.md)
+- [ ] [Semantic Search с Amazon S3 Vectors и Semantic Kernel](https://milanjovanovic.tech/blog/building-semantic-search-with-amazon-s3-vectors-and-semantic-kernel) → см. [Infrastructure/semantic-kernel.md]()
+- [ ] [Improving code quality in C# with static code analysis](https://milanjovanovic.tech/blog/improving-code-quality-in-csharp-with-static-code-analysis) → см. [Quality/code-quality.md]()
 
 ---
 

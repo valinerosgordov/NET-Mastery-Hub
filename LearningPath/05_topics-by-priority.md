@@ -16,16 +16,16 @@ date: 2026-04-30
 
 | # | Тема | Файл | Effort | ROI |
 |---|------|------|--------|-----|
-| 1 | Async/await deep | [[CSharp/async-threading\|async-threading]] | High | ⭐⭐⭐⭐⭐ |
-| 2 | EF Core Basics + Tracking | [[EFCore/basics-tracking\|basics-tracking]] | Medium | ⭐⭐⭐⭐⭐ |
-| 3 | Queries Performance (N+1) | [[EFCore/queries-performance\|queries-performance]] | Medium | ⭐⭐⭐⭐⭐ |
-| 4 | DI lifetimes pitfalls | [[AspNetCore/di-configuration\|di-configuration]] | Low | ⭐⭐⭐⭐⭐ |
-| 5 | Pipeline & Middleware | [[AspNetCore/pipeline-middleware\|pipeline-middleware]] | Medium | ⭐⭐⭐⭐⭐ |
-| 6 | Authentication / JWT | [[AspNetCore/auth-security\|auth-security]] | High | ⭐⭐⭐⭐⭐ |
-| 7 | SOLID principles | [[Architecture/solid\|solid]] | Low | ⭐⭐⭐⭐⭐ |
-| 8 | Architecture Patterns | [[Architecture/patterns\|patterns]] | High | ⭐⭐⭐⭐⭐ |
-| 9 | SQL Optimization | [[SQL/optimization\|optimization]] | Medium | ⭐⭐⭐⭐⭐ |
-| 10 | Testing | [[Testing/testing\|testing]] | Medium | ⭐⭐⭐⭐⭐ |
+| 1 | Async/await deep | [[async-threading\|async-threading]] | High | ⭐⭐⭐⭐⭐ |
+| 2 | EF Core Basics + Tracking | [[basics-tracking\|basics-tracking]] | Medium | ⭐⭐⭐⭐⭐ |
+| 3 | Queries Performance (N+1) | [[queries-performance\|queries-performance]] | Medium | ⭐⭐⭐⭐⭐ |
+| 4 | DI lifetimes pitfalls | [[di-configuration\|di-configuration]] | Low | ⭐⭐⭐⭐⭐ |
+| 5 | Pipeline & Middleware | [[pipeline-middleware\|pipeline-middleware]] | Medium | ⭐⭐⭐⭐⭐ |
+| 6 | Authentication / JWT | [[auth-security\|auth-security]] | High | ⭐⭐⭐⭐⭐ |
+| 7 | SOLID principles | [[solid\|solid]] | Low | ⭐⭐⭐⭐⭐ |
+| 8 | Architecture Patterns | [[C# and NET/Architecture/patterns\|patterns]] | High | ⭐⭐⭐⭐⭐ |
+| 9 | SQL Optimization | [[optimization\|optimization]] | Medium | ⭐⭐⭐⭐⭐ |
+| 10 | Testing | [[testing\|testing]] | Medium | ⭐⭐⭐⭐⭐ |
 
 **Время на освоение critical:** ~40-60 часов чистого reading + practice.
 
@@ -37,25 +37,25 @@ date: 2026-04-30
 
 | # | Тема | Файл | Effort | ROI |
 |---|------|------|--------|-----|
-| 11 | GC и память | [[Runtime/gc-memory\|gc-memory]] | High | ⭐⭐⭐⭐ |
-| 12 | Span<T> и Layout | [[Runtime/span-layout\|span-layout]] | High | ⭐⭐⭐⭐ |
-| 13 | Concurrency atomics | [[Runtime/concurrency-atomics\|concurrency-atomics]] | High | ⭐⭐⭐⭐ |
-| 14 | Modern C# features | [[CSharp/modern-features\|modern-features]] | Medium | ⭐⭐⭐⭐ |
-| 15 | Functional C# | [[CSharp/functional-csharp\|functional-csharp]] | Medium | ⭐⭐⭐⭐ |
-| 16 | DDD | [[Architecture/ddd\|ddd]] | High | ⭐⭐⭐⭐ |
-| 17 | CQRS + MediatR | [[Architecture/cqrs-mediatr\|cqrs-mediatr]] | Medium | ⭐⭐⭐⭐ |
-| 18 | Distributed Systems | [[Architecture/distributed-systems\|distributed-systems]] | High | ⭐⭐⭐⭐ |
-| 19 | EF Migrations | [[EFCore/migrations\|migrations]] | Medium | ⭐⭐⭐⭐ |
-| 20 | EF Patterns | [[EFCore/patterns\|patterns]] | High | ⭐⭐⭐⭐ |
-| 21 | Caching | [[AspNetCore/caching\|caching]] | Medium | ⭐⭐⭐⭐ |
-| 22 | Resilience (Polly) | [[AspNetCore/resilience\|resilience]] | Low | ⭐⭐⭐⭐ |
-| 23 | Logging Observability | [[AspNetCore/logging-observability\|logging-observability]] | Medium | ⭐⭐⭐⭐ |
-| 24 | OpenTelemetry | [[Infrastructure/observability\|observability]] | High | ⭐⭐⭐⭐ |
-| 25 | Docker | [[Infrastructure/docker\|docker]] | Medium | ⭐⭐⭐⭐ |
-| 26 | Project Setup | [[Infrastructure/project-setup\|project-setup]] | Low | ⭐⭐⭐⭐ |
-| 27 | PostgreSQL Deep | [[SQL/postgresql-deep\|postgresql-deep]] | High | ⭐⭐⭐⭐ |
-| 28 | Performance | [[Performance/performance\|performance]] | High | ⭐⭐⭐⭐ |
-| 29 | Diagnostics tools | [[Runtime/diagnostics-tools\|diagnostics-tools]] | Medium | ⭐⭐⭐⭐ |
+| 11 | GC и память | [[gc-memory\|gc-memory]] | High | ⭐⭐⭐⭐ |
+| 12 | Span<T> и Layout | [[span-layout\|span-layout]] | High | ⭐⭐⭐⭐ |
+| 13 | Concurrency atomics | [[concurrency-atomics\|concurrency-atomics]] | High | ⭐⭐⭐⭐ |
+| 14 | Modern C# features | [[modern-features\|modern-features]] | Medium | ⭐⭐⭐⭐ |
+| 15 | Functional C# | [[functional-csharp\|functional-csharp]] | Medium | ⭐⭐⭐⭐ |
+| 16 | DDD | [[ddd\|ddd]] | High | ⭐⭐⭐⭐ |
+| 17 | CQRS + MediatR | [[cqrs-mediatr\|cqrs-mediatr]] | Medium | ⭐⭐⭐⭐ |
+| 18 | Distributed Systems | [[distributed-systems\|distributed-systems]] | High | ⭐⭐⭐⭐ |
+| 19 | EF Migrations | [[migrations\|migrations]] | Medium | ⭐⭐⭐⭐ |
+| 20 | EF Patterns | [[C# and NET/EFCore/patterns\|patterns]] | High | ⭐⭐⭐⭐ |
+| 21 | Caching | [[caching\|caching]] | Medium | ⭐⭐⭐⭐ |
+| 22 | Resilience (Polly) | [[resilience\|resilience]] | Low | ⭐⭐⭐⭐ |
+| 23 | Logging Observability | [[logging-observability\|logging-observability]] | Medium | ⭐⭐⭐⭐ |
+| 24 | OpenTelemetry | [[observability\|observability]] | High | ⭐⭐⭐⭐ |
+| 25 | Docker | [[docker\|docker]] | Medium | ⭐⭐⭐⭐ |
+| 26 | Project Setup | [[project-setup\|project-setup]] | Low | ⭐⭐⭐⭐ |
+| 27 | PostgreSQL Deep | [[postgresql-deep\|postgresql-deep]] | High | ⭐⭐⭐⭐ |
+| 28 | Performance | [[performance\|performance]] | High | ⭐⭐⭐⭐ |
+| 29 | Diagnostics tools | [[diagnostics-tools\|diagnostics-tools]] | Medium | ⭐⭐⭐⭐ |
 
 ---
 
@@ -65,19 +65,19 @@ date: 2026-04-30
 
 | # | Тема | Файл | Когда |
 |---|------|------|-------|
-| 30 | Reflection & Expression Trees | [[CSharp/reflection-expression-trees\|reflection-expression-trees]] | Lib authors, ORM internals |
-| 31 | Source Generators | [[CSharp/source-generators\|source-generators]] | AOT-friendly libs |
-| 32 | Compilation / JIT | [[Runtime/compilation-jit\|compilation-jit]] | Performance work |
-| 33 | Interop / P/Invoke | [[Runtime/interop-pinvoke\|interop-pinvoke]] | Native libs, MetaTrader |
-| 34 | Native AOT | [[AspNetCore/native-aot\|native-aot]] | CLI tools, microservices |
-| 35 | GraphQL | [[AspNetCore/graphql\|graphql]] | Сложные queries / BFF |
-| 36 | SignalR | [[AspNetCore/signalr\|signalr]] | Real-time features |
-| 37 | gRPC / IPC | [[Infrastructure/ipc-named-pipes-grpc\|ipc-named-pipes-grpc]] | Microservice-to-microservice |
-| 38 | Messaging | [[Infrastructure/messaging\|messaging]] | Async architecture |
-| 39 | Code Quality | [[Quality/code-quality\|code-quality]] | Tech leads |
-| 40 | Architecture Tests | [[Architecture/arch-tests\|arch-tests]] | Большие проекты |
-| 41 | ADRs | [[Architecture/architecture-decisions\|architecture-decisions]] | Tech leads |
-| 42 | System Design | [[Architecture/system-design\|system-design]] | FAANG interviews |
+| 30 | Reflection & Expression Trees | [[reflection-expression-trees\|reflection-expression-trees]] | Lib authors, ORM internals |
+| 31 | Source Generators | [[source-generators\|source-generators]] | AOT-friendly libs |
+| 32 | Compilation / JIT | [[compilation-jit\|compilation-jit]] | Performance work |
+| 33 | Interop / P/Invoke | [[interop-pinvoke\|interop-pinvoke]] | Native libs, MetaTrader |
+| 34 | Native AOT | [[native-aot\|native-aot]] | CLI tools, microservices |
+| 35 | GraphQL | [[graphql\|graphql]] | Сложные queries / BFF |
+| 36 | SignalR | [[signalr\|signalr]] | Real-time features |
+| 37 | gRPC / IPC | [[ipc-named-pipes-grpc\|ipc-named-pipes-grpc]] | Microservice-to-microservice |
+| 38 | Messaging | [[messaging\|messaging]] | Async architecture |
+| 39 | Code Quality | [[code-quality\|code-quality]] | Tech leads |
+| 40 | Architecture Tests | [[arch-tests\|arch-tests]] | Большие проекты |
+| 41 | ADRs | [[architecture-decisions\|architecture-decisions]] | Tech leads |
+| 42 | System Design | [[system-design\|system-design]] | FAANG interviews |
 
 ---
 
@@ -87,15 +87,15 @@ date: 2026-04-30
 
 | Тема | Когда |
 |------|-------|
-| [[Performance/hft-low-latency\|HFT / Low Latency]] | Trading, real-time analytics |
-| [[Infrastructure/wpf-production\|WPF Production]] | Desktop development legacy |
-| [[CSharp/desktop-frameworks\|Desktop Frameworks]] | Cross-platform desktop |
-| [[CSharp/cli-tools-scripting\|CLI Tools]] | DevTools, internal automation |
-| [[AspNetCore/blazor-wasm\|Blazor WASM]] | Frontend на C# |
-| [[AspNetCore/blazor-server\|Blazor Server]] | Internal apps |
-| [[Infrastructure/llm-rag-patterns\|LLM/RAG]] | AI integration |
-| [[Infrastructure/semantic-kernel\|Semantic Kernel]] | Microsoft AI stack |
-| [[Architecture/webai-csharp-architecture\|Web/AI Architecture]] | AI-powered apps |
+| [[hft-low-latency\|HFT / Low Latency]] | Trading, real-time analytics |
+| [[wpf-production\|WPF Production]] | Desktop development legacy |
+| [[desktop-frameworks\|Desktop Frameworks]] | Cross-platform desktop |
+| [[cli-tools-scripting\|CLI Tools]] | DevTools, internal automation |
+| [[blazor-wasm\|Blazor WASM]] | Frontend на C# |
+| [[blazor-server\|Blazor Server]] | Internal apps |
+| [[llm-rag-patterns\|LLM/RAG]] | AI integration |
+| [[semantic-kernel\|Semantic Kernel]] | Microsoft AI stack |
+| [[webai-csharp-architecture\|Web/AI Architecture]] | AI-powered apps |
 
 ---
 
@@ -105,14 +105,14 @@ date: 2026-04-30
 
 | Тема | Польза |
 |------|--------|
-| [[CSharp/csharp-language-design\|C# Language Design]] | Понимать "почему так" |
-| [[CSharp/csharp-vs-other-langs\|C# vs Other Languages]] | Polyglot mindset |
-| [[CSharp/error-handling\|Error Handling]] | Patterns for errors |
-| [[CSharp/oop\|OOP]] | Деep OOP knowledge |
-| [[CSharp/types-and-memory\|Types & Memory]] | Foundation |
-| [[CSharp/collections-linq\|Collections & LINQ]] | Daily tools |
-| [[CSharp/delegates-events\|Delegates & Events]] | Языковые механики |
-| [[CSharp/design-patterns\|Design Patterns]] | GoF классика |
+| [[csharp-language-design\|C# Language Design]] | Понимать "почему так" |
+| [[csharp-vs-other-langs\|C# vs Other Languages]] | Polyglot mindset |
+| [[error-handling\|Error Handling]] | Patterns for errors |
+| [[oop\|OOP]] | Деep OOP knowledge |
+| [[types-and-memory\|Types & Memory]] | Foundation |
+| [[collections-linq\|Collections & LINQ]] | Daily tools |
+| [[delegates-events\|Delegates & Events]] | Языковые механики |
+| [[design-patterns\|Design Patterns]] | GoF классика |
 
 ---
 
@@ -122,11 +122,11 @@ date: 2026-04-30
 
 Топ-5 critical:
 
-1. [[CSharp/async-threading|async-threading]]
-2. [[EFCore/basics-tracking|basics-tracking]]
-3. [[EFCore/queries-performance|queries-performance]]
-4. [[AspNetCore/di-configuration|di-configuration]]
-5. [[Architecture/patterns|patterns]]
+1. [[async-threading|async-threading]]
+2. [[basics-tracking|basics-tracking]]
+3. [[queries-performance|queries-performance]]
+4. [[di-configuration|di-configuration]]
+5. [[C# and NET/Architecture/patterns|C]]
 
 ### Если у меня месяц
 

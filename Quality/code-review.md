@@ -766,13 +766,157 @@ Overall: [LGTM / Comments / Request changes]
 
 ---
 
+## Case Studies
+
+### Case Study #1 — Refactoring legacy "god class"
+
+**Сценарий:** `OrderManager` класс — 3000 строк, 50 методов, 20 dependencies. Невозможно testить.
+
+**Strategy:**
+1. Identify responsibilities — найти SRP violations
+2. Extract interfaces — `IOrderRepository`, `IPaymentService`, `INotificationService`
+3. Move methods → small focused classes
+4. Tests перед refactoring (characterization tests)
+5. Refactor пошагово, run tests после каждого step
+
+**Result:**
+- 3000 строк → 8 классов по 200-400 строк each
+- Test coverage: 5% → 80%
+- Onboarding new developer: 2 weeks → 3 days
+
+---
+
+### Case Study #2 — Code review где AI помогает
+
+**Сценарий:** Senior просматривает PR от Junior'а. Стандартные issues: naming, missing nulls, dead code.
+
+**Workflow:**
+1. **AI первый pass** — Copilot Chat / Claude review кода
+2. **Senior валидирует AI feedback** — отбрасывает false positives
+3. **Senior фокусируется на architecture** — что AI не видит:
+   - Domain logic correctness
+   - Business rule violations
+   - Performance implications
+   - Security in context
+
+**Time saved:** 30 min review → 10 min (AI на mechanical, senior на important).
+
+См.[[ai-coding-tools|AI Coding Tools]].
+
+---
+
+### Case Study #3 — Static analysis для legacy
+
+**Сценарий:** 200K LOC unmaintained code. Hidden bugs, технический долг.
+
+**Tools setup:**
+```xml
+<!-- Directory.Build.props -->
+<Project>
+  <PropertyGroup>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="*" />
+    <PackageReference Include="StyleCop.Analyzers" Version="*" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="*" />
+  </ItemGroup>
+</Project>
+```
+
+**Phased approach:**
+1. Week 1: Fix critical security issues (secrets, SQL injection)
+2. Week 2-4: Fix top-10 most violated rules
+3. Month 2: Enable analyzer warnings as errors на новый код
+4. Quarter: Full compliance + maintain через CI gate
+
+См. [[static-analysis|Static Analysis]] и[[cicd-github-actions|CI/CD]].
+
+
+---
+
+## Cheat sheet
+
+| Quality concern | Tool / Practice |
+|-----------------|-----------------|
+| Code style enforcement | EditorConfig + dotnet format |
+| Static analysis | Microsoft.CodeAnalysis.NetAnalyzers |
+| Style rules | StyleCop.Analyzers |
+| Security scanning | SonarAnalyzer.CSharp, GitHub CodeQL |
+| Vulnerability scanning | `dotnet list package --vulnerable` |
+| Outdated packages | `dotnet list package --outdated` |
+| Dead code | ReSharper / dotnet-ide-cli `unused-code` |
+| Cyclomatic complexity | NDepend, SonarQube |
+| Test coverage | coverlet + ReportGenerator |
+| Mutation testing | Stryker.NET |
+| Architecture tests | NetArchTest, ArchUnitNET |
+| Contract tests | PactNet, Pact.NET |
+| Code review | PR + GitHub Copilot review |
+| Pre-commit hooks | Husky.NET + lint-staged |
+| CI quality gate | SonarCloud / Codacy |
+
+| Refactoring smell | Action |
+|-------------------|--------|
+| Long method (50+ lines) | Extract method |
+| Long parameter list (4+) | Parameter object |
+| Duplicate code | Extract to function/class |
+| Switch statement | Polymorphism (Strategy) |
+| Feature envy | Move method к нужному classу |
+| Data clumps | Wrap в class/record |
+| Primitive obsession | Value objects (Money, Email) |
+| God class | Split по SRP |
+| Shotgun surgery | Cohesion problem — restructure |
+
+
+---
+
+## Decision tree
+
+```
+Quality issue?
+│
+├── Code style inconsistencies?
+│   → EditorConfig + dotnet format в pre-commit
+│
+├── Hidden bugs / vulnerabilities?
+│   ├── Logic bugs → Roslyn analyzers
+│   ├── Security → SonarAnalyzer + CodeQL
+│   └── Vulnerabilities → npm audit equivalent для NuGet
+│
+├── Test quality concerns?
+│   ├── Coverage low → coverlet + minimum threshold в CI
+│   ├── Tests pass but bugs ship → mutation testing (Stryker)
+│   └── Flaky tests → identify + isolate (TestCategory)
+│
+├── Architectural drift?
+│   ├── Boundaries violated → NetArchTest assertions в tests
+│   ├── Dependencies wrong direction → dependency cruiser
+│   └── Anti-patterns spreading → SonarQube + custom rules
+│
+├── Big tech debt?
+│   ├── Identify → "boy scout rule" — лучше чем нашёл
+│   ├── Plan → backlog с estimate
+│   ├── Critical → 20% sprint capacity
+│   └── Refactor → tests first, small steps
+│
+└── Code review bottleneck?
+    ├── Junior уровень → AI first pass
+    ├── Standards inconsistent → automated checks в CI
+    └── Slow → smaller PRs, clear conventions
+```
+
+
+---
+
 ## См. также
 
 - [[clean-code|Clean Code]] — что делает код хорошим
 - [[refactoring|Refactoring]] — как улучшать
 - [[static-analysis|Static Analysis]] — automate style review
 - [[code-quality|Code Quality]] — quality gates
-- [[../LearningPath/03_middle-to-senior|Middle → Senior]] — review skill для роста
+-[[03_middle-to-senior|Middle → Senior]] — review skill для роста
 
 ## Reading list
 

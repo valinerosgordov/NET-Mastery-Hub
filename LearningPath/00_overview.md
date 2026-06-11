@@ -16,6 +16,7 @@ date: 2026-04-30
 
 | Цель | Roadmap |
 |------|---------|
+| Системно выучить/повторить сам язык | [[01_language-map\|01 Language Map]] |
 | Junior → Middle .NET Backend | [[02_junior-to-middle\|02 Junior → Middle]] |
 | Middle → Senior .NET | [[03_middle-to-senior\|03 Middle → Senior]] |
 | Готовлюсь к собеседованию | [[04_interview-prep\|04 Interview Prep]] |

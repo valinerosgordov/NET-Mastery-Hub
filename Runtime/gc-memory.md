@@ -904,7 +904,7 @@ else
 **Ограничения:**
 - Если выйдешь за лимит — `NoGCRegion` прервётся, возможно `OutOfMemoryException`
 - Применяется только к **этому потоку** (но влияет на весь процесс — heap не собирается ни для кого)
-- Использовать **очень осторожно**. См. [HFT/Low-Latency](../Performance/hft-low-latency.md).
+- Использовать **очень осторожно**. См. [HFT/Low-Latency]().
 
 ---
 
@@ -1313,11 +1313,11 @@ new GCEventListener();
 - [.NET Runtime: компиляция](compilation-jit.md)
 - [Span и Memory Layout](span-layout.md)
 - [Concurrency и Atomics](concurrency-atomics.md)
-- [Performance и диагностика](../Performance/performance.md)
-- [HFT/Low-Latency и GC tuning](../Performance/hft-low-latency.md)
-- [Типы и память](../CSharp/types-and-memory.md)
-- [Docker и .NET awareness в контейнерах](../Infrastructure/docker.md)
-- [Kubernetes resource limits для .NET](../Infrastructure/kubernetes.md)
+- [Performance и диагностика]()
+- [HFT/Low-Latency и GC tuning]()
+- [Типы и память]()
+- [Docker и .NET awareness в контейнерах]()
+- [Kubernetes resource limits для .NET]()
 
 ## Reading list
 

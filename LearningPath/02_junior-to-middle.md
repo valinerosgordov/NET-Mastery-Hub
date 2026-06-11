@@ -30,11 +30,11 @@ date: 2026-04-30
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 1 | Типы и память | [[CSharp/types-and-memory\|types-and-memory]] | 4-5 ч |
-| 2 | OOP | [[CSharp/oop\|oop]] | 5-6 ч |
-| 3 | Modern features (8→14) | [[CSharp/modern-features\|modern-features]] | 5-6 ч |
-| 4 | Collections и LINQ | [[CSharp/collections-linq\|collections-linq]] | 6-7 ч |
-| 5 | Delegates и Events | [[CSharp/delegates-events\|delegates-events]] | 4-5 ч |
+| 1 | Типы и память | [[types-and-memory\|types-and-memory]] | 4-5 ч |
+| 2 | OOP | [[oop\|oop]] | 5-6 ч |
+| 3 | Modern features (8→14) | [[modern-features\|modern-features]] | 5-6 ч |
+| 4 | Collections и LINQ | [[collections-linq\|collections-linq]] | 6-7 ч |
+| 5 | Delegates и Events | [[delegates-events\|delegates-events]] | 4-5 ч |
 
 ### Practice
 
@@ -58,9 +58,9 @@ date: 2026-04-30
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 6 | Async и Threading | [[CSharp/async-threading\|async-threading]] | 7-8 ч |
-| 7 | Error handling | [[CSharp/error-handling\|error-handling]] | 3-4 ч |
-| 8 | Concurrency atomics | [[Runtime/concurrency-atomics\|concurrency-atomics]] | 4-5 ч |
+| 6 | Async и Threading | [[async-threading\|async-threading]] | 7-8 ч |
+| 7 | Error handling | [[error-handling\|error-handling]] | 3-4 ч |
+| 8 | Concurrency atomics | [[concurrency-atomics\|concurrency-atomics]] | 4-5 ч |
 
 ### Practice
 
@@ -83,14 +83,14 @@ date: 2026-04-30
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 9 | Pipeline & Middleware | [[AspNetCore/pipeline-middleware\|pipeline-middleware]] | 4-5 ч |
-| 10 | DI & Configuration | [[AspNetCore/di-configuration\|di-configuration]] | 4-5 ч |
-| 11 | API Design | [[AspNetCore/api-design\|api-design]] | 4-5 ч |
-| 12 | Authentication & Security | [[AspNetCore/auth-security\|auth-security]] | 5-6 ч |
-| 13 | Caching | [[AspNetCore/caching\|caching]] | 3-4 ч |
-| 14 | Logging & Observability | [[AspNetCore/logging-observability\|logging-observability]] | 3-4 ч |
-| 15 | Hosting & Background | [[AspNetCore/hosting-background\|hosting-background]] | 3-4 ч |
-| 16 | Resilience (Polly) | [[AspNetCore/resilience\|resilience]] | 3-4 ч |
+| 9 | Pipeline & Middleware | [[pipeline-middleware\|pipeline-middleware]] | 4-5 ч |
+| 10 | DI & Configuration | [[di-configuration\|di-configuration]] | 4-5 ч |
+| 11 | API Design | [[api-design\|api-design]] | 4-5 ч |
+| 12 | Authentication & Security | [[auth-security\|auth-security]] | 5-6 ч |
+| 13 | Caching | [[caching\|caching]] | 3-4 ч |
+| 14 | Logging & Observability | [[logging-observability\|logging-observability]] | 3-4 ч |
+| 15 | Hosting & Background | [[hosting-background\|hosting-background]] | 3-4 ч |
+| 16 | Resilience (Polly) | [[resilience\|resilience]] | 3-4 ч |
 
 ### Practice
 
@@ -114,14 +114,14 @@ date: 2026-04-30
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 17 | EF Core Basics | [[EFCore/basics-tracking\|basics-tracking]] | 4-5 ч |
-| 18 | Migrations | [[EFCore/migrations\|migrations]] | 3-4 ч |
-| 19 | Relationships | [[EFCore/relationships\|relationships]] | 4-5 ч |
-| 20 | Queries Performance | [[EFCore/queries-performance\|queries-performance]] | 4-5 ч |
-| 21 | Concurrency | [[EFCore/concurrency\|concurrency]] | 3-4 ч |
-| 22 | EF Patterns | [[EFCore/patterns\|patterns]] | 3-4 ч |
-| 23 | SQL Optimization | [[SQL/optimization\|optimization]] | 4-5 ч |
-| 24 | PostgreSQL Deep | [[SQL/postgresql-deep\|postgresql-deep]] | 5-6 ч |
+| 17 | EF Core Basics | [[basics-tracking\|basics-tracking]] | 4-5 ч |
+| 18 | Migrations | [[migrations\|migrations]] | 3-4 ч |
+| 19 | Relationships | [[relationships\|relationships]] | 4-5 ч |
+| 20 | Queries Performance | [[queries-performance\|queries-performance]] | 4-5 ч |
+| 21 | Concurrency | [[concurrency\|concurrency]] | 3-4 ч |
+| 22 | EF Patterns | [[C# and NET/EFCore/patterns\|patterns]] | 3-4 ч |
+| 23 | SQL Optimization | [[optimization\|optimization]] | 4-5 ч |
+| 24 | PostgreSQL Deep | [[postgresql-deep\|postgresql-deep]] | 5-6 ч |
 
 ### Practice
 
@@ -147,10 +147,10 @@ date: 2026-04-30
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 25 | Testing | [[Testing/testing\|testing]] | 5-6 ч |
-| 26 | Code Quality | [[Quality/code-quality\|code-quality]] | 3-4 ч |
-| 27 | Project Setup | [[Infrastructure/project-setup\|project-setup]] | 3-4 ч |
-| 28 | Docker | [[Infrastructure/docker\|docker]] | 4-5 ч |
+| 25 | Testing | [[testing\|testing]] | 5-6 ч |
+| 26 | Code Quality | [[code-quality\|code-quality]] | 3-4 ч |
+| 27 | Project Setup | [[project-setup\|project-setup]] | 3-4 ч |
+| 28 | Docker | [[docker\|docker]] | 4-5 ч |
 
 ### Practice
 
@@ -176,11 +176,11 @@ date: 2026-04-30
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 29 | SOLID | [[Architecture/solid\|solid]] | 3-4 ч |
-| 30 | Architecture Patterns | [[Architecture/patterns\|patterns]] | 6-7 ч |
-| 31 | CQRS + MediatR | [[Architecture/cqrs-mediatr\|cqrs-mediatr]] | 4-5 ч |
-| 32 | DDD intro | [[Architecture/ddd\|ddd]] | 5-6 ч |
-| 33 | Design Patterns | [[CSharp/design-patterns\|design-patterns]] | 4-5 ч |
+| 29 | SOLID | [[solid\|solid]] | 3-4 ч |
+| 30 | Architecture Patterns | [[C# and NET/Architecture/patterns\|patterns]] | 6-7 ч |
+| 31 | CQRS + MediatR | [[cqrs-mediatr\|cqrs-mediatr]] | 4-5 ч |
+| 32 | DDD intro | [[ddd\|ddd]] | 5-6 ч |
+| 33 | Design Patterns | [[design-patterns\|design-patterns]] | 4-5 ч |
 
 ### Practice
 
