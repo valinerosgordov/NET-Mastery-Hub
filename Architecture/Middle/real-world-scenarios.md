@@ -106,7 +106,7 @@ Independent teams, scale, polyglot stack?
 >
 > Cache даёт 100x boost. Microservices не делают код faster — добавляют network overhead. Они помогают **scale**, не **speed**.
 
-См.[[performance|Performance]] и[[queries-performance|EF Queries Performance]].
+См. [[performance|Performance]] и [[queries-performance|EF Queries Performance]].
 
 ---
 
@@ -250,7 +250,7 @@ public class WizardService
 - ✅ Persistence-friendly (serialize state)
 - ❌ Boilerplate если шагов мало
 
-См.[[design-patterns#State|State Pattern]].
+См. [[design-patterns#State|State Pattern]].
 
 ### Сценарий 4: Notification system (Email + SMS + Push)
 
@@ -286,7 +286,7 @@ public class SendOrderConfirmation : INotificationHandler<OrderPlaced>
 
 **Когда message bus вместо Mediator:** если нотификации идут через границы сервисов (Order Service → Notification Service) → RabbitMQ / Kafka.
 
-См.[[messaging|Messaging]].
+См. [[messaging|Messaging]].
 
 ### Сценарий 5: Drag-and-drop с undo/redo
 
@@ -408,7 +408,7 @@ public class CouponDiscount(string Code) : IDiscountStrategy { ... }
 | Redis для активных + SQL для history | 50K+ RPS | E-commerce production |
 | Полностью in-memory | 1M+ RPS | Гипер-нагрузка (но риск потери) |
 
-См. [[ddd|DDD]] и[[C# and NET/EFCore/patterns|EF Patterns]].
+См. [[ddd|DDD]] и [[ef-patterns|EF Patterns]].
 
 ### Сценарий 7: Подписка / биллинг
 
@@ -448,7 +448,7 @@ public class Subscription
 
 **Compliance важно:** PCI-DSS если хранишь card data. Лучше использовать Stripe / Cloudpayments — они хранят, ты payment_method_id.
 
-См.[[messaging|Messaging]] и [[distributed-systems|Distributed Systems]].
+См. [[messaging|Messaging]] и [[distributed-systems|Distributed Systems]].
 
 ### Сценарий 8: Поиск по сайту
 
@@ -551,7 +551,7 @@ public async Task<MonthlyReport> GetReport(DateTime month)
 - Кеш на 5-15 минут (Redis)
 - Pre-aggregated tables: `daily_sales`, `monthly_users`
 
-См.[[dapper-comparison|Dapper vs EF]].
+См. [[dapper-comparison|Dapper vs EF]].
 
 ### Сценарий 10: Import / Export CSV
 
@@ -608,7 +608,7 @@ public async Task ImportAsync(Stream csvStream, CancellationToken ct)
 - Большой → BackgroundService + progress endpoint
 - Очень большой → message queue + worker service
 
-См.[[io-streams|I/O & Streams]] и[[iterators-yield|Iterators & yield]].
+См. [[io-streams|I/O & Streams]] и [[iterators-yield|Iterators & yield]].
 
 ---
 
@@ -692,7 +692,7 @@ Monitoring:  Application Insights / Serilog → Seq
 - ❌ Один процесс — failure of one module = down всего
 - ❌ Все devs работают в одном repo (merge conflicts)
 
-См.[[C# and NET/Architecture/patterns|Architecture Patterns]] и [[ddd|DDD]].
+См. [[architecture-patterns|Architecture Patterns]] и [[ddd|DDD]].
 
 ### Сценарий 13: Крупный интернет-магазин (15+ dev)
 
@@ -827,7 +827,7 @@ public async Task UpdateArticle(Article a)
 }
 ```
 
-См.[[caching|Caching]].
+См. [[caching|Caching]].
 
 ### Сценарий 15: SaaS B2B мульти-tenant (e.g., CRM)
 
@@ -879,7 +879,7 @@ public override int SaveChanges()
 
 **Compliance:** GDPR, SOC2 — требуют tenant isolation на всех уровнях.
 
-См.[[postgresql-deep|PostgreSQL Deep]] (Row-Level Security).
+См. [[postgresql-deep|PostgreSQL Deep]] (Row-Level Security).
 
 ### Сценарий 16: HFT / High-Frequency Trading
 
@@ -914,7 +914,7 @@ OS:          Linux RT kernel, CPU pinning, isolated cores
 - ❌ Boxing
 - ❌ Exception-based flow
 
-См. [[../Performance/hft|HFT Performance]] и[[types-and-memory|Types & Memory]].
+См. [[hft-low-latency|HFT Performance]] и [[types-and-memory|Types & Memory]].
 
 ### Сценарий 17: IoT платформа (миллионы устройств)
 
@@ -942,7 +942,7 @@ Analytics:   ClickHouse / Druid
 - 1M devices × 1 msg/min = 16K msg/sec → Kafka handles easily
 - Storage: 1M rows/min = 1.4 billion/day → TimescaleDB hypertables
 
-См.[[messaging|Messaging]].
+См. [[messaging|Messaging]].
 
 ### Сценарий 18: Бухгалтерская / финансовая система
 
@@ -1133,7 +1133,7 @@ Modular Monolith → Microservices:
 | Multi-step wizard | State pattern (records) |[[design-patterns]] |
 | Notifications через email/SMS/push | Strategy + Mediator |[[messaging]] |
 | Undo/redo в UI | Command pattern |[[design-patterns]] |
-| Корзина e-commerce | Aggregate (DDD) + Redis | [[ddd]] +[[C# and NET/EFCore/patterns]] |
+| Корзина e-commerce | Aggregate (DDD) + Redis | [[ddd]] + [[ef-patterns|EF Patterns]] |
 | Биллинг / подписки | State machine + Saga | [[distributed-systems]] |
 | Поиск товаров | CQRS + Elasticsearch | [[cqrs-mediatr]] |
 | Reporting / аналитика | Dapper + read replica |[[dapper-comparison]] |
@@ -1254,7 +1254,7 @@ Modular Monolith → Microservices:
 
 ### Архитектуры
 
--[[C# and NET/Architecture/patterns|Architecture Patterns]] — N-Layer / Clean / VSA
+- [[architecture-patterns|Architecture Patterns]] — N-Layer / Clean / VSA
 - [[microservices-vs-monolith|Microservices vs Monolith]]
 - [[distributed-systems|Distributed Systems]]
 - [[ddd|DDD]]
@@ -1262,17 +1262,17 @@ Modular Monolith → Microservices:
 
 ### Performance
 
--[[performance|Performance]]
-- [[../Performance/hft|HFT]]
--[[queries-performance|EF Queries Performance]]
--[[caching|Caching]]
+- [[performance|Performance]]
+- [[hft-low-latency|HFT]]
+- [[queries-performance|EF Queries Performance]]
+- [[caching|Caching]]
 
 ### Infrastructure
 
--[[messaging|Messaging]]
--[[observability|Observability]]
--[[kubernetes|Kubernetes]]
--[[docker|Docker]]
+- [[messaging|Messaging]]
+- [[observability|Observability]]
+- [[kubernetes|Kubernetes]]
+- [[docker|Docker]]
 
 ## Reading list
 

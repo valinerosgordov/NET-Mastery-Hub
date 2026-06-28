@@ -1,8 +1,8 @@
 # Runtime — CLR internals
 
-> 7 файлов / 246 KB. Что под капотом .NET: GC, JIT, threading, memory layout, P/Invoke, diagnostics.
+> 9 файлов / ~310 KB. Что под капотом .NET: GC, JIT, memory model, threading, P/Invoke, diagnostics.
 
-[← Главный README]() · [Полный INDEX]()
+[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
 ---
 
@@ -10,51 +10,44 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Middle, не понимаю threads | [`threading-basics.md`]() |
-| Memory leak в production | [`gc-memory.md`](gc-memory.md) → [`diagnostics-tools.md`]() |
-| Senior interview prep | [`gc-memory.md`](gc-memory.md), [`compilation-jit.md`](compilation-jit.md), [`span-layout.md`](span-layout.md) |
-| Performance hot path | [`span-layout.md`](span-layout.md), [`concurrency-atomics.md`](concurrency-atomics.md) |
+| Junior, что вообще такое CLR | [`Junior/runtime-basics.md`](Junior/runtime-basics.md) → [`Junior/memory-stack-heap.md`](Junior/memory-stack-heap.md) |
+| Middle, не понимаю threads | [`Middle/threading-basics.md`](Middle/threading-basics.md) |
+| Memory leak в production | [`Senior/gc-memory.md`](Senior/gc-memory.md) → [`Senior/diagnostics-tools.md`](Senior/diagnostics-tools.md) |
+| Senior interview prep | [`Senior/gc-memory.md`](Senior/gc-memory.md), [`Senior/compilation-jit.md`](Senior/compilation-jit.md), [`Senior/span-layout.md`](Senior/span-layout.md) |
+| Performance hot path | [`Senior/span-layout.md`](Senior/span-layout.md), [`Senior/concurrency-atomics.md`](Senior/concurrency-atomics.md) |
 
 ---
 
-## 📚 Все 7 файлов
+## 📚 Все 9 файлов
 
-### Memory
-
-| Файл | Описание |
-|------|----------|
-| [`gc-memory.md`](gc-memory.md) | GC generations, regions, leaks (56 KB) ⭐ |
-| [`span-layout.md`](span-layout.md) | Span\<T\>, Memory\<T\>, ref struct |
-
-### Compilation
+### 🌱 Junior
 
 | Файл | Описание |
 |------|----------|
-| [`compilation-jit.md`](compilation-jit.md) | JIT, AOT, ReadyToRun, tiered compilation |
+| [`runtime-basics.md`](Junior/runtime-basics.md) | CLR, IL, JIT — картина мира для старта |
+| [`memory-stack-heap.md`](Junior/memory-stack-heap.md) | Stack vs heap, кто где живёт |
 
-### Threading & concurrency
-
-| Файл | Описание |
-|------|----------|
-| [`threading-basics.md`]() | Thread, ThreadPool, TPL, Parallel (Middle entry) |
-| [`concurrency-atomics.md`](concurrency-atomics.md) | Memory model, Interlocked, lock-free |
-
-### Native interop
+### 🌿 Middle
 
 | Файл | Описание |
 |------|----------|
-| [`interop-pinvoke.md`]() | P/Invoke, marshalling, native interop |
+| [`threading-basics.md`](Middle/threading-basics.md) | Thread, ThreadPool, TPL, Parallel |
 
-### Diagnostics
+### 🏆 Senior
 
 | Файл | Описание |
 |------|----------|
-| [`diagnostics-tools.md`]() | dotnet-counters, trace, dump, PerfView |
+| [`gc-memory.md`](Senior/gc-memory.md) | GC generations, regions, DATAS, leaks ⭐ |
+| [`span-layout.md`](Senior/span-layout.md) | Span\<T\>, Memory\<T\>, ref struct, layout |
+| [`compilation-jit.md`](Senior/compilation-jit.md) | JIT, AOT, ReadyToRun, tiered compilation |
+| [`concurrency-atomics.md`](Senior/concurrency-atomics.md) | Memory model, Interlocked, lock-free |
+| [`interop-pinvoke.md`](Senior/interop-pinvoke.md) | P/Invoke, marshalling, native interop |
+| [`diagnostics-tools.md`](Senior/diagnostics-tools.md) | dotnet-counters, trace, dump, PerfView |
 
 ---
 
 ## 🔗 Связанные папки
 
-- [`CSharp/types-and-memory`]() — value vs reference (extends GC topic)
-- [`CSharp/async-threading`]() — async поверх threading
+- [`CSharp/Senior/types-and-memory.md`](../CSharp/Senior/types-and-memory.md) — value vs reference (extends GC topic)
+- [`CSharp/Senior/async-threading.md`](../CSharp/Senior/async-threading.md) — async поверх threading
 - [`Performance/`](../Performance/) — практика performance

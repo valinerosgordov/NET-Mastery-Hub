@@ -5,6 +5,8 @@ level: Senior
 
 # EF Core — Queries и Performance
 
+> Performance-разбор read-side EF Core: устранение N+1 через `Include`/projection/split queries, `AsNoTracking`, compiled queries, `ExecuteUpdate`/`ExecuteDelete`, bulk insert, keyset pagination и DbContext pooling.
+
 ## Что это, зачем и когда
 
 ### Что такое EF Core query?
@@ -208,6 +210,37 @@ var users = await db.Users
 | Use case | Сложные UI редактирующие entity | API endpoints, dashboards, lists |
 
 **Правило:** для read-only API — projection. Для CRUD UI — Include.
+
+---
+
+## LeftJoin / RightJoin (EF Core 10)
+
+EF Core 10 даёт first-class операторы `Queryable.LeftJoin` и `Queryable.RightJoin`, которые транслируются напрямую в SQL `LEFT JOIN` / `RIGHT JOIN`.
+
+```csharp
+// ✅ EF Core 10 — явный LEFT JOIN
+var rows = await db.Users
+    .LeftJoin(
+        db.Orders,
+        u => u.Id,
+        o => o.UserId,
+        (u, o) => new { u.Id, u.Name, OrderId = (Guid?)o.Id })
+    .ToListAsync();
+// SQL: SELECT ... FROM users u LEFT JOIN orders o ON u.id = o.user_id
+```
+
+> [!warning] Снимай legacy GroupJoin-обходной приём при апгрейде
+> До EF Core 10 left join писали через `GroupJoin(...).SelectMany(..., DefaultIfEmpty())`. Этот приём хрупкий: при неверной форме `SelectMany` легко получить **случайный CROSS JOIN** (декартово произведение) или материализацию групп с **N+1** подгрузкой. Новые операторы убирают эту ловушку — выражение намерения («левое соединение») совпадает с генерируемым SQL.
+
+```csharp
+// ❌ Legacy (до EF Core 10) — многословно и провоцирует cross-join/N+1
+var rows = await db.Users
+    .GroupJoin(db.Orders, u => u.Id, o => o.UserId, (u, orders) => new { u, orders })
+    .SelectMany(x => x.orders.DefaultIfEmpty(), (x, o) => new { x.u.Id, x.u.Name, OrderId = (Guid?)o.Id })
+    .ToListAsync();
+```
+
+**Adopt-on-upgrade:** после перехода на EF Core 10 заменяй `GroupJoin().SelectMany(..., DefaultIfEmpty())` на `LeftJoin` (новый код пиши сразу на нём). Разбор старого `GroupJoin`-обходного приёма — см. [[collections-linq]].
 
 ---
 
@@ -443,7 +476,12 @@ API возвращает `{ items: [...], nextCursor: "2026-04-28T10:00:00" }`. 
 
 ### Keyset pagination
 
-Расширенная версия cursor — для composite ordering:
+Расширенная версия cursor — для composite ordering. Composite-ключ — это семантически кортеж `(CreatedAt, Id)`, и хочется сравнивать его как row-value: `(CreatedAt, Id) <= (@d, @lastId)`. SQL это поддерживает нативно (row-value comparison) и может пройти по составному индексу одним range scan.
+
+> [!warning] EF не транслирует row-value кортежи — OR-форма сканирует широко
+> EF Core пока **не умеет** транслировать кортежное сравнение `(a, b) < (c, d)` в SQL row-value предикат. Приходится раскрывать его в OR-форму (ниже). Проблема в том, что планировщик БД по OR-предикату часто **не использует** composite-индекс эффективно: вместо одного range scan по `(CreatedAt, Id)` он делает более широкий скан и фильтрует. На больших таблицах это сводит на нет весь смысл keyset pagination. Если профиль показывает, что индекс не задействован — переходи на raw-SQL row-value вариант ниже.
+
+OR-форма (то, что EF способен сгенерировать сегодня) — корректна, но субоптимальна по плану:
 
 ```csharp
 public async Task<List<Order>> GetPageAsync(DateTime? lastCreatedAt, Guid? lastId, int pageSize, CancellationToken ct)
@@ -452,6 +490,8 @@ public async Task<List<Order>> GetPageAsync(DateTime? lastCreatedAt, Guid? lastI
 
     if (lastCreatedAt.HasValue && lastId.HasValue)
     {
+        // OR-decomposition: EF не умеет (CreatedAt, Id) <= (@d, @lastId).
+        // Планировщик может НЕ задействовать composite-индекс по этому предикату.
         query = query.Where(o =>
             o.CreatedAt < lastCreatedAt ||
             (o.CreatedAt == lastCreatedAt && o.Id.CompareTo(lastId.Value) > 0));
@@ -460,6 +500,32 @@ public async Task<List<Order>> GetPageAsync(DateTime? lastCreatedAt, Guid? lastI
     return await query.Take(pageSize).ToListAsync(ct);
 }
 ```
+
+### Keyset pagination — раздельный raw-SQL вариант (рекомендуемый на горячем пути)
+
+Чтобы получить настоящий row-value предикат и гарантированный range scan по индексу — обойди трансляцию через `FromSqlInterpolated`. Параметры по-прежнему параметризуются (защита от SQL injection), а дальше можно дописывать LINQ-композицию:
+
+```csharp
+public async Task<List<Order>> GetPageKeysetAsync(DateTime lastCreatedAt, Guid lastId, int pageSize, CancellationToken ct)
+{
+    // Row-value comparison: один range scan по индексу (created_at, id).
+    // Колонки/типы должны совпадать с маппингом сущности (см. сгенерированный SQL).
+    return await db.Orders
+        .FromSqlInterpolated($"""
+            SELECT * FROM orders
+            WHERE (created_at, id) <= ({lastCreatedAt}, {lastId})
+            ORDER BY created_at DESC, id DESC
+            LIMIT {pageSize}
+            """)
+        .AsNoTracking()
+        .ToListAsync(ct);
+}
+```
+
+Под это нужен composite-индекс `(created_at, id)` в том же порядке, что и `ORDER BY`. Направление сравнения (`<=` vs `>=`) выбирается под направление сортировки страницы. Детальнее про то, как row-value предикат ложится на составной индекс и почему OR-форма теряет index seek — см. [[optimization]].
+
+> [!tip] Когда оставаться на LINQ-форме
+> Для небольших/средних таблиц OR-форма читается лучше и план приемлем — не усложняй. Raw-SQL row-value оправдан, когда таблица большая, keyset на горячем пути, и `EXPLAIN` подтвердил, что OR-предикат не берёт composite-индекс.
 
 ---
 

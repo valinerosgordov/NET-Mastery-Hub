@@ -661,7 +661,7 @@ EXECUTE FUNCTION audit_user_changes();
 ```
 
 > [!warning] Triggers — implicit и опасны
-> Магические side-effects, сложно дебажить. Лучше — application-level logic + EF Core interceptors. См. [[C# and NET/EFCore/patterns#audit-interceptors|EF Audit Interceptors]].
+> Магические side-effects, сложно дебажить. Лучше — application-level logic + EF Core interceptors. См. [[ef-patterns#audit-interceptors|EF Audit Interceptors]].
 
 ---
 

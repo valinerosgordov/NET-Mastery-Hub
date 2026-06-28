@@ -1,9 +1,11 @@
 ---
-tags: [ai, llm, rag, openai, anthropic, semantic-kernel, embeddings, microsoft-extensions-ai]
+tags: [ai, llm, rag, openai, semantic-kernel, embeddings, microsoft-extensions-ai]
 level: Senior
 ---
 
 # RAG и LLM Patterns в .NET — production guide
+
+> Production-RAG на .NET: chunking, embeddings, hybrid search (BM25 + dense + RRF), reranking, tool use и streaming через `Microsoft.Extensions.AI` и typed `HttpClient` с resilience — плюс token budgeting и LLM-as-judge evals.
 
 ## Что это, зачем и когда
 
@@ -71,7 +73,7 @@ User query ────▶│ Embed query → Vector search    │
                               │
                               ▼
                 ┌─────────────────────────────────┐
-                │ LLM (OpenAI / Claude / Gemini)  │
+                │ LLM (OpenAI / Gemini / Ollama)  │
                 └─────────────────────────────────┘
                               │
                               ▼
@@ -91,7 +93,7 @@ User query ────▶│ Embed query → Vector search    │
 
 ## Microsoft.Extensions.AI как абстракция
 
-Это **новый канонический способ работать с LLM из .NET 9+** — single API над OpenAI, Azure OpenAI, Anthropic, Gemini, Ollama, AWS Bedrock. Аналог `Microsoft.Extensions.Logging` для логирования или `Microsoft.Extensions.Caching` для кэша — ты пишешь против абстракции, а провайдера выбираешь в DI.
+Это **новый канонический способ работать с LLM из .NET 9+** — single API над OpenAI, Azure OpenAI, Gemini, Ollama, AWS Bedrock. Аналог `Microsoft.Extensions.Logging` для логирования или `Microsoft.Extensions.Caching` для кэша — ты пишешь против абстракции, а провайдера выбираешь в DI.
 
 ```bash
 dotnet add package Microsoft.Extensions.AI
@@ -154,7 +156,7 @@ ReadOnlyMemory<float> vector = embedding.Vector; // 1536 float'ов
 ```
 
 > [!question]- **Интервью: зачем нужен Microsoft.Extensions.AI, если есть OpenAI SDK?**
-> **Provider abstraction.** Сегодня OpenAI, завтра Anthropic, послезавтра локальная Llama через Ollama. Без абстракции — рефакторинг всего кода. С `IChatClient` — меняется одна строка в DI.
+> **Provider abstraction.** Сегодня OpenAI, завтра Gemini, послезавтра локальная Llama через Ollama. Без абстракции — рефакторинг всего кода. С `IChatClient` — меняется одна строка в DI.
 > Дополнительно: пайплайн middleware (logging, caching, telemetry, function invocation) — собирается через extensions methods, а не размазан по сервисам.
 
 ---
@@ -790,13 +792,13 @@ public async Task<string> RunAgentAsync(string userInput, CancellationToken ct)
 
 ### Сравнение провайдеров (2026)
 
-| | OpenAI | Anthropic | Gemini |
-|--|--------|-----------|--------|
-| **Tool definition** | JSON Schema | JSON Schema | OpenAPI subset |
-| **Parallel tool calls** | Да | Да | Да |
-| **Forced tool use** | `tool_choice: "required"` | `tool_choice: "any"` | `mode: "ANY"` |
-| **Tool result в стриме** | Да | Да | Да |
-| **Структурный output без tools** | `response_format: json_schema` | `<json>` теги | `responseSchema` |
+| | OpenAI | Gemini |
+|--|--------|--------|
+| **Tool definition** | JSON Schema | OpenAPI subset |
+| **Parallel tool calls** | Да | Да |
+| **Forced tool use** | `tool_choice: "required"` | `mode: "ANY"` |
+| **Tool result в стриме** | Да | Да |
+| **Структурный output без tools** | `response_format: json_schema` | `responseSchema` |
 
 > [!question]- **Интервью: чем отличается tool use от structured output?**
 > Tool use — модель **выбирает**, нужен ли вызов функции, и если да — какой и с какими аргументами. Это про action.
@@ -1055,9 +1057,7 @@ public async Task<EvalReport> RunEvalsAsync(IReadOnlyList<EvalCase> cases, Cance
 
 ## Reading list (внешнее)
 
-- **OpenAI Cookbook** — github.com/openai/openai-cookbook (recipes для всех use cases)
-- **Anthropic Cookbook** — github.com/anthropics/anthropic-cookbook
-- **Microsoft.Extensions.AI Docs** — learn.microsoft.com/dotnet/ai/microsoft-extensions-ai
+- **OpenAI Cookbook** — github.com/openai/openai-cookbook (recipes для всех use cases)- **Microsoft.Extensions.AI Docs** — learn.microsoft.com/dotnet/ai/microsoft-extensions-ai
 - **RAGAS** — github.com/explodinggradients/ragas (metrics для RAG-eval)
 - **Lost in the Middle** — arxiv.org/abs/2307.03172 (про падение качества в длинном контексте)
 - **Simon Willison's Blog** — simonwillison.net (практический фронт LLM/RAG)

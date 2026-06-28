@@ -13,6 +13,7 @@ tags:
   - deepdive
 complexity: Senior
 date: 2026-04-30
+level: Senior
 ---
 
 # Управление памятью: GC, LOH, POH и всё, что нужно знать Senior

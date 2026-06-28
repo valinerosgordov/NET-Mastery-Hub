@@ -5,6 +5,8 @@ level: Senior
 
 # HFT и Low-Latency .NET — production guide
 
+> Микросекундный hot-path в .NET: allocation-free через `Span<T>`/`stackalloc`/`ArrayPool<T>`, lock-free структуры (`Interlocked`, single-writer ring buffer, LMAX Disruptor), `Channel<T>` vs `Pipelines`, GC tuning (Server GC, `SustainedLowLatency`, POH) и dedicated threads с CPU affinity для trading-нагрузки (MT5 COM, FAST/TWIME).
+
 ## Что это, зачем и когда
 
 ### Что такое low-latency код?
@@ -561,7 +563,10 @@ ThreadPool.SetMinThreads(workerThreads: 100, completionPortThreads: 100);
 // Бенчмарк перед прод: смотри dotnet-counters Threads.ActiveThreads / QueueLength
 ```
 
-ThreadPool **наращивает потоки лениво** — это режет latency первых N запросов после старта. SetMinThreads(N) форсит N потоков сразу.
+ThreadPool **наращивает потоки лениво** (через hill-climbing, ~4 потока/сек) — это режет latency первых N запросов после старта. SetMinThreads(N) форсит N потоков сразу.
+
+> [!warning]
+> `SetMinThreads` — не бесплатный рычаг. Пока `threadCount <= N`, он **обходит hill-climbing** и отключает авто-тюнинг/эластичность пула, а каждый поток стоит ~1 MB стека (N=512 → ~512 MB только под стеки). Здесь это оправдано **именно как cold-start priming** под известную latency-критичную нагрузку, а НЕ как лечение перегрузки. Если под нагрузкой раздувается ThreadCount при низком CPU — это ThreadPool starvation от sync-over-async, и `SetMinThreads` лишь маскирует причину. Разбор механизма: [[threadpool-starvation-hill-climbing|ThreadPool Starvation и Hill-Climbing]].
 
 ### DedicatedThread для critical loop
 
@@ -858,7 +863,7 @@ public bool TryParseTwimeHeader(ReadOnlySpan<byte> buffer, out TwimeHeader heade
 - [ ] `<ServerGarbageCollection>true</ServerGarbageCollection>` в `.csproj`
 - [ ] `<ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>`
 - [ ] `<TieredCompilation>true</TieredCompilation>` (default in .NET 6+)
-- [ ] `ThreadPool.SetMinThreads(N, N)` на старте, где N = ожидаемая нагрузка
+- [ ] `ThreadPool.SetMinThreads(N, N)` на старте для cold-start priming (~`ProcessorCount * 4`); помни: обходит hill-climbing, ~1 MB/поток, не лечит starvation — см. [[threadpool-starvation-hill-climbing]]
 - [ ] `GCSettings.LatencyMode = SustainedLowLatency` для критичной фазы
 - [ ] Hot-path методы помечены `[MethodImpl(MethodImplOptions.AggressiveInlining)]` где осмысленно
 - [ ] Все коллекции на старте проинициализированы с `capacity` (избегаем resize)

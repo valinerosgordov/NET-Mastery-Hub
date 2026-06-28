@@ -45,6 +45,9 @@ var user = await _db.Users.FindAsync(42);
 
 EF Core генерирует SQL под капотом. Ты работаешь с C# объектами.
 
+> [!warning] В raw-примере выше — `AddWithValue`, это анти-паттерн
+> Параметр он добавляет правильно (защита от инъекций есть), но **тип угадывает из значения**: `string` уходит как `nvarchar`, и при колонке `varchar` SQL Server делает implicit conversion на каждой строке → index scan вместо seek. В реальном ADO.NET-коде задавай тип явно: `cmd.Parameters.Add("@id", SqlDbType.Int).Value = 42`. Полный разбор — [[security-practices|AspNetCore/Senior/security-practices]]. С EF Core этой проблемы нет — провайдер берёт тип из модели.
+
 ### 1.2. EF Core vs альтернативы
 
 ```

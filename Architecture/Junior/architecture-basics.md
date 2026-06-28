@@ -135,6 +135,9 @@ public class OrderManager
 - Хочешь unit-тест ProcessOrder — нужны реальные SQL/SMTP/file system.
 - Один класс — много причин изменения.
 
+> [!warning] `AddWithValue()` — type inference ломает индексы
+> `cmd.Parameters.AddWithValue("@id", orderId)` выводит `SqlDbType` из CLR-типа значения, и вывод нередко промахивается (`string` → `nvarchar`, `decimal` с чужими precision/scale). Несовпадение с типом колонки заставляет SQL Server делать implicit conversion и **игнорировать индекс** → seek превращается в scan. Предпочитай явный тип: `cmd.Parameters.Add("@id", SqlDbType.Int).Value = orderId;`. Подробнее — [[security-practices]].
+
 ```csharp
 // ✅ Разделили по ответственностям
 public class OrderRepository   // только БД
@@ -1291,7 +1294,7 @@ public class OrdersController : ControllerBase
 
 ## 13. См. также
 
-- [[patterns|Architecture/Senior/patterns]] — design patterns
+- [[architecture-patterns|Architecture Patterns]] — design patterns
 - [[ddd|Architecture/Senior/ddd]] — DDD
 - [[solid|Architecture/Senior/solid]] — SOLID principles
 - [[design-patterns|CSharp/Senior/design-patterns]] — GoF patterns

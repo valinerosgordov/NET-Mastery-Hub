@@ -5,6 +5,8 @@ level: Senior
 
 # Native AOT в .NET — production guide
 
+> AOT-компиляция в single executable без JIT и CLR ради мгновенного startup и малого footprint; цена — trimming, ограничения reflection и опора на source generators.
+
 ## Что это, зачем и когда
 
 ### Что такое Native AOT?

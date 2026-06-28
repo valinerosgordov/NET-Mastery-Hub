@@ -5,6 +5,8 @@ level: Senior
 
 # Performance — Benchmarking, Profiling, Memory Leaks
 
+> Workflow измерения и оптимизации .NET: точные замеры через BenchmarkDotNet (`[MemoryDiagnoser]`), профилирование (dotnet-counters/trace/dump/gcdump, dotMemory, PerfView, dotnet-monitor), охота за memory leaks по snapshot-диффам, CPU-профили, PGO и production-чеклист, чтобы оптимизировать hot path по данным, а не по интуиции.
+
 ## Что это, зачем и когда
 
 ### Что такое performance work?
@@ -843,6 +845,16 @@ Console.WriteLine(sw.Elapsed);
 | `async Task` state machine | ~80-200 bytes per call |
 | `ValueTask` (sync complete) | 0 bytes |
 
+### Allocation-diagnosis ladder
+
+Три вопроса про аллокации — три инструмента. Поднимайся по лестнице: сначала «сколько», потом «где», потом «почему».
+
+| Вопрос | Инструмент | Что смотреть |
+|--------|-----------|--------------|
+| **How much** — сколько аллоцирует | `[MemoryDiagnoser]` (BenchmarkDotNet) | Колонка `Allocated` (delta на вызов), `Gen0` |
+| **Where** — где именно аллоцирует | `dotnet-gcdump` + `dotnet-trace` GC provider | Boxed-примитивы, `<>c__DisplayClass` (closures); трейс с `Microsoft-Windows-DotNETRuntime:GC` показывает alloc-traffic по стекам |
+| **Why** — почему компилятор аллоцирует | `DOTNET_JitDisasm=1` + ILSpy | В дизасме — вызовы `box`/helper'ов; в IL ILSpy — буквальная инструкция `box` |
+
 | Speed | Tool |
 |-------|------|
 | Microsec measurements | BenchmarkDotNet |
@@ -914,7 +926,7 @@ Performance issue?
 3. **Async I/O** — concurrency over parallelism
 4. **Batch operations** — reduce round-trips
 5. **Lazy / streaming** — process в chunks
-6. **Allocations reduction** — Span<T>, pooling
+6. **Allocations reduction** — `Span<T>`, pooling
 7. **Inline / remove abstraction** — only proven hot path
 8. **SIMD / vectorization** — numeric computations
 9. **Native / unsafe** — last resort

@@ -247,6 +247,9 @@ ThreadPool.GetMaxThreads(out int max, out int maxIo);
 ThreadPool.SetMinThreads(50, 50);   // Reserve 50 ready threads
 ```
 
+> [!warning]
+> `SetMinThreads` — не «кнопка ускорения». Сверх минимума пул сам подбирает число потоков алгоритмом hill-climbing; подняв минимум, ты **обходишь авто-тюнинг** на этом участке и платишь ~1 MB стека за каждый зарезервированный поток (50 → ~50 MB, 512 → ~512 MB). Оправдано только как cold-start priming (прогрев пула на старте, ориентир ~`ProcessorCount * 4`). Если под нагрузкой ThreadCount растёт «лестницей» при низком CPU — это **ThreadPool starvation** от блокирующего кода (sync-over-async), и SetMinThreads лишь маскирует причину, а не лечит её. Механизм: [[threadpool-starvation-hill-climbing|ThreadPool Starvation и Hill-Climbing]].
+
 ### Available threads
 
 ```csharp
@@ -282,6 +285,8 @@ public async Task<string> Get()
 // При 100 concurrent requests — все pool threads заняты ожиданием I/O
 // → новые requests timeout
 ```
+
+Коварство в том, что заблокированный поток всё равно «завершает» свой work-item, и hill-climbing воспринимает это как нехватку потоков — добавляет ещё, пул раздувается при простаивающем CPU. Полный разбор механики и диагностики: [[threadpool-starvation-hill-climbing|ThreadPool Starvation и Hill-Climbing]].
 
 См. [[async-threading|Async deep]].
 
@@ -1121,6 +1126,7 @@ Synchronization?
 - [[hosting-background|Hosting & Background]] — BackgroundService
 - [[gc-memory|GC и память]] — thread allocations
 - [[async-performance|Async Performance]]
+- [[threadpool-starvation-hill-climbing|ThreadPool Starvation и Hill-Climbing]] — почему пул раздувается при низком CPU
 
 ## Reading list
 

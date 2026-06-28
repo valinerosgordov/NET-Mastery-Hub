@@ -241,7 +241,7 @@ Result — что получилось, что узнал
 ### Day 6: Architecture
 
 - [[solid|solid]] — принципы
-- [[C# and NET/Architecture/patterns|C]] — Clean / Onion / Vertical Slices
+- [[architecture-patterns|Architecture Patterns]] — Clean / Onion / Vertical Slices
 - [[cqrs-mediatr|cqrs-mediatr]] — CQRS pattern
 - [[ddd|ddd]] — DDD concepts
 

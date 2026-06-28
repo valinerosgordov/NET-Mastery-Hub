@@ -5,6 +5,8 @@ level: Senior
 
 # Inter-Process Communication (IPC) в .NET
 
+> Передача данных между процессами в .NET: Named Pipes, Memory-Mapped Files (zero-copy ring buffer), Anonymous Pipes и gRPC over HTTP/2 — выбор транспорта по латентности, размеру payload и cross-language требованиям.
+
 ## Что это, зачем и когда
 
 ### Что такое IPC?
@@ -187,6 +189,197 @@ var server = NamedPipeServerStreamAcl.Create(
 > 2. **MaxNumberOfServerInstances** — если выставить 1, второй клиент не подключится пока первый не отключится. По умолчанию советую `NamedPipeServerStream.MaxAllowedServerInstances` и обрабатывать каждого клиента в отдельной задаче.
 > 3. **Кириллица** — без явной `Encoding.UTF8` ловишь "?????" на не-латинице (default — `Encoding.Default` зависит от locale).
 > 4. **Linux** — на Linux пайп создаётся как Unix Domain Socket в `/tmp/CoreFxPipe_{name}`. Это transparent для .NET, но если на Linux другой процесс (не .NET) пытается подключиться по тому же имени — он не найдёт его как named pipe, нужно искать по пути.
+
+---
+
+## Message framing над stream-транспортом (TCP / NetworkStream)
+
+Pitfall #2 выше говорит: для cross-platform всегда `Byte`-режим + framing руками. То же верно для **любого** byte-stream транспорта — TCP-сокета, `NetworkStream`, Named Pipe в `Byte`-режиме. Здесь — почему это обязательно и как именно выглядит цикл, которого нет в большинстве туториалов.
+
+### Почему «один ReadAsync = одно сообщение» — ложь
+
+TCP — это **поток байт без границ сообщений**. Транспорт волен порезать твои 1000 байт на TCP-сегменты как угодно: их склеит Nagle, разрежет MTU, перемешает буферизация ядра. `Stream.ReadAsync` гарантирует только одно: вернёт **от 1 до N** байт (либо 0 на EOF). Он НЕ обязан вернуть ровно столько, сколько ты просил, даже если данные «вроде бы уже пришли».
+
+Отсюда два бага, которые в проде всплывают только под нагрузкой:
+
+- **Short read** — попросил 28 байт заголовка, получил 11. Если распарсить буфер как есть — мусор в полях длины → следующий кадр уедет на произвольный offset, и поток рассинхронизируется навсегда.
+- **Coalescing** — два логических сообщения пришли одним `ReadAsync`. Без префикса длины ты не знаешь, где кончается первое.
+
+Вывод: нужен **явный протокол кадрирования**. Самый ходовой — *length-prefixed framing*: фиксированный заголовок (включающий длину тела) + тело объявленной длины.
+
+> [!info] Почему фиксированный заголовок, а не разделитель
+> Delimiter-based framing (`\n`, как `ReadLineAsync`) ломается на бинарных payload'ах, где байт-разделитель легально встречается внутри данных, и требует escape'инга. Length-prefix работает с любыми байтами и позволяет аллоцировать буфер тела ровно один раз, зная размер заранее.
+
+### Сердце протокола — `ReadExactAsync`
+
+`Stream.ReadExactlyAsync` существует с .NET 7 и делает именно это. Но понимать **руками написанный цикл** обязательно: это типовой вопрос на собесе, и он нужен, когда ты работаешь напрямую с `Socket.ReceiveAsync` (где аналога нет вовсе) либо хочешь нулевую зависимость от поведения конкретного `Stream`.
+
+Цикл крутит `ReadAsync` в `buffer[totalRead..]`, пока не наберёт ровно `buffer.Length`, и **бросает на 0-байтном чтении** — это premature EOF (пир закрыл соединение посреди кадра), а не «данных пока нет»:
+
+```csharp
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+/// <summary>
+/// Reads exactly <paramref name="buffer"/>.Length bytes, looping until the
+/// buffer is full. Throws on a 0-byte read (peer closed mid-frame = EOF).
+/// Equivalent to Stream.ReadExactlyAsync, hand-rolled for zero dependency
+/// on a specific Stream's read semantics (or for use over raw Socket).
+/// </summary>
+private static async ValueTask ReadExactAsync(
+    Stream stream,
+    Memory<byte> buffer,
+    CancellationToken ct)
+{
+    var totalRead = 0;
+    while (totalRead < buffer.Length)
+    {
+        var read = await stream
+            .ReadAsync(buffer[totalRead..], ct)
+            .ConfigureAwait(false);
+
+        // 0 means orderly shutdown by the peer. Mid-frame it is a protocol
+        // violation, not "no data yet" — never spin-loop here.
+        if (read == 0)
+        {
+            throw new EndOfStreamException(
+                $"Premature EOF: expected {buffer.Length} bytes, got {totalRead}.");
+        }
+
+        totalRead += read;
+    }
+}
+```
+
+> [!warning] Никогда не игнорируй `read == 0`
+> Самая частая ошибка — `while (totalRead < len) totalRead += await ReadAsync(...)` без проверки нуля. Когда пир закрывает сокет, `ReadAsync` начнёт вечно возвращать 0 — получаешь busy-loop, жгущий ядро на 100% CPU, вместо честного исключения.
+
+### Заголовок → тело: header-first, затем body
+
+Логика приёма кадра в два шага: сперва `ReadExactAsync` фиксированного заголовка (узнаём объявленную длину тела), потом `ReadExactAsync` тела ровно этой длины. Парсим заголовок через `ReadOnlySpan<byte>` + `BinaryPrimitives` — **ноль промежуточных аллокаций** (никаких `BitConverter` + срезов массива):
+
+```csharp
+using System.Buffers;
+using System.Buffers.Binary;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+// Wire header: [4B magic][1B type][4B bodyLength], big-endian. Total 9 bytes.
+private const int HeaderSize = 9;
+private const uint Magic = 0x5446_5031; // "TFP1"
+private const int MaxBodyLength = 16 * 1024 * 1024; // guard against hostile length
+
+private static async ValueTask<(byte Type, byte[] Body)> ReadFrameAsync(
+    Stream stream,
+    CancellationToken ct)
+{
+    // 1) Header first — fixed size, so we know exactly how much to read.
+    var header = new byte[HeaderSize];
+    await ReadExactAsync(stream, header, ct).ConfigureAwait(false);
+
+    // Parse with a Span over the stack-free buffer — zero allocations.
+    var span = (ReadOnlySpan<byte>)header;
+    var magic = BinaryPrimitives.ReadUInt32BigEndian(span[..4]);
+    if (magic != Magic)
+    {
+        throw new InvalidDataException($"Bad magic 0x{magic:X8}; stream desynced.");
+    }
+
+    var type = span[4];
+    var bodyLength = BinaryPrimitives.ReadInt32BigEndian(span[5..9]);
+
+    // Always validate length from the wire BEFORE allocating — a malicious or
+    // corrupt peer can declare 2 GB and OOM you.
+    if ((uint)bodyLength > MaxBodyLength)
+    {
+        throw new InvalidDataException($"Body length {bodyLength} exceeds cap.");
+    }
+
+    // 2) Body — exactly bodyLength bytes, learned from the header.
+    var body = new byte[bodyLength];
+    await ReadExactAsync(stream, body, ct).ConfigureAwait(false);
+
+    return (type, body);
+}
+```
+
+> [!tip] Для горячего пути арендуй буфер тела
+> Под нагрузкой `new byte[bodyLength]` на кадр — давление на GC. Бери `ArrayPool<byte>.Shared.Rent(bodyLength)`, читай в `buffer.AsMemory(0, bodyLength)` и возвращай в `finally`. См. [[memory-pooling|Memory Pooling]].
+
+### Когда писать цикл руками, а когда — `System.IO.Pipelines`
+
+Это **развилка по уровню контроля**, не «старое vs новое»:
+
+| Берёшь | Когда | Почему |
+|--------|-------|--------|
+| Hand-rolled `ReadExactAsync` loop | Контролируешь `Socket` / `NetworkStream`, нужны нулевые framework-зависимости, простой кадр fixed-header + body | Минимум кода, полностью предсказуемо, легко портировать на `Socket.ReceiveAsync` где `ReadExactlyAsync` нет |
+| `System.IO.Pipelines` + `SequenceReader` | Высокий throughput, много мелких кадров, backpressure, парсинг поверх фрагментированного `ReadOnlySequence\<byte\>` | Пул буферов и backpressure из коробки; нет ручного управления partial reads; `SequenceReader.TryReadExact` достаёт кадр без копирования через сегменты |
+
+С Pipelines тот же header-first паттерн выглядит так — `TryRead` накапливает данные в `PipeReader`, а парсер просто сообщает, хватило ли байт на полный кадр:
+
+```csharp
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Threading;
+using System.Threading.Tasks;
+
+private static async ValueTask ProcessFramesAsync(PipeReader reader, CancellationToken ct)
+{
+    while (true)
+    {
+        var result = await reader.ReadAsync(ct).ConfigureAwait(false);
+        var buffer = result.Buffer;
+
+        // Pull as many complete frames as the buffer currently holds.
+        while (TryParseFrame(ref buffer, out var frame))
+        {
+            Handle(frame);
+        }
+
+        // Tell the pipe what we consumed vs. merely examined (drives backpressure
+        // and tells the pipe to keep the not-yet-complete tail for next ReadAsync).
+        reader.AdvanceTo(buffer.Start, buffer.End);
+
+        if (result.IsCompleted)
+        {
+            break;
+        }
+    }
+
+    await reader.CompleteAsync().ConfigureAwait(false);
+}
+
+private static bool TryParseFrame(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> frame)
+{
+    var sr = new SequenceReader<byte>(buffer);
+
+    // Need the full fixed header before we can learn the body length.
+    if (!sr.TryReadExact(HeaderSize, out var headerSeq))
+    {
+        frame = default;
+        return false; // not enough buffered yet — wait for the next ReadAsync
+    }
+
+    // Header may span segments; copy 9 bytes to the stack to parse.
+    Span<byte> header = stackalloc byte[HeaderSize];
+    headerSeq.CopyTo(header);
+    var bodyLength = BinaryPrimitives.ReadInt32BigEndian(header[5..9]);
+
+    if (!sr.TryReadExact(bodyLength, out frame))
+    {
+        frame = default;
+        return false; // header arrived, body hasn't — keep waiting
+    }
+
+    buffer = buffer.Slice(sr.Position); // consume header + body
+    return true;
+}
+```
+
+> [!question]- **Интервью: TCP «потерял половину сообщения» — что не так в коде?**
+> Почти наверняка короткое чтение: один `ReadAsync` приняли за один кадр и распарсили частичный буфер. Транспорт не обязан возвращать столько байт, сколько просили. Решение — `ReadExactAsync`-цикл (header-first, затем body по объявленной длине) либо `System.IO.Pipelines`. Контрольный вопрос «а что при `read == 0`?» отсекает тех, кто словит busy-loop на закрытии соединения.
 
 ---
 

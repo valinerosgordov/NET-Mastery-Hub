@@ -222,6 +222,19 @@ public class TransactionalTest : IAsyncDisposable
 
 > [!warning] Transaction rollback не работает с parallelism
 
+Параллелизм — это только половина проблемы. Главный аргумент против rollback-изоляции — **корректность, а не скорость**. Откатываемая транзакция **никогда не делает реальный `COMMIT`**, и это прячет целый класс багов:
+
+- **Multi-`SaveChanges` сценарии** — несколько коммитов в рамках одной бизнес-операции (outbox, двухфазная запись) внутри обёрнутой транзакции схлопываются в один scope и ведут себя иначе, чем в проде.
+- **Триггеры и deferred constraints** — то, что срабатывает на `COMMIT` (`DEFERRABLE INITIALLY DEFERRED`, after-commit триггеры), при rollback не выполняется вообще.
+- **Post-commit hooks** — domain-events, отправляемые после успешного коммита, MassTransit `Publish` на `SaveChanges`, `TransactionScope` completion-callbacks — все они привязаны к реальному коммиту и в rollback-тесте молчат.
+
+Итог: тест зелёный, потому что половина пути просто не исполнялась. Предпочтительнее **session-scoped контейнер + Respawn (TRUNCATE)**: каждый тест **по-настоящему коммитит**, а очистка между тестами делается truncate'ом. Так ты тестируешь реальный commit-path, сохраняя изоляцию.
+
+> [!warning] `MigrateAsync` vs `EnsureCreated` — схему строй миграциями
+> `EnsureCreated` / `EnsureCreatedAsync` создаёт схему **напрямую из модели**, минуя весь migration pipeline. Тесты будут зелёными, даже если реальная миграция сломана (забытый столбец, кривой `down`, ручной SQL в миграции, который не отражён в модели) — на проде накатывается совсем другая схема.
+>
+> `MigrateAsync` прогоняет **те же самые скрипты миграций**, что и продакшен. Тогда сам suite становится guard'ом против schema drift: сломанная миграция падает в CI, а не в проде. В integration-тестах с реальной БД всегда `MigrateAsync`, `EnsureCreated` — только для выкидных smoke-проверок.
+
 ### Unique data per test
 
 ```csharp
@@ -608,6 +621,42 @@ public class TestWithTime
 public class Tests : IClassFixture<WebApplicationFactory<Program>> { }
 ```
 
+### 6. Один `DbContext` на Act и Assert — зелёный тест поверх непроверенной БД
+
+Самый коварный false-positive в integration-тестах. Если в Act и в Assert используется **один и тот же** экземпляр `DbContext`, проверочный запрос обслуживается не из БД, а из **identity map** (EF first-level cache): контекст возвращает тот же tracked-инстанс, который ты добавил в Act. Тест зелёный, хотя `SaveChanges` мог не выполниться (забыл `await`, фильтр в `SaveChanges` отбросил entity, триггер откатил вставку) — реального round-trip к БД не было.
+
+```csharp
+// ❌ Assert читает из identity-map кэша того же контекста — SQL мог не отработать
+[Fact]
+public async Task CreateOrder_persists()
+{
+    var order = new Order { Id = Guid.NewGuid(), Total = 100m };
+    Db.Orders.Add(order);
+    await Db.SaveChangesAsync();
+
+    var loaded = await Db.Orders.FindAsync(order.Id);  // вернёт tracked-инстанс из памяти
+    loaded.ShouldNotBeNull();                          // зелёный даже без реального SELECT
+}
+```
+
+```csharp
+// ✅ Очистить ChangeTracker между Act и Assert — форсируем реальный round-trip
+[Fact]
+public async Task CreateOrder_persists()
+{
+    var order = new Order { Id = Guid.NewGuid(), Total = 100m };
+    Db.Orders.Add(order);
+    await Db.SaveChangesAsync();
+
+    Db.ChangeTracker.Clear();                           // сброс identity map
+
+    var loaded = await Db.Orders.FindAsync(order.Id);  // настоящий SELECT в БД
+    loaded.ShouldNotBeNull();
+}
+```
+
+Надёжнее — отдельный `DbContext` (свежий scope) для Assert: Act-контекст для записи, Assert-контекст для чтения. Тогда identity map физически пуст и каждое чтение бьёт в БД. Механика identity map подробно — [[basics-tracking|EF Core Change Tracking]].
+
 ---
 
 ## 13. Best Practices
@@ -653,7 +702,7 @@ public class Tests : IClassFixture<WebApplicationFactory<Program>> { }
 **Сценарий:** Senior просматривает PR от Junior'а. Стандартные issues: naming, missing nulls, dead code.
 
 **Workflow:**
-1. **AI первый pass** — Copilot Chat / Claude review кода
+1. **AI первый pass** — Copilot Chat review кода
 2. **Senior валидирует AI feedback** — отбрасывает false positives
 3. **Senior фокусируется на architecture** — что AI не видит:
    - Domain logic correctness
@@ -662,8 +711,6 @@ public class Tests : IClassFixture<WebApplicationFactory<Program>> { }
    - Security in context
 
 **Time saved:** 30 min review → 10 min (AI на mechanical, senior на important).
-
-См.[[ai-coding-tools|AI Coding Tools]].
 
 ---
 
@@ -775,7 +822,7 @@ Quality issue?
 ## См. также
 
 - [[testing|Testing — общие principles]]
-- [[mutation-testing|Mutation Testing — Stryker.NET]]
+- [[mutation-load-testing|Mutation Testing — Stryker.NET]]
 -[[arch-tests|Architecture Tests]]
 -[[static-analysis|Static Analysis — quality gates]]
 -[[basics-tracking|EF Core for repository tests]]

@@ -235,37 +235,104 @@ Func<int, int> sq = static x => x * x;   // no closure capture allowed
 
 `static` keyword — compile-time guarantee no captures. Performance optimization.
 
-### 3.5. Closure pitfalls — loop variable
+### 3.5. Closure capture in loops
+
+**Why before how.** Closure captures **storage location** (the variable itself), **не snapshot** значения в момент создания lambda. Все lambda, созданные в одной итерации `for`, делят **одну** ячейку памяти `i`. К моменту вызова цикл уже домотал `i` до финального значения — все читают его.
 
 ```csharp
 var actions = new List<Action>();
 for (int i = 0; i < 5; i++)
 {
-    actions.Add(() => Console.WriteLine(i));
+    actions.Add(() => Console.WriteLine(i));   // все captures одну и ту же ячейку i
 }
 foreach (var a in actions) a();
-// Печатает 5 5 5 5 5 (captured i, mutates до 5)
+// Печатает 5 5 5 5 5 — i домотался до 5 ДО первого вызова
 ```
 
-**Фикс:** local copy.
+Mechanism: compiler выносит `i` в один экземпляр hidden closure class на весь цикл. Каждая lambda держит reference на **тот же** объект — поле `i` в нём мутирует на каждой итерации.
+
+**Фикс — fresh per-iteration local.** Объяви новую переменную внутри тела цикла: каждая итерация создаёт **отдельный** closure object с собственной копией.
 
 ```csharp
+var actions = new List<Action>();
 for (int i = 0; i < 5; i++)
 {
-    int copy = i;   // separate variable per iteration
+    int copy = i;   // fresh storage location per iteration
     actions.Add(() => Console.WriteLine(copy));
 }
+foreach (var a in actions) a();
 // Печатает 0 1 2 3 4
 ```
 
-`foreach` (C# 5+) — каждая iteration имеет свой copy by default.
+#### `foreach` безопасен (C# 5+), `for` — нет
+
+До C# 5 `foreach` имел ту же проблему — одна общая переменная итерации. С C# 5 спецификация изменилась: `foreach` объявляет **fresh переменную каждую итерацию**, поэтому capture безопасен без ручной копии.
 
 ```csharp
-foreach (var x in items)
+var actions = new List<Action>();
+foreach (var x in new[] { 0, 1, 2 })
 {
-    actions.Add(() => Console.WriteLine(x));   // OK по C# 5+
+    actions.Add(() => Console.WriteLine(x));   // OK с C# 5+ — fresh x каждую итерацию
 }
+foreach (var a in actions) a();
+// Печатает 0 1 2 — безопасно
 ```
+
+> [!warning] `for` это изменение **не** затронуло
+> `for`, `while` и любой явный **shared local** вне тела цикла по-прежнему captures одну ячейку. Правило: переменная объявлена внутри тела на каждой итерации → safe; объявлена один раз снаружи → shared → bug.
+
+Тот же баг с явным shared local — переменная вне `foreach`:
+
+```csharp
+var actions = new List<Action>();
+string current = "";
+foreach (var name in new[] { "a", "b", "c" })
+{
+    current = name;                              // mutates shared local
+    actions.Add(() => Console.WriteLine(current));
+}
+foreach (var a in actions) a();
+// Печатает c c c — все captures одну ячейку current
+```
+
+#### Async fan-out — версия хуже
+
+В async fan-out lambda запускается **после** того, как цикл закончился (`await Task.WhenAll` в конце). К этому моменту общая переменная уже на финальном значении — все таски печатают одно и то же. Это распространённый источник «почему все мои параллельные запросы используют последний id».
+
+```csharp
+// ❌ Bug: задачи стартуют, но тело читает i ПОСЛЕ конца цикла
+var tasks = new List<Task>();
+for (int i = 0; i < 3; i++)
+{
+    tasks.Add(Task.Run(async () =>
+    {
+        await Task.Delay(50);
+        Console.WriteLine(i);   // captures shared i
+    }));
+}
+await Task.WhenAll(tasks);
+// Печатает 3 3 3 — цикл домотал i до 3 раньше, чем таски проснулись
+```
+
+Фикс тот же — fresh local на каждой итерации, замыкаемся на копию:
+
+```csharp
+// ✅ Fix: каждая итерация захватывает собственную копию
+var tasks = new List<Task>();
+for (int i = 0; i < 3; i++)
+{
+    int copy = i;   // fresh per-iteration storage
+    tasks.Add(Task.Run(async () =>
+    {
+        await Task.Delay(50);
+        Console.WriteLine(copy);
+    }));
+}
+await Task.WhenAll(tasks);
+// Печатает 0 1 2 (порядок не гарантирован — параллельно)
+```
+
+Подробнее про fan-out, `Task.WhenAll` и race conditions — [[async-threading|Async и Threading]].
 
 ### 3.6. Local functions (C# 7+)
 

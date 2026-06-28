@@ -1,9 +1,11 @@
-﻿---
+---
 tags: [postgresql, plpgsql, stored-procedures, functions, triggers, npgsql, raw-sql]
 level: Senior
 ---
 
 # PostgreSQL: Функции, процедуры, триггеры и raw SQL из .NET
+
+> PL/pgSQL функции vs процедуры, volatility-категории, триггеры (BEFORE/AFTER, аудит, `updated_at`), вызов raw SQL из Npgsql/EF Core с ловлей доменных ошибок по ERRCODE — и senior-граница «целостность данных в БД, бизнес-логика в приложении».
 
 ## Кратко
 Хранимые функции/процедуры на PL/pgSQL, триггеры и вызов raw SQL из Npgsql/EF Core — то, что Postgres-вакансии любят спрашивать отдельно. Главный senior-вопрос здесь не «как написать триггер», а «когда логика уместна в БД, а когда это анти-паттерн».
@@ -215,6 +217,9 @@ while (await reader.ReadAsync(ct).ConfigureAwait(false))
     });
 }
 ```
+
+> [!warning] `AddWithValue` здесь и ниже — упрощение
+> `AddWithValue` выводит `NpgsqlDbType` из CLR-типа значения, и для неоднозначных типов (`timestamptz` vs `timestamp`, `jsonb` vs `text`, `numeric` precision/scale) это даёт неверный маппинг и implicit conversion, который ломает индексы. В проде задавай тип явно: `cmd.Parameters.Add(new NpgsqlParameter("since", NpgsqlDbType.TimestampTz) { Value = ... })`. Разбор — [[security-practices]].
 
 ### Процедура через CALL
 ```csharp

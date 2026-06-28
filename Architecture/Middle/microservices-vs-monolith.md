@@ -98,7 +98,7 @@ date: 2026-04-30
 - Команда 5-30 разработчиков
 - **Default для большинства новых проектов 2026**
 
-См.[[C# and NET/Architecture/patterns|Architecture Patterns]] — детальный гайд по Modular Monolith.
+См. [[architecture-patterns|Architecture Patterns]] — детальный гайд по Modular Monolith.
 
 ### Microservices
 
@@ -229,7 +229,7 @@ Service A ──sync──▶ Service B ──sync──▶ Service C ──sync
 | Secrets management | One config | One config | Per service |
 | Monitoring overhead | Low | Low | High |
 
-См.[[observability|Observability]].
+См. [[observability|Observability]].
 
 ---
 
@@ -547,7 +547,7 @@ Module: "Validation"
 
 Без этого — debugging = ад.
 
-См.[[observability|Observability]].
+См. [[observability|Observability]].
 
 ### 7. Microservices с shared DB
 
@@ -697,12 +697,12 @@ Monolith vs Microservices?
 
 ## См. также
 
--[[C# and NET/Architecture/patterns|Architecture Patterns]] — Modular Monolith / VSA / Clean
+- [[architecture-patterns|Architecture Patterns]] — Modular Monolith / VSA / Clean
 - [[ddd|DDD]] — bounded contexts
 - [[distributed-systems|Distributed Systems]] — Saga, Outbox, eventual consistency
 - [[arch-tests|Architecture Tests]] — enforce module boundaries
--[[observability|Observability]] — required для micro
--[[03_middle-to-senior|Middle → Senior]]
+- [[observability|Observability]] — required для micro
+- [[03_middle-to-senior|Middle → Senior]]
 
 ## Reading list
 

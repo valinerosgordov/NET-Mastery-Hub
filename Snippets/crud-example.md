@@ -5,6 +5,8 @@ level: Senior
 
 # CRUD — полный пример от Endpoint до БД
 
+> Сквозной copy-paste template всех четырёх CRUD-операций: путь от Minimal API endpoint через explicit Handler и rich-domain `Entity<Guid>` до EF Core и обратно, с `Result<T>`, DTO records и пагинацией.
+
 ## Что это, зачем и когда
 
 ### Что такое CRUD?

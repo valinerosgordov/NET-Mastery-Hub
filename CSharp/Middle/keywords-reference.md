@@ -348,6 +348,85 @@ unsafe
 > [!question]- Интервью: чем `readonly` отличается от `const`?
 > **`const`** — compile-time constant. Value embedded в caller assembly. Тип: только primitives, string, null. Изменение в библиотеке = breaking change для callers (нужна recompilation). **`readonly`** — runtime constant. Initialized в constructor или declaration. Любой тип. Изменение реализации не breaks callers. Best practice: `static readonly` для public consts (более safe), `const` только для primitives которые точно не изменятся (`Math.PI`).
 
+### 4.13. Parameter modifiers: ref / out / in — mental model
+
+By default parameters передаются **by value**: метод получает копию аргумента (для value type — копию значения, для reference type — копию ссылки). `ref`, `out`, `in` меняют это: метод получает не копию, а **storage location** (адрес самой переменной caller'а). Сам тип при этом остаётся каким был — value type не превращается в reference type; ты просто передаёшь ссылку на ячейку, где он лежит.
+
+```csharp
+void ByValue(int x) => x = 99;       // менят копию, caller не видит
+void ByRef(ref int x) => x = 99;     // менят саму переменную caller'а
+
+int a = 1;
+ByValue(a);   // a == 1
+ByRef(ref a); // a == 99
+```
+
+Ключевая ментальная модель: `ref`/`out`/`in` передают **местоположение** (location), а не значение. Через эту location метод читает и пишет ту же ячейку памяти, что и caller. Категория типа (`value` vs `reference`) от этого не меняется — `int` остаётся value type, просто доступ к нему идёт по адресу.
+
+### 4.14. ref — переменная должна быть инициализирована ДО вызова
+
+`ref` — двусторонняя связь: метод и читает, и пишет переменную caller'а. Поэтому compiler требует, чтобы переменная была **инициализирована до вызова** (метод вправе её прочитать первым делом).
+
+```csharp
+void Increment(ref int x) => x++;   // читает x, затем пишет
+
+int n = 5;        // обязательно инициализировать
+Increment(ref n); // n == 6
+
+int m;
+Increment(ref m); // ❌ compile error: use of unassigned local variable 'm'
+```
+
+`ref` нужен в declaration **и** в call site (`Increment(ref n)`) — явность на стороне вызова показывает читателю, что переменная может измениться.
+
+### 4.15. out — обязан быть присвоен ВНУТРИ метода
+
+`out` — односторонняя связь наружу: метод **обязан присвоить** значение перед любым нормальным `return` (compiler это проверяет). Поэтому caller'у инициализировать переменную не нужно — её прежнее значение всё равно игнорируется.
+
+```csharp
+bool TryParse(string s, out int result)
+{
+    if (int.TryParse(s, out int parsed))
+    {
+        result = parsed;   // обязаны присвоить
+        return true;
+    }
+    result = 0;            // и на этой ветке тоже — иначе compile error
+    return false;
+}
+
+if (TryParse("42", out int value))   // out var — объявление прямо в вызове
+    Console.WriteLine(value);        // 42
+```
+
+Классический паттерн — `Try*` методы: bool-результат + `out` значение. Внутри метода каждый путь выполнения обязан присвоить `out`-параметр.
+
+### 4.16. in — readonly by-reference (передаём location, но менять нельзя)
+
+`in` передаёт переменную **by reference**, но **read-only** — метод не может её изменить. Смысл — избежать копирования большого `struct` при передаче, сохранив immutability. Для маленьких типов (`int`, `long`) выигрыша нет, только лишний indirection.
+
+```csharp
+readonly struct BigValue   // readonly struct — ключевой момент
+{
+    public readonly long A, B, C, D;
+    public long Sum() => A + B + C + D;
+}
+
+long Process(in BigValue v)   // передаётся по ссылке, без копии 32 байт
+{
+    // v.A = 1;   // ❌ compile error — in-параметр read-only
+    return v.Sum();
+}
+```
+
+> [!warning] Defensive copy на не-readonly struct
+> Если struct **не** `readonly`, compiler не может гарантировать, что вызванный метод (например `v.Sum()`) не мутирует `v`. Чтобы защитить read-only контракт `in`, он создаёт **скрытую защитную копию** на каждом обращении к члену — и весь выигрыш `in` исчезает (становится даже хуже обычной передачи by value). Правило: `in` имеет смысл **только** для `readonly struct`, где defensive copy не нужна.
+
+`in` на call site опционален (`Process(in v)` или `Process(v)`), но явный `in` документирует намерение. Senior-уровень (`ref returns`, `ref locals`, `ref readonly` для возврата ссылок и алиасов памяти) разобран в [[types-and-memory|Types и Memory]] раздел 4.5–4.7.
+
+> [!question]- Интервью: в чём разница ref / out / in?
+> Все три передают **storage location** (адрес переменной), а не копию — но сам тип остаётся value type, категория не меняется. **`ref`** — двусторонняя: переменная должна быть инициализирована **до** вызова (метод может прочитать), метод может читать и писать. **`out`** — наружу: caller инициализировать не обязан, метод **обязан присвоить** значение на каждом пути до `return` (паттерн `Try*`). **`in`** — внутрь read-only: передача by-reference без права мутации, нужна чтобы не копировать большой `readonly struct`. ⚠️ `in` на **не-`readonly`** struct провоцирует defensive copy при каждом обращении к члену — выигрыш теряется. `ref`/`out` требуют keyword и в declaration, и на call site; у `in` call-site keyword опционален.
+
 ---
 
 ## 5. Control flow

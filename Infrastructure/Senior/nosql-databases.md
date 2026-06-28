@@ -818,9 +818,9 @@ await _db.CreateCollectionAsync("products",
 - [[caching|Caching]] — Redis-based caching
 - [[distributed-systems|Distributed Systems]] — CAP theorem, consistency
 - [[messaging|Messaging]] — Kafka для ingestion в NoSQL
-- [[elasticsearch|Elasticsearch]] (TBD) — search engine
-- [[time-series-dbs|Time-Series DBs]] (TBD)
-- [[graph-databases|Graph DBs]] (TBD)
+- Elasticsearch (TBD) — search engine
+- Time-Series DBs (TBD)
+- Graph DBs (TBD)
 
 ## 17. Reading list
 

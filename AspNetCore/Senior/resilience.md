@@ -5,6 +5,8 @@ level: Senior
 
 # Resilience и HttpClient
 
+> Устойчивость к сбоям зависимостей через Polly v8 — Retry, Timeout, Circuit Breaker, Hedging, Bulkhead и Fallback поверх typed `HttpClient`.
+
 ## Что это, зачем и когда
 
 ### Что такое resilience?

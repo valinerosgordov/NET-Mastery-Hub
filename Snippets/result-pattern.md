@@ -1,5 +1,7 @@
 # Snippets — Result<T> Pattern
 
+> Кастомный `Result<T>` + `Error` record как замена исключениям: фабрики Ok/Fail, `Match()` для маппинга в HTTP-ответы Minimal API и railway-oriented chaining нескольких шагов.
+
 ## Базовая реализация Result<T>
 
 ```csharp
@@ -110,5 +112,4 @@ public async Task<Result<OrderConfirmation>> ProcessOrderAsync(
 
 ## См. также
 
-- [[Result Pattern + CQRS|Result Pattern + CQRS]]
-- [[MediatR Handlers|MediatR Handlers]]
+- [[mediatr-handlers|MediatR Handlers]]

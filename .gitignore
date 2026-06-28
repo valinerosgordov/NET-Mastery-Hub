@@ -1,9 +1,7 @@
-﻿# Backup files (created by format-fix scripts)
+# Backup files (created by format-fix scripts)
 *.bak
 *.bak-*
 *.backup
-
-.claude/
 
 # OS-specific
 .DS_Store
@@ -18,10 +16,14 @@ desktop.ini
 *~
 
 # Obsidian
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/cache
+.obsidian/
 .trash/
+
+# Local-only maintenance & process artifacts (kept on disk, not published)
+Scripts/
+_encoding_backup_*/
+_changelog.md
+AUDIT_REPORT_*.md
 
 # Temporary
 *.tmp

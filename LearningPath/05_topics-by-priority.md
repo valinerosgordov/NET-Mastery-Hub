@@ -23,7 +23,7 @@ date: 2026-04-30
 | 5 | Pipeline & Middleware | [[pipeline-middleware\|pipeline-middleware]] | Medium | ⭐⭐⭐⭐⭐ |
 | 6 | Authentication / JWT | [[auth-security\|auth-security]] | High | ⭐⭐⭐⭐⭐ |
 | 7 | SOLID principles | [[solid\|solid]] | Low | ⭐⭐⭐⭐⭐ |
-| 8 | Architecture Patterns | [[C# and NET/Architecture/patterns\|patterns]] | High | ⭐⭐⭐⭐⭐ |
+| 8 | Architecture Patterns | [[architecture-patterns\|architecture-patterns]] | High | ⭐⭐⭐⭐⭐ |
 | 9 | SQL Optimization | [[optimization\|optimization]] | Medium | ⭐⭐⭐⭐⭐ |
 | 10 | Testing | [[testing\|testing]] | Medium | ⭐⭐⭐⭐⭐ |
 
@@ -46,7 +46,7 @@ date: 2026-04-30
 | 17 | CQRS + MediatR | [[cqrs-mediatr\|cqrs-mediatr]] | Medium | ⭐⭐⭐⭐ |
 | 18 | Distributed Systems | [[distributed-systems\|distributed-systems]] | High | ⭐⭐⭐⭐ |
 | 19 | EF Migrations | [[migrations\|migrations]] | Medium | ⭐⭐⭐⭐ |
-| 20 | EF Patterns | [[C# and NET/EFCore/patterns\|patterns]] | High | ⭐⭐⭐⭐ |
+| 20 | EF Patterns | [[ef-patterns\|ef-patterns]] | High | ⭐⭐⭐⭐ |
 | 21 | Caching | [[caching\|caching]] | Medium | ⭐⭐⭐⭐ |
 | 22 | Resilience (Polly) | [[resilience\|resilience]] | Low | ⭐⭐⭐⭐ |
 | 23 | Logging Observability | [[logging-observability\|logging-observability]] | Medium | ⭐⭐⭐⭐ |
@@ -56,6 +56,15 @@ date: 2026-04-30
 | 27 | PostgreSQL Deep | [[postgresql-deep\|postgresql-deep]] | High | ⭐⭐⭐⭐ |
 | 28 | Performance | [[performance\|performance]] | High | ⭐⭐⭐⭐ |
 | 29 | Diagnostics tools | [[diagnostics-tools\|diagnostics-tools]] | Medium | ⭐⭐⭐⭐ |
+| 29a | ThreadPool Starvation / Hill-Climbing | [[threadpool-starvation-hill-climbing\|threadpool-starvation-hill-climbing]] | High | ⭐⭐⭐⭐ |
+| 29b | Agent-Safe Architecture | [[agent-safe-architecture\|agent-safe-architecture]] | Medium | ⭐⭐⭐⭐ |
+| 29c | Stack vs Heap | [[memory-stack-heap\|memory-stack-heap]] | Low | ⭐⭐⭐⭐ |
+| 29d | EF Value Converters | [[ef-value-converters\|ef-value-converters]] | Low | ⭐⭐⭐⭐ |
+| 29e | Lazy vs Eager Loading | [[lazy-eager-loading\|lazy-eager-loading]] | Low | ⭐⭐⭐⭐ |
+| 29f | HttpClient Resilience | [[http-client-resilience\|http-client-resilience]] | Low | ⭐⭐⭐⭐ |
+| 29g | Rate Limiting (ASP.NET) | [[aspnet-rate-limiting\|aspnet-rate-limiting]] | Low | ⭐⭐⭐⭐ |
+| 29h | Performance Budgets | [[performance-budgets\|performance-budgets]] | Medium | ⭐⭐⭐⭐ |
+| 29i | SQL Security | [[sql-security\|sql-security]] | Medium | ⭐⭐⭐⭐ |
 
 ---
 
@@ -78,6 +87,9 @@ date: 2026-04-30
 | 40 | Architecture Tests | [[arch-tests\|arch-tests]] | Большие проекты |
 | 41 | ADRs | [[architecture-decisions\|architecture-decisions]] | Tech leads |
 | 42 | System Design | [[system-design\|system-design]] | FAANG interviews |
+| 43 | EIP: Content-Based Router | [[eip-content-based-router\|eip-content-based-router]] | Integration / messaging pipelines |
+| 44 | Fenwick Tree / BIT | [[fenwick-bit\|fenwick-bit]] | Leaderboards, running aggregates |
+| 45 | Kestrel как raw HTTP host | [[kestrel-as-raw-host\|kestrel-as-raw-host]] | Framework / gateway / proxy authors |
 
 ---
 
@@ -126,7 +138,7 @@ date: 2026-04-30
 2. [[basics-tracking|basics-tracking]]
 3. [[queries-performance|queries-performance]]
 4. [[di-configuration|di-configuration]]
-5. [[C# and NET/Architecture/patterns|C]]
+5. [[architecture-patterns|Architecture Patterns]]
 
 ### Если у меня месяц
 

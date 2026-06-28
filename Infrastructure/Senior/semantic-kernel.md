@@ -5,6 +5,8 @@ level: Senior
 
 # Semantic Kernel и Vector Search в .NET
 
+> Semantic Kernel как единый AI SDK от Microsoft для .NET (LLM, embeddings, agents) плюс vector search по смысловой близости — выбор vector store (pgvector, Qdrant, Pinecone, Redis) под задачу RAG и семантического поиска.
+
 ## Что это, зачем и когда
 
 ### Что такое Semantic Kernel?
@@ -338,7 +340,7 @@ var result = await kernel.InvokeAsync(summarize, new() { ["input"] = text });
 
 ### Концепция
 
-LLM (GPT-4, Claude, Gemini) поддерживают **function calling**: ты регистрируешь functions, LLM решает какую вызвать на user query, парсирует arguments, ты executes function, returns result обратно LLM.
+LLM (GPT-4, Gemini, Llama) поддерживают **function calling**: ты регистрируешь functions, LLM решает какую вызвать на user query, парсирует arguments, ты executes function, returns result обратно LLM.
 
 ```
 User: "What's the weather in Berlin tomorrow?"

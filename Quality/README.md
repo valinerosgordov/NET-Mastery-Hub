@@ -1,8 +1,8 @@
 # Quality — clean code & code quality
 
-> 5 файлов / 123 KB. Clean code (Junior принципы) + Senior tooling (analyzers, SonarCloud).
+> 5 файлов / ~135 KB. Clean code (Junior принципы) + Senior tooling (analyzers, SonarCloud).
 
-[← Главный README]() · [Полный INDEX]()
+[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
 ---
 
@@ -10,10 +10,10 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Junior, basics | [`clean-code.md`]() — naming, principles |
+| Junior, basics | [`clean-code.md`](Junior/clean-code.md) — naming, principles |
 | На code review | [`code-review.md`](code-review.md) |
-| Setup analyzers / SonarCloud | [`code-quality.md`](), [`static-analysis.md`]() |
-| Refactor legacy | [`refactoring.md`]() |
+| Setup analyzers / SonarCloud | [`code-quality.md`](Senior/code-quality.md), [`static-analysis.md`](Senior/static-analysis.md) |
+| Refactor legacy | [`refactoring.md`](Middle/refactoring.md) |
 
 ---
 
@@ -23,14 +23,14 @@
 
 | Файл | Описание |
 |------|----------|
-| [`clean-code.md`]() | Naming, principles, fundamentals (universal) |
+| [`clean-code.md`](Junior/clean-code.md) | Naming, principles, fundamentals (universal) |
 
 ### Senior — tools
 
 | Файл | Описание |
 |------|----------|
-| [`code-quality.md`]() | Analyzers, EditorConfig, SonarCloud |
-| [`static-analysis.md`]() | Roslyn analyzers, .editorconfig |
+| [`code-quality.md`](Senior/code-quality.md) | Analyzers, EditorConfig, SonarCloud |
+| [`static-analysis.md`](Senior/static-analysis.md) | Roslyn analyzers, .editorconfig |
 
 > ⚠️ **`clean-code.md` ≠ `code-quality.md`** — это разные уровни:  
 > `clean-code` — принципы, **что** такое хороший код (Junior)  
@@ -41,12 +41,12 @@
 | Файл | Описание |
 |------|----------|
 | [`code-review.md`](code-review.md) | Code review process & culture |
-| [`refactoring.md`]() | Refactoring techniques (Fowler-style) |
+| [`refactoring.md`](Middle/refactoring.md) | Refactoring techniques (Fowler-style) |
 
 ---
 
 ## 🔗 Связанные папки
 
-- [`Architecture/solid`]() — principles foundation
-- [`Architecture/arch-tests`]() — automated architecture quality
+- [`Architecture/Senior/solid.md`](../Architecture/Senior/solid.md) — principles foundation
+- [`Architecture/Senior/arch-tests.md`](../Architecture/Senior/arch-tests.md) — automated architecture quality
 - [`Testing/`](../Testing/) — tests как часть quality

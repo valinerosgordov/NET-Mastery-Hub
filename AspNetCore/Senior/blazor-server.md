@@ -5,6 +5,8 @@ level: Senior
 
 # Blazor Server — production guide
 
+> Web UI на C#/Razor с рендером на сервере и доставкой diff'ов через SignalR-circuit; разбор render modes, управления состоянием circuit и эксплуатации под нагрузкой.
+
 ## Что это, зачем и когда
 
 ### Что такое Blazor?

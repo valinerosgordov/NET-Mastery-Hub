@@ -961,6 +961,70 @@ Access-Control-Max-Age: 600
 
 Браузер блокирует комбинацию `*` origin + credentials. Нужно явно перечислить origins. Это by design (защита от credential theft).
 
+### Pitfall — `Vary: Origin` обязателен при reflected origin
+
+Как только `Access-Control-Allow-Origin` **вычисляется из** заголовка `Origin` запроса (а не статичный `*`), ответ становится **origin-dependent**: для origin A сервер вернёт `Access-Control-Allow-Origin: https://a.example`, для origin B — `https://b.example`. `WithOrigins(...)` с whitelist именно так и работает — он отражает совпавший origin обратно.
+
+Проблема — **shared / CDN cache**. Если кэш ключует ответ только по URL (метод + path + query), он не различает запросы от разных origin. Первый клиент (origin A) прогревает кэш, в кэш попадает ответ с `Access-Control-Allow-Origin: https://a.example`. Следующий запрос на тот же URL от origin B **получает закэшированный ответ с CORS-заголовками origin A**. Это cache poisoning: либо origin B видит чужие CORS-разрешения (и его браузер блокирует легитимный запрос), либо — хуже — `Allow-Credentials: true` с чужим origin утекает в браузер, который не должен был его получить.
+
+Лекарство — добавить `Origin` в ключ кэширования через заголовок `Vary`. Тогда кэш хранит **отдельную запись на каждый origin**, и ответ origin A никогда не отдаётся origin B.
+
+```csharp
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.OnStarting(() =>
+    {
+        // Если CORS-middleware отразил Origin в ACAO — кэш ОБЯЗАН варьировать по Origin
+        if (ctx.Response.Headers.ContainsKey("Access-Control-Allow-Origin"))
+            ctx.Response.Headers.Append("Vary", "Origin");
+        return Task.CompletedTask;
+    });
+    await next(ctx);
+});
+```
+
+Практические правила:
+
+- Любой ответ с reflected origin → `Vary: Origin` (а при reflected `Access-Control-Request-Headers` ещё и `Vary: Access-Control-Request-Headers`).
+- Статичный `Access-Control-Allow-Origin: *` без credentials — `Vary` не нужен (ответ одинаков для всех).
+- На CDN (CloudFront/Fastly/nginx `proxy_cache`) проверь, что `Vary: Origin` **уважается** прокси, а не вырезается — иначе защита бесполезна. См. [[pipeline-middleware|Pipeline & Middleware]] (`Response.OnStarting` — добавление заголовков на этапе отправки).
+
+> [!warning]
+> `Vary: Origin` сам по себе **не** включает CORS — он только разделяет cache-записи. Без него отравление кэша возможно даже при идеально настроенном whitelist.
+
+### Fail-closed per-route policy dispatch
+
+Когда у разных маршрутов разные CORS-правила (публичный API с `*`, partner API с whitelist, внутренний — closed), нужен явный диспетчер политики **на каждый matched route**. Два требования делают его безопасным:
+
+1. **Match по path, IGNORING HTTP-метод.** Preflight — это всегда `OPTIONS` **без** `Authorization` и без тела, и его метод не равен методу основного запроса (реальный метод лежит в `Access-Control-Request-Method`). Если резолвер политики матчит по паре (path + method), `OPTIONS`-preflight не найдёт политику `POST`-маршрута → CORS-заголовки не выставятся → браузер заблокирует основной запрос. Матчим **только по path**, чтобы preflight и реальный запрос разрешались в одну и ту же политику.
+2. **Fail-closed порядок резолва origin** — при неоднозначности отвергаем, а не открываем:
+
+```csharp
+static string? ResolveAllowedOrigin(
+    string requestOrigin,
+    RoutePolicy policy)
+{
+    // 1. Явный резолвер (per-tenant из БД, динамический whitelist)
+    if (policy.OriginResolver is { } resolver && resolver(requestOrigin) is { } resolved)
+        return resolved;
+
+    // 2. Явный публичный '*' — ТОЛЬКО если маршрут осознанно помечен Public
+    if (policy.IsExplicitlyPublic)
+        return "*";  // credentials на таком маршруте запрещены by design
+
+    // 3. Статический whitelist — отражаем origin, если он в списке
+    if (policy.Whitelist.Contains(requestOrigin))
+        return requestOrigin;
+
+    // 4. Ничего не совпало → reject (НЕ возвращаем '*' неявно)
+    return null;
+}
+```
+
+Ключевой инвариант: **`*` никогда не появляется неявно** как fallback. Origin отражается только если он прошёл явный резолвер или присутствует в whitelist; `*` — только для маршрута, который автор кода **явно** объявил публичным (и где credentials отключены — см. пинфол `AllowAnyOrigin()` + `AllowCredentials()` выше). Любая «дыра» в правилах схлопывается в `null` → запрос отвергается. Это и есть fail-closed: ошибка конфигурации приводит к отказу, а не к открытому для всех API.
+
+Порядок middleware для такого диспетчера — тот же, что у встроенного CORS: **после Routing, до Auth**, чтобы preflight (`OPTIONS` без `Authorization`) проходил и чтобы политика читалась с уже выбранного endpoint. См. [[pipeline-middleware|Pipeline & Middleware]] (порядок: Routing → CORS → Authentication → Authorization).
+
 ---
 
 ## Multi-tenant authorization
@@ -1054,7 +1118,7 @@ Refresh должен быть **opaque** — random bytes, lookup по hash. JWT
 JS читает auth cookie → XSS = угон. Всегда `HttpOnly = true`.
 
 ### 7. CORS `AllowAnyOrigin()` в проде
-Любой сайт может звать твой API с user credentials. Только explicit list.
+Любой сайт может звать твой API с user credentials. Только explicit list. Смежные CORS-футганы в разделе «CORS — детали»: пропущенный `Vary: Origin` при reflected origin (cache poisoning через shared/CDN cache) и per-route dispatch, который матчит по методу и потому теряет `OPTIONS`-preflight.
 
 ### 8. `[Authorize]` забыли на endpoint
 Каждый новый endpoint default authorize → используй `FallbackPolicy.RequireAuthenticatedUser()`. Открывай через `[AllowAnonymous]` явно.

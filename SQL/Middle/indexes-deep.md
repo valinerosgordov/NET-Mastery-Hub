@@ -828,6 +828,7 @@ Index стратегия?
 - [[sql-basics|SQL Basics]] — fundamentals
 - [[optimization|SQL Optimization]] — query plan deep
 - [[postgresql-deep|PostgreSQL Deep]] — PG specifics, RLS, JSONB
+- [[eav-flexible-store-indexing|EAV Flexible Store Indexing]] — один набор индексов на любую схему, partial/covering для EAV
 - [[queries-performance|EF Queries Performance]] — N+1, projections
 - [[migrations|EF Migrations]] — index creation in migrations
 

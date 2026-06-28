@@ -5,6 +5,8 @@ level: Senior
 
 # Caching и Rate Limiting
 
+> Многоуровневое кэширование (`IMemoryCache`, Redis, HybridCache, Output Cache, CDN) и защита API через Rate Limiting для снижения нагрузки на DB и downstream-сервисы.
+
 ## Что это, зачем и когда
 
 ### Что такое кэширование?

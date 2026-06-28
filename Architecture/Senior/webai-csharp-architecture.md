@@ -1,3 +1,9 @@
+---
+tags: [architecture, case-study, migration, modular-monolith]
+level: Senior
+date: 2026-06-12
+---
+
 # WebAI C# Architecture — Big Tech Level Design Document
 
 > Landing page generator: user fills form -> AI generates texts + images -> site published instantly.

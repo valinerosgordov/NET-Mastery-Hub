@@ -5,6 +5,8 @@ level: Senior
 
 # WPF Production Guide — современный desktop на .NET
 
+> Современный production-стек WPF на .NET 10: CommunityToolkit.Mvvm (source generators), WPF-UI (Fluent Design / Mica), Velopack для delta-апдейтов и Generic Host DI — почему WPF остаётся выбором для стабильного Windows-only desktop в 2026.
+
 ## Что это, зачем и когда
 
 ### Что такое WPF в 2026?

@@ -254,7 +254,7 @@ Approve PR если только 🟢 / ❓ / 📚 — не блокируй н�
 
 ### 5. Provide alternatives
 
-```
+````
 ❌ "Don't use this approach"
 ✅ "I'd suggest <X> approach because <reason>. Example:
 
@@ -267,6 +267,7 @@ foreach (var item in items)
 var result = items.Where(i => i.IsActive).ToList();
 ```
 "
+````
 
 ### 6. Acknowledge good work
 
@@ -791,7 +792,7 @@ Overall: [LGTM / Comments / Request changes]
 **Сценарий:** Senior просматривает PR от Junior'а. Стандартные issues: naming, missing nulls, dead code.
 
 **Workflow:**
-1. **AI первый pass** — Copilot Chat / Claude review кода
+1. **AI первый pass** — Copilot Chat review кода
 2. **Senior валидирует AI feedback** — отбрасывает false positives
 3. **Senior фокусируется на architecture** — что AI не видит:
    - Domain logic correctness
@@ -800,8 +801,6 @@ Overall: [LGTM / Comments / Request changes]
    - Security in context
 
 **Time saved:** 30 min review → 10 min (AI на mechanical, senior на important).
-
-См.[[ai-coding-tools|AI Coding Tools]].
 
 ---
 
@@ -916,7 +915,7 @@ Quality issue?
 - [[refactoring|Refactoring]] — как улучшать
 - [[static-analysis|Static Analysis]] — automate style review
 - [[code-quality|Code Quality]] — quality gates
--[[03_middle-to-senior|Middle → Senior]] — review skill для роста
+- [[03_middle-to-senior|Middle → Senior]] — review skill для роста
 
 ## Reading list
 

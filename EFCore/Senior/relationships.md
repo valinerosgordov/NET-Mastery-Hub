@@ -871,12 +871,12 @@ modelBuilder.Entity<Order>()
     .Property(o => o.Id)
     .HasDefaultValueSql("uuid_generate_v7()");  // если расширение установлено
 
-// Или генерируем в C# — UUID7 NuGet
-public static Guid NewSequentialGuid()
-{
-    return Uuid.UUIDv7.Generate();
-}
+// Или генерируем в C# — нативный API, без NuGet (.NET 9+)
+public static Guid NewSequentialGuid() => Guid.CreateVersion7();
 ```
+
+> [!warning] SQL Server сортирует `uniqueidentifier` с последних 6 байт — v7 там почти random
+> Подробный разбор порядка байтов и рабочих стратегий ключей: [[bcl-essentials]] (раздел 2.4).
 
 ---
 
@@ -1262,7 +1262,7 @@ modelBuilder.Entity<Comment>()
 |--------------|---------------|------|
 | One-to-One | `HasOne().WithOne().HasForeignKey<>()` | FK в одной из таблиц |
 | One-to-Many | `HasOne().WithMany().HasForeignKey()` | FK в "many" side |
-| Many-to-Many (simple) | List<T> на обеих сторонах | EF Core 5+ auto join table |
+| Many-to-Many (simple) | `List<T>` на обеих сторонах | EF Core 5+ auto join table |
 | Many-to-Many (extra fields) | Explicit join entity | Нужна composite key |
 | Self-referencing | HasOne(parent).WithMany(children) | Tree / hierarchy |
 | Owned (no FK) | `OwnsOne()` / `OwnsMany()` | Value objects (Address, Money) |

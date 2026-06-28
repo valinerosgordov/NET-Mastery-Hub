@@ -12,6 +12,7 @@ tags:
   - deepdive
 complexity: Senior
 date: 2026-04-30
+level: Senior
 ---
 
 # Zero-allocation: Span, Memory, Layout, SIMD, Pipelines

@@ -1,5 +1,7 @@
 # Snippets — WPF ViewModels (MVVM Toolkit)
 
+> WPF на CommunityToolkit.Mvvm: `ObservableObject` с `[ObservableProperty]`/`[RelayCommand]`, async-safe загрузка из View.Loaded, DI через `IHostBuilder`, навигация и glassmorphism-стили в XAML.
+
 ## Базовый ViewModel
 
 ```csharp
@@ -217,4 +219,4 @@ public partial class DashboardView : UserControl
 
 ## См. также
 
-- [[dotnet-knowledge-base|.NET Knowledge Base]]
+- .NET Knowledge Base

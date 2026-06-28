@@ -302,6 +302,274 @@ Eventual consistency через events если требуется
 > [!question]- **Интервью: что такое Anti-Corruption Layer?**
 > Защитный слой между нашим Bounded Context и **внешней системой** (legacy / third-party / другой BC с непохожим языком). Состоит из: 1) **Adapter** — технический клиент (HTTP, gRPC). 2) **Translator** — мапит chaos external DTOs в чистый domain model. 3) **Facade** — clean interface для нашего code. **Зачем**: внешние API могут быть кошмарны (legacy CRM с полями `usr_pk`, `e_addr_1`, `is_dl`). Без ACL этот хаос проникает в нашу domain. С ACL наш `Customer` чистый, ACL делает грязную translation работу. **Cost**: extra layer, но **защита от cascade changes** когда external API меняется.
 
+### ACL как набор seam-ов — декомпозиция для Strangler-Fig без миграции схемы
+
+Каноничный ACL выше — **один монолитный слой** (Adapter + Translator + Facade). Это правильная отправная точка, но в реальной Strangler-Fig миграции, где **схему БД намеренно НЕ трогают** (старый монолит ещё пишет в те же таблицы, дешевле параллелить, чем останавливать прод на DDL), монолитный translator превращается в комок: один метод читает legacy-строки, разбирает JSONB, собирает агрегат, проверяет инварианты — и его нельзя протестировать без живой БД.
+
+**Почему так получается.** Когда схема заморожена, вся «грязь» legacy (nullable-комбинации, полиморфный JSON, неявные состояния через счётчики) остаётся *на входе*. Если размазать её разбор по translator-у, каждый баг в маппинге требует поднять Postgres, налить фикстуру, прогнать integration-тест. Цикл обратной связи — минуты вместо миллисекунд.
+
+**Что делать.** Разрезать монолитный ACL на несколько тонких **seam-ов** (швов) — каждый одна чистая функция «вход → выход», без I/O. Seam — это **единственное место**, где конкретный вид legacy-хаоса превращается в типы домена. Тогда:
+
+- каждый seam — pure function: `row → domain` или `(row, context) → Result<Aggregate>`;
+- юнит-тест без БД и без моков — на вход подаёшь POCO/`JsonElement`, на выходе сравниваешь домен;
+- баг локализован: «состояние посчиталось неверно» → seam 1, «неизвестный discriminator» → seam 2, «инвариант не сработал» → seam 3.
+
+> [!info] Seam (шов) vs Adapter
+> **Adapter** держит I/O (HTTP/SQL) — его тестируют интеграционно. **Seam** — это чистая трансформация *после* I/O: данные уже в памяти. Граница проходит ровно там, где `IDataReader`/`NpgsqlDataReader` отдал `object?`-ы. Всё, что левее — Adapter (мокается/интегрируется), всё, что правее — seam (тестируется in-memory). Поэтому seam-ы и есть та часть ACL, которую можно покрыть быстрыми тестами на 100%.
+
+Граница потока в Strangler-Fig ACL:
+
+```text
+                         ┌──────────── ACL ───────────────────────────────┐
+NpgsqlDataReader ──row──▶│ Seam 1: read mapper   (nullable-combo → DU)     │
+(frozen legacy            │ Seam 2: parse ctor    (JSONB N-discr → kind)    │──▶ clean
+ schema, Adapter)         │ Seam 3: write factory (ctx + DU → Aggregate)    │    Domain
+                         └─────────────────────────────────────────────────┘
+   I/O boundary  ────────────────────────▲ pure functions, unit-testable
+```
+
+#### Seam 1 — read-side mapper: nullable-комбо → закрытый DU
+
+Legacy-таблица `quiz_attempts` кодирует состояние **тремя** nullable/неявными столбцами: `score int NULL`, `completed_at timestamptz NULL`, `attempts int NOT NULL` (где `0` означает «ещё не начинал»). Это классический *implicit state machine*: валидные состояния — `NotStarted` / `InProgress` / `Completed`, но в схеме они выражены **комбинацией** значений, и есть невыразимые комбинации (`score` есть, а `completed_at` — нет).
+
+Анти-паттерн — растащить `int?`/`DateTime?` по всему домену и плодить `if (score is not null && completedAt is not null)` в десятке мест:
+
+```csharp
+// BAD: nullable-комбо протекает в домен, проверка состояния дублируется
+public sealed class AttemptRowBad
+{
+    public int? Score { get; init; }
+    public DateTime? CompletedAt { get; init; }
+    public int Attempts { get; init; }
+
+    // каждый вызывающий заново выводит состояние — рассинхрон гарантирован
+    public bool IsDone => Score is not null && CompletedAt is not null;
+}
+```
+
+Seam 1 — **единственное место**, где nullable превращаются в тип. Закрытый sealed-record DU делает невыразимые состояния непредставимыми:
+
+```csharp
+// Closed discriminated union — три состояния, ничего сверх
+public abstract record AttemptState
+{
+    private AttemptState() { } // запрет внешних наследников => union закрыт
+
+    public sealed record NotStarted : AttemptState;
+    public sealed record InProgress(int Attempts) : AttemptState;
+    public sealed record Completed(int Score, DateTimeOffset CompletedAt, int Attempts) : AttemptState;
+}
+```
+
+```csharp
+// Seam 1: ЕДИНСТВЕННАЯ точка, где nullable-комбо становится типом.
+// Pure function: row (POCO) -> DU. Ни I/O, ни моков для теста.
+public static class AttemptStateMapper
+{
+    public static AttemptState Map(int? score, DateTimeOffset? completedAt, int attempts) =>
+        (score, completedAt, attempts) switch
+        {
+            (null, null, 0)               => new AttemptState.NotStarted(),
+            (null, null, > 0 and var a)   => new AttemptState.InProgress(a),
+            ({ } s, { } at, var a)        => new AttemptState.Completed(s, at, a),
+
+            // невыразимая комбинация в legacy => fail fast, не молчаливый null
+            _ => throw new CorruptLegacyStateException(score, completedAt, attempts)
+        };
+}
+
+public sealed class CorruptLegacyStateException(int? score, DateTimeOffset? completedAt, int attempts)
+    : Exception($"Unmappable attempt row: score={score}, completedAt={completedAt}, attempts={attempts}");
+```
+
+Тест — без БД, миллисекунды:
+
+```csharp
+[Fact]
+public void Map_score_without_completedAt_is_corrupt()
+{
+    var act = () => AttemptStateMapper.Map(score: 42, completedAt: null, attempts: 1);
+    act.Should().Throw<CorruptLegacyStateException>();
+}
+
+[Fact]
+public void Map_zero_attempts_is_NotStarted() =>
+    AttemptStateMapper.Map(null, null, 0).Should().Be(new AttemptState.NotStarted());
+```
+
+#### Seam 2 — parse constructor: полиморфный JSONB → один `Parse(row)` с типизированным исключением
+
+Legacy-столбец `payload jsonb` хранит N разных видов событий, и за годы накопились **синонимы дискриминатора**: `"kind"`, `"type"`, `"event_type"`, а значения дрейфовали (`"signup"` vs `"sign_up"` vs `"registered"`). Распределённый разбор (где попало `payload["type"]`) — гарантированный источник тихих `null`.
+
+Seam 2 — один `Parse`, который **централизованно** сводит синонимы и при неизвестном виде бросает типизированное исключение (fail fast), а не возвращает `null` для дальнейшего null-propagation:
+
+```csharp
+public enum LegacyEventKind { Signup, Purchase, Refund }
+
+public sealed class UnknownLegacyKindException(string? rawKind, string rawJson)
+    : Exception($"Unknown legacy event kind '{rawKind}'. Raw: {rawJson}")
+{
+    public string? RawKind { get; } = rawKind;
+    public string RawJson { get; } = rawJson;
+}
+```
+
+```csharp
+using System.Collections.Frozen;
+using System.Text.Json;
+
+// Seam 2: ЕДИНСТВЕННАЯ точка разбора legacy-вида. Синонимы агрегируются здесь.
+public static class LegacyEventParser
+{
+    // дискриминатор мог лежать под любым из этих ключей
+    private static readonly string[] KindKeys = ["kind", "type", "event_type"];
+
+    // канонизация значений-синонимов в один enum
+    private static readonly FrozenDictionary<string, LegacyEventKind> KindMap =
+        new Dictionary<string, LegacyEventKind>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["signup"]     = LegacyEventKind.Signup,
+            ["sign_up"]    = LegacyEventKind.Signup,
+            ["registered"] = LegacyEventKind.Signup,
+            ["purchase"]   = LegacyEventKind.Purchase,
+            ["order_paid"] = LegacyEventKind.Purchase,
+            ["refund"]     = LegacyEventKind.Refund,
+            ["chargeback"] = LegacyEventKind.Refund,
+        }.ToFrozenDictionary();
+
+    public static LegacyEventKind Parse(JsonElement row)
+    {
+        var raw = ExtractKind(row);
+
+        return raw is not null && KindMap.TryGetValue(raw, out var kind)
+            ? kind
+            : throw new UnknownLegacyKindException(raw, row.GetRawText());
+    }
+
+    private static string? ExtractKind(JsonElement row)
+    {
+        foreach (var key in KindKeys)
+            if (row.TryGetProperty(key, out var prop) && prop.ValueKind is JsonValueKind.String)
+                return prop.GetString();
+
+        return null;
+    }
+}
+```
+
+> [!warning] Не возвращать `null` из `Parse`
+> Соблазн — `TryParse(row, out kind)` и тихо пропустить нераспознанную строку. В Strangler-Fig это маскирует **schema drift**: legacy-монолит выкатил новый вид события, а ты его молча потерял. Типизированный `UnknownLegacyKindException` с `RawJson` останавливает миграцию на первой же незнакомой строке и даёт точный repro. Fail fast здесь дешевле, чем расследование «почему пропали 3% событий».
+
+#### Seam 3 — write-side aggregate factory: инварианты на ПРЕ-загруженном контексте
+
+При записи в новый домен агрегат должен проверить инвариант, требующий внешние данные — например, бронь не должна пересекаться с уже занятыми `TimeSlot`-ами. Анти-паттерн — дать фабрике лезть в БД самой: домен становится зависим от persistence, фабрику нельзя протестировать без репозитория.
+
+```csharp
+// BAD: фабрика домена тянет данные сама => coupling домена с инфраструктурой
+public static class BookingFactoryBad
+{
+    public static Booking Create(Guid roomId, DateTimeOffset start, ISlotRepository repo) // <-- repo в домене
+    {
+        var taken = repo.GetSlots(roomId); // I/O внутри домена, тест требует мок
+        // ...
+        return new Booking();
+    }
+}
+```
+
+Seam 3 принимает **уже загруженный** контекст параметром (`IReadOnlyList<TimeSlot>`). Загрузку делает Application-слой *до* вызова; домен остаётся чистым и проверяет инвариант над переданными данными:
+
+```csharp
+public sealed record TimeSlot(DateTimeOffset Start, DateTimeOffset End);
+
+public sealed class Booking
+{
+    public Guid Id { get; }
+    public Guid RoomId { get; }
+    public TimeSlot Slot { get; }
+
+    private Booking(Guid id, Guid roomId, TimeSlot slot) =>
+        (Id, RoomId, Slot) = (id, roomId, slot);
+
+    // Seam 3: инвариант на ПРЕ-загруженном контексте. Ни репозитория, ни DbContext.
+    public static Result<Booking> Create(
+        Guid roomId,
+        TimeSlot desired,
+        IReadOnlyList<TimeSlot> existingSlots) // pre-fetched контекст как параметр
+    {
+        foreach (var slot in existingSlots)
+            if (Overlaps(desired, slot))
+                return Result<Booking>.Fail(
+                    Error.Conflict("Booking.Overlap", "Time slot is already taken"));
+
+        return Result<Booking>.Ok(new Booking(Guid.NewGuid(), roomId, desired));
+    }
+
+    private static bool Overlaps(TimeSlot a, TimeSlot b) =>
+        a.Start < b.End && b.Start < a.End;
+}
+```
+
+Application-слой связывает I/O и чистую фабрику:
+
+```csharp
+public sealed class CreateBookingHandler(ISlotRepository slots, IUnitOfWork unitOfWork)
+{
+    public async Task<Result<Guid>> HandleAsync(CreateBookingCommand cmd, CancellationToken ct)
+    {
+        // I/O — в Application, ДО фабрики
+        var existing = await slots.GetForRoomAsync(cmd.RoomId, ct);
+
+        var slot = new TimeSlot(cmd.Start, cmd.End);
+        var result = Booking.Create(cmd.RoomId, slot, existing); // seam 3, без I/O
+        if (result.IsFailure)
+            return Result<Guid>.Fail(result.Error!);
+
+        slots.Add(result.Value!);
+        await unitOfWork.SaveChangesAsync(ct);
+        return Result<Guid>.Ok(result.Value!.Id);
+    }
+}
+```
+
+Тест фабрики — чистый, контекст подаётся списком:
+
+```csharp
+[Fact]
+public void Create_overlapping_slot_fails()
+{
+    var existing = new[] { new TimeSlot(At(9), At(10)) };
+    var result = Booking.Create(Guid.NewGuid(), new TimeSlot(At(9, 30), At(10, 30)), existing);
+
+    result.IsFailure.Should().BeTrue();
+    result.Error!.Code.Should().Be("Booking.Overlap");
+
+    static DateTimeOffset At(int h, int m = 0) => new(2026, 1, 1, h, m, 0, TimeSpan.Zero);
+}
+```
+
+#### Snapshot-тесты границ разбора — ловушка для schema drift
+
+Юнит-тесты seam-ов проверяют *известные* формы. Чтобы поймать момент, когда legacy-монолит **молча** изменил данные (новый дискриминатор, новая nullable-комбинация), на каждую границу разбора ставят **snapshot-тест против реальных прод-строк**: выгружаешь репрезентативную выборку (анонимизированную) из прод-реплики, прогоняешь через seam, фиксируешь результат как snapshot. Дрейф схемы → snapshot не совпал/`Parse` бросил → красный CI до того, как миграция дойдёт до прода.
+
+```csharp
+// Verify (snapshot): прод-строки как фикстуры. Дрейф схемы => упавший snapshot.
+[Theory]
+[MemberData(nameof(ProductionPayloads))] // загружены из anonymized prod dump
+public Task Parse_matches_snapshot(string rawJson)
+{
+    using var doc = JsonDocument.Parse(rawJson);
+    var kind = LegacyEventParser.Parse(doc.RootElement);
+    return Verify(kind).UseParameters(rawJson);
+}
+```
+
+> [!tip] Откуда брать прод-строки
+> Анонимизированный дамп из read-реплики (никакого PII в фикстурах) или Testcontainers-снимок. Обновлять выборку при каждом релизе legacy-монолита — именно она первой покажет, что upstream поменял контракт. Это дешёвый «канарейка»-тест на разрыв ACL-контракта между двумя живыми системами.
+
+> [!question]- **Интервью: как мигрировать модуль Strangler-Fig'ом, не меняя схему БД?**
+> Поднимаю новый чистый домен рядом со старым, а на стыке ставлю **ACL из тонких seam-ов** (не один translator): seam 1 — read-mapper, который в одном месте сворачивает nullable-комбо столбцов в **закрытый DU** состояний (невыразимые комбинации → исключение, не `null`); seam 2 — `Parse(row)`, централизованно сводящий синонимы полиморфного JSONB-дискриминатора в enum и бросающий **типизированный** `UnknownLegacyKindException` при незнакомом виде (fail fast против тихого null-propagation); seam 3 — фабрика агрегата, проверяющая инварианты над **пре-загруженным** контекстом (`IReadOnlyList<TimeSlot>` параметром), а не лезущая в БД сама (домен не зависит от persistence). Каждый seam — pure function, юнит-тест без БД и моков. Поверх — **snapshot-тесты против прод-строк** на каждой границе разбора: они краснеют, когда legacy молча дрейфует схему. Схему не трогаю намеренно: старый монолит ещё пишет в те же таблицы.
+
 ### Domain Services — где живёт логика не fitting в Entity/VO
 
 Иногда бизнес-операция касается **нескольких** Aggregates или не принадлежит одной Entity. Тогда — **Domain Service** (НЕ Application Service!).

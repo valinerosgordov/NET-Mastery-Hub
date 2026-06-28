@@ -807,7 +807,7 @@ public class OrderRepositoryTests : IAsyncLifetime
     public async Task SaveAsync_persists_order()
     {
         var ctx = new AppDbContext(_db.GetConnectionString());
-        await ctx.Database.EnsureCreatedAsync();
+        await ctx.Database.MigrateAsync();  // не EnsureCreatedAsync — см. callout ниже
         var repo = new OrderRepository(ctx);
         
         await repo.SaveAsync(new Order { /* ... */ });
@@ -817,6 +817,9 @@ public class OrderRepositoryTests : IAsyncLifetime
     }
 }
 ```
+
+> [!warning] `MigrateAsync`, а не `EnsureCreatedAsync`
+> `EnsureCreatedAsync` строит схему напрямую из модели, минуя migration pipeline: тест зелёный, даже если реальная миграция сломана. `MigrateAsync` прогоняет те же скрипты, что и прод, — suite ловит schema drift. Подробнее — [[integration-testing|Integration Testing]].
 
 См. [[integration-testing|Integration Testing]].
 

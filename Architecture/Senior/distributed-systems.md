@@ -369,6 +369,156 @@ builder.Services.AddMassTransit(x =>
 
 ---
 
+## Legacy migration — синхронизатор как постоянная подсистема
+
+### Почему «временный мостик» становится вечным
+
+Классический сценарий: рядом со старой (legacy) системой поднимают новую и хотят держать их в синхроне на период миграции — strangler fig, dual-run, постепенный cutover. Первая мысль — **CDC (Debezium читает WAL, льёт изменения в новую БД)**. Для чистого «один-к-одному копирования таблиц» это работает и действительно временно.
+
+Ловушка в том, что **как только синхронизации требуется трансформация — CDC перестаёт быть достаточным, а синхронизатор перестаёт быть временным**. Трансформация появляется почти всегда:
+
+- разные схемы — у legacy одна таблица `customers`, в новой системе `Customer` + `Address` + `ContactInfo` (нормализация/денормализация);
+- разные идентификаторы — legacy `int`-автоинкремент, новая система `Guid`/ULID;
+- разные инварианты — новая модель отвергает данные, которые legacy спокойно хранила (пустой email, отрицательная цена);
+- бизнес-смысл изменения важнее самого diff'а строки — «цена снижена» это не то же самое, что `UPDATE price`.
+
+CDC отдаёт **row-level diff без бизнес-смысла**: «строка 42, колонка price, было 100, стало 90». Восстанавливать намерение из diff'а на принимающей стороне — это парсить смысл из последствий, и оно ломается на каждой нетривиальной трансформации (мульти-табличные изменения в одной бизнес-операции приедут как несколько несвязанных row-событий). Поэтому при наличии трансформаций синхронизатор — это **полноценная долгоживущая подсистема со своим кодом, схемой, мониторингом и SLO**, а не скрипт, который удалят после cutover. Проектируй его соответственно.
+
+> [!warning]
+
+> «Временный синхронизатор» — самообман в 9 случаях из 10. Cutover буксует месяцами/годами, обе системы пишут параллельно дольше, чем планировалось, а часто двусторонняя синхронизация остаётся навсегда (legacy умеет то, что новую систему ещё не научили). Закладывай его как продукт: с тестами, версионированием контрактов и on-call, а не как throwaway-скрипт.
+
+### Эмитить доменные события через outbox, а не читать чужой WAL
+
+Источником синхронизации должны быть **доменные события** («`PriceReduced`», «`CustomerOnboarded`»), а не сырой row-diff. Бизнес-операция в системе-источнике в одной транзакции пишет и своё состояние, и доменное событие в outbox (см. раздел [[#Outbox Pattern — solving the dual-write problem]] выше). Синхронизатор — это обычный идемпотентный consumer этих событий, который применяет трансформацию и пишет в целевую систему.
+
+Это ровно та же связка outbox + идемпотентный consumer, что выше, только consumer'ом выступает миграционный синхронизатор:
+
+```csharp
+public sealed class LegacyToNewSyncConsumer(
+    NewDbContext db,
+    IIdMappingStore idMap,
+    ILogger<LegacyToNewSyncConsumer> logger) : IConsumer<PriceReduced>
+{
+    public async Task Consume(ConsumeContext<PriceReduced> ctx)
+    {
+        var ct = ctx.CancellationToken;
+        var msgId = ctx.MessageId!.Value;
+
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+        // Idempotency — это at-least-once, дубликаты норма
+        if (await db.InboxMessages.AnyAsync(m => m.Id == msgId, ct))
+            return;
+
+        // old -> new id mapping: legacy int -> new Guid
+        var newId = await idMap.ResolveAsync("Product", ctx.Message.LegacyProductId, ct);
+        if (newId is null)
+        {
+            // Порядок событий не гарантирован — родитель ещё не приехал.
+            // Бросаем -> retry -> при исчерпании уйдёт в DLQ на разбор.
+            throw new MappingNotReadyException(ctx.Message.LegacyProductId);
+        }
+
+        var product = await db.Products.FindAsync([newId.Value], ct);
+        product!.ApplyPriceReduction(ctx.Message.NewPrice);   // трансформация = доменный метод
+
+        await db.InboxMessages.AddAsync(new InboxMessage(msgId, DateTime.UtcNow), ct);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+    }
+}
+```
+
+Почему именно так, а не CDC напрямую:
+
+- **намерение, а не diff** — событие несёт бизнес-смысл, трансформация в коде явная и тестируемая;
+- **атомарность источника** — outbox гарантирует, что событие не разойдётся с состоянием legacy (dual-write problem решена в источнике);
+- **идемпотентность** — at-least-once + inbox/unique constraint: повторная доставка не задваивает запись.
+
+### Таблица маппинга идентификаторов old -> new
+
+При смене схемы ID нужна **персистентная таблица соответствия**, а не вычисление на лету. Это и переводчик ссылок (FK из legacy указывают на старые ID), и журнал того, что уже мигрировано.
+
+```sql
+CREATE TABLE id_mapping (
+    entity_type   text   NOT NULL,        -- 'Customer', 'Product', 'Order'
+    legacy_id     text   NOT NULL,        -- исходный ключ как строка (int/composite)
+    new_id        uuid   NOT NULL,
+    migrated_at   timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (entity_type, legacy_id),
+    UNIQUE (entity_type, new_id)
+);
+```
+
+Зачем таблица, а не детерминированная функция `legacy_id -> Guid`:
+
+- **разрешение FK** — событие `OrderPlaced(legacyCustomerId)` нужно превратить в `new_customer_id`; без таблицы это невозможно для сущностей, созданных напрямую в новой системе;
+- **двусторонний lookup** — при двусторонней синхронизации нужно ходить и new -> legacy (поэтому `UNIQUE` на оба столбца);
+- **наблюдаемость прогресса** — `COUNT(*)` по `entity_type` показывает, сколько реально перенесено, и ловит пропуски;
+- **детерминированный хэш ID не спасает** — он не покрывает сущности, рождённые в новой системе, и не даёт обратного направления.
+
+`ResolveAsync` возвращающий `null` — это сигнал «событие пришло раньше своей сущности» (нет гарантии порядка между топиками/партициями). Корректная реакция — retry, затем DLQ, **не** молчаливый `INSERT` с выдуманным ID.
+
+### Reconciliation: проверять КОНСИСТЕНТНОСТЬ ДАННЫХ, а не доставку сообщений
+
+Главная ошибка — считать миграцию успешной по «все сообщения за-ack-аны / лаг consumer'а нулевой». **Ack доказывает доставку, а не корректность.** Трансформация могла отработать с багом, событие могло потеряться до outbox (дыра в инструментировании источника), `ApplyPriceReduction` мог тихо упасть на инварианте. Очередь при этом пустая и зелёная.
+
+Поэтому нужен отдельный **reconciliation job**, который периодически сверяет фактические данные двух систем — независимо от шины:
+
+```csharp
+public sealed class ReconciliationJob(
+    ILegacyReader legacy,
+    NewDbContext newDb,
+    IIdMappingStore idMap,
+    IReconciliationReporter reporter,
+    TimeProvider time) : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromHours(1), time);
+        while (await timer.WaitForNextTickAsync(ct))
+        {
+            // 1) Count drift: сколько строк должно быть и сколько есть
+            var legacyCount = await legacy.CountProductsAsync(ct);
+            var newCount = await newDb.Products.CountAsync(ct);
+
+            // 2) Content drift: сверяем checksum по бизнес-полям на сэмпле/окне
+            var mismatches = new List<ReconciliationMismatch>();
+            await foreach (var row in legacy.StreamProductsAsync(ct))
+            {
+                var newId = await idMap.ResolveAsync("Product", row.Id, ct);
+                if (newId is null) { mismatches.Add(ReconciliationMismatch.Missing(row.Id)); continue; }
+
+                var target = await newDb.Products.FindAsync([newId.Value], ct);
+                if (target is null) { mismatches.Add(ReconciliationMismatch.Missing(row.Id)); continue; }
+
+                // checksum по БИЗНЕС-полям после трансформации, не побайтовое сравнение строк
+                if (BusinessChecksum(row) != BusinessChecksum(target))
+                    mismatches.Add(ReconciliationMismatch.Diverged(row.Id, newId.Value));
+            }
+
+            await reporter.PublishAsync(legacyCount, newCount, mismatches, ct);
+        }
+    }
+}
+```
+
+Что проверяет reconciliation:
+
+- **count drift** — расхождение числа сущностей (что-то не доехало или задвоилось);
+- **content drift** — checksum по бизнес-полям *после* трансформации расходится (баг трансформации, потерянное событие, частичный сбой);
+- **orphans / dangling FK** — ссылки в одной системе без цели в другой;
+- **направление расхождения** — кто прав при двусторонней синхронизации (нужна политика разрешения конфликтов: last-writer-wins по версии, либо legacy-as-source-of-truth до cutover).
+
+Reconciliation сравнивает **бизнес-смысл после трансформации**, поэтому это не побайтовое сравнение строк (схемы и так разные) — считай checksum по нормализованным бизнес-полям. Найденные расхождения — это либо автоматический re-emit пропущенного события, либо тикет на разбор, но в любом случае это **независимый от шины контур доверия**: именно он, а не зелёный дашборд RabbitMQ, даёт право нажать cutover.
+
+> [!info]
+
+> Метрика готовности к cutover — не «лаг consumer'а = 0», а «reconciliation N циклов подряд показывает нулевой drift». Первое говорит «почту разнесли», второе — «в обеих системах одни и те же данные». Путать их — классический способ переключиться на новую систему с тихо разъехавшимися данными.
+
+---
+
 ## Inbox Pattern — для consumer'ов
 
 Зеркальный паттерн на стороне консьюмера: в той же транзакции что и эффект, помечаешь сообщение как обработанное.
@@ -768,6 +918,207 @@ public class OrderPlacedUpcaster : IEventUpcaster
 
 ---
 
+## Monotonic version — детекция дыр и переупорядочивания на apply
+
+Предыдущий раздел — про **схему** события (как `v1` дочитать до `v2`). Этот — про другое: про **порядковый номер состояния**, который позволяет получателю на стороне apply *обнаружить*, что событие пришло не в том порядке или с дырой. Это разные оси, и их легко спутать.
+
+### Почему «Kafka же сохраняет порядок» — ложное успокоение
+
+Kafka (и любой партиционированный лог) гарантирует порядок **только внутри одной партиции**. Как только сущность переезжает между партициями (re-keying, изменение `partition count`, два топика про одну сущность, producer с несколькими in-flight-запросами и retry без идемпотентного producer'а) — порядок между событиями одной сущности **не гарантирован** глобально. RabbitMQ без single active consumer и при конкурентных prefetch'ах — тем более.
+
+Опасность не в дубликате (его ловит [[#Inbox Pattern — для consumer'ов|inbox/идемпотентность]]), а в **тихой перезаписи свежего состояния старым**:
+
+> [!danger]
+> Сценарий: `PriceChanged(price=90)` и следом `PriceChanged(price=100)` уезжают в разные партиции; consumer обрабатывает их в порядке `100` затем `90`. Идемпотентность не спасает — это **разные** сообщения с разными `MessageId`. Read-model останется на `90` навсегда. Сигнала нет: очередь пуста, лаг нулевой, дашборд зелёный. Это самый коварный класс багов eventual consistency — корректность теряется бесшумно.
+
+### Решение — монотонный `Version` в событии + reject-older-than-current на apply
+
+Источник истины ведёт монотонно растущий счётчик версии агрегата и **штампует его в каждое событие**. Получатель хранит «последнюю применённую версию» рядом с проекцией и применяет событие, **только если оно строго новее** текущего; всё «не новее текущего» отбрасывается как stale, а скачок дальше чем на единицу — это **дыра** (пропущено промежуточное событие), и она должна быть видимой.
+
+```sql
+-- write-side: версия живёт на агрегате, инкремент в той же транзакции, что и изменение
+ALTER TABLE products ADD COLUMN version bigint NOT NULL DEFAULT 0;
+
+-- read-side: проекция хранит версию последнего применённого события
+ALTER TABLE product_read_model ADD COLUMN applied_version bigint NOT NULL DEFAULT 0;
+```
+
+```csharp
+// Событие несёт монотонную версию агрегата на момент изменения.
+// Это НЕ schema-version (.v1/.v2), а порядковый номер состояния сущности.
+public sealed record PriceChanged(Guid ProductId, long Version, decimal NewPrice);
+
+// write-side: версия инкрементится атомарно с изменением состояния
+public Result PriceChange(decimal newPrice)
+{
+    if (newPrice <= 0)
+        return Result.Fail(Error.Validation("Price must be positive"));
+
+    Price = newPrice;
+    Version++;                                  // монотонно, в той же транзакции
+    Raise(new PriceChanged(Id, Version, newPrice));
+    return Result.Ok();
+}
+```
+
+```csharp
+public sealed class ProductPriceProjection(
+    ReadDbContext db,
+    ILogger<ProductPriceProjection> logger) : IConsumer<PriceChanged>
+{
+    public async Task Consume(ConsumeContext<PriceChanged> ctx)
+    {
+        var ct = ctx.CancellationToken;
+        var msg = ctx.Message;
+
+        var row = await db.ProductReadModel.FindAsync([msg.ProductId], ct);
+        if (row is null)
+        {
+            // версия > 1 у несуществующей строки = тоже дыра (пропущен create)
+            logger.LogWarning(
+                "Gap: PriceChanged v{Version} for unknown product {ProductId}",
+                msg.Version, msg.ProductId);
+            throw new OutOfOrderEventException(msg.ProductId, msg.Version);
+        }
+
+        // reject-older-than-current: ядро защиты от тихой перезаписи
+        if (msg.Version <= row.AppliedVersion)
+        {
+            // stale/duplicate-by-order — НЕ ошибка, штатно отбрасываем
+            logger.LogDebug(
+                "Stale PriceChanged v{Version} <= applied v{Applied} for {ProductId}, skip",
+                msg.Version, row.AppliedVersion, msg.ProductId);
+            return;
+        }
+
+        if (msg.Version > row.AppliedVersion + 1)
+        {
+            // ДЫРА: между applied и текущим потеряно/задержано событие.
+            // Бросаем -> retry (отставшее событие может приехать) -> DLQ + alert.
+            logger.LogWarning(
+                "Gap on {ProductId}: applied v{Applied}, got v{Version} (missing {Missing})",
+                msg.ProductId, row.AppliedVersion, msg.Version, msg.Version - row.AppliedVersion - 1);
+            throw new OutOfOrderEventException(msg.ProductId, msg.Version);
+        }
+
+        // monotonic forward step: применяем
+        row.Price = msg.NewPrice;
+        row.AppliedVersion = msg.Version;
+        await db.SaveChangesAsync(ct);
+    }
+}
+```
+
+Три ветки на apply — это и есть весь паттерн:
+
+| Условие на `Version` | Что это | Реакция |
+|---|---|---|
+| `<= applied` | дубликат по порядку / отставшее старое | штатный skip, не ошибка |
+| `== applied + 1` | нормальный монотонный шаг | apply + сдвиг `applied` |
+| `> applied + 1` | **дыра** — пропущено промежуточное | throw \-\> retry \-\> DLQ + alert |
+
+### Чем версия отличается от idempotency-ключа
+
+Это **ортогональные** механизмы, нужны оба:
+
+- **Idempotency / inbox** отвечает на «видел ли я *именно это сообщение*?» — защита от повторной доставки одного и того же события (`MessageId`).
+- **Version** отвечает на «новее ли это состояние того, что у меня уже применено?» — защита от переупорядочивания и пропусков *разных* событий одной сущности.
+
+Дубликат имеет тот же `MessageId`, но и ту же `Version` — его поймает inbox. Переставленные события имеют **разные** `MessageId` и **разные** `Version` — их пропустит inbox, но поймает reject-older-than-current. Поэтому в полноценном consumer'е стоят обе проверки.
+
+> [!tip]
+> Не изобретай глобальный монотонный счётчик через `DateTime.UtcNow` — часы узлов расходятся (см. CAP-раздел про clock skew), два события в одну миллисекунду неразличимы, а NTP-коррекция может пойти назад. Версия должна быть **per-aggregate** и инкрементиться **в той же транзакции**, что и изменение (тот же optimistic-concurrency токен, что `xmin`/`rowversion` в EF). Тогда она строго монотонна по определению.
+
+---
+
+## Eventual consistency как SLO — панель метрик, а не «вроде догоняет»
+
+[[#Staleness budget|Staleness budget]] выше задал *идею* «read-model отстаёт допустимо на N секунд». Этот раздел превращает её в **измеримый SLO с дашбордом и порогом, пробитие которого — инцидент**. Без чисел «eventual» означает «когда-нибудь, может быть» — а это не свойство системы, а отсутствие свойства.
+
+### Почему один consumer-lag врёт
+
+Самая частая ошибка наблюдаемости — мерить только **лаг consumer'а** (offset producer'а минус committed offset). Он отвечает на «сколько сообщений не вычитано», но **не** на «насколько устарели данные, которые видит пользователь»:
+
+> [!warning]
+> Consumer-lag может быть **нулевым при катастрофической staleness**. Consumer бодро вычитывает сообщения и сразу их ack'ает, но downstream-apply (запись в read-model, вызов внешнего API) тормозит, или проекция тихо роняет события на инварианте, или событие вообще не доехало до брокера (дыра в outbox источника). Очередь пустая, лаг нулевой, а read-model отстаёт на минуты. Один lag-график — это «почту разнесли», а не «данные совпали» (та же ловушка, что в [[#Reconciliation: проверять КОНСИСТЕНТНОСТЬ ДАННЫХ, а не доставку сообщений|reconciliation]]).
+
+Поэтому SLO измеряется **сквозной задержкой и фактической свежестью данных**, а не глубиной очереди.
+
+### Панель из пяти сигналов
+
+| Метрика | Что измеряет | Как считать | Тип |
+|---|---|---|---|
+| **Outbox age** | возраст самого старого неотправленного события в outbox | `now() - MIN(created_at) WHERE processed_at IS NULL` | gauge, сек |
+| **Apply lag** | возраст события в момент применения (E2E задержка) | `applied_at - event.OccurredAt`, гистограмма p50/p95/p99 | histogram, сек |
+| **Projection errors** | проекции, упавшие на apply (включая дыры по версии) | счётчик исключений consumer'а по типу | counter |
+| **DLQ size** | сколько сообщений осело в `_error` после исчерпания retry | глубина error-очереди | gauge |
+| **Read-model freshness** | расхождение read-модели и write-модели по факту | `write.version - read.applied_version` на сэмпле | gauge |
+
+Ключевые две — `apply lag` (а не consumer lag) и `read-model freshness`. Первая ловит медленный downstream при пустой очереди; вторая — это «mini-reconciliation» в реальном времени: если `applied_version` отстаёт от `version` источника, данные расходятся независимо от того, что говорит шина.
+
+```csharp
+// Apply lag и freshness снимаются в самом consumer'е — там, где видна E2E задержка.
+public sealed class ProjectionMetrics
+{
+    private readonly Histogram<double> _applyLag = Meter.CreateHistogram<double>(
+        "projection.apply_lag", unit: "s",
+        description: "Возраст события в момент применения (end-to-end)");
+
+    private static readonly Meter Meter = new("ReadModel.Projections", "1.0");
+
+    public void RecordApply(DateTimeOffset occurredAt, TimeProvider time)
+    {
+        var lag = (time.GetUtcNow() - occurredAt).TotalSeconds;
+        _applyLag.Record(lag);   // p95/p99 этой гистограммы — основа SLO-алерта
+    }
+}
+```
+
+```csharp
+// Outbox age и DLQ size — gauge через ObservableGauge, опрашиваются периодически.
+public sealed class OutboxHealthMetrics(IServiceScopeFactory scopes, TimeProvider time)
+{
+    private static readonly Meter Meter = new("Outbox.Health", "1.0");
+
+    public OutboxHealthMetrics RegisterGauges()
+    {
+        Meter.CreateObservableGauge("outbox.oldest_pending_age", () =>
+        {
+            using var scope = scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var oldest = db.OutboxMessages
+                .Where(m => m.ProcessedAt == null)
+                .Min(m => (DateTimeOffset?)m.CreatedAt);
+            return oldest is null ? 0d : (time.GetUtcNow() - oldest.Value).TotalSeconds;
+        }, unit: "s");
+
+        return this;
+    }
+}
+```
+
+### Нормальное окно лага и порог инцидента
+
+SLO — это **число и реакция на его пробитие**, не «должно быть быстро». Зафиксируй для каждой проекции нормальное окно и эскалацию:
+
+| Read-model | Нормальное окно (`apply lag` p95) | Warn | Инцидент (paging) |
+|---|---|---|---|
+| Баланс / доступный остаток | < 2 с | > 5 с на 1 мин | > 15 с на 2 мин **или** DLQ \> 0 |
+| Лента заказов «мои заказы» | < 10 с | > 30 с на 5 мин | > 2 мин на 5 мин |
+| Аналитика / отчёты | < 5 мин | > 15 мин | > 1 ч |
+
+Правила, которые превращают таблицу в работающий SLO:
+
+- **Алерт на `apply lag` p95/p99, не на consumer lag** — именно сквозная задержка отражает то, что видит пользователь.
+- **`DLQ size > 0` — почти всегда сразу инцидент**: после исчерпания retry сообщение не применится само, и для версионированных проекций это означает **дыру**, которая не закроется без вмешательства.
+- **`outbox age` растёт при нулевом consumer lag** = застрял publisher в источнике (см. pitfall «Outbox processor застрял»), события ещё даже не в шине — consumer-метрики этого вообще не видят.
+- **`read-model freshness > 0` дольше окна** при пустой очереди = тихое расхождение (потерянное событие или упавший apply) — триггер на reconciliation/replay, а не на «подождём, догонит».
+
+> [!info]
+> Граница «warn vs инцидент» — продуктовое решение, не техническое: сколько секунд устаревшего баланса бизнес готов показать пользователю. Инженер задаёт окно вместе с владельцем продукта и **фиксирует его в том же ADR, что и event-versioning-стратегию**. SLO без записанного порога и без runbook на пробитие — это не SLO, а график, на который никто не смотрит.
+
+---
+
 ## Production checklist
 
 - [ ] Все POST endpoint'ы поддерживают Idempotency-Key
@@ -779,7 +1130,9 @@ public class OrderPlacedUpcaster : IEventUpcaster
 - [ ] OpenTelemetry tracing по всем границам сервисов
 - [ ] Distributed locks с TTL (предотвращение зависших lock'ов)
 - [ ] Event versioning стратегия описана в ADR
-- [ ] Read models имеют документированный staleness SLO
+- [ ] События несут монотонный per-aggregate `Version`; проекции делают reject-older-than-current и сигналят о дырах
+- [ ] Read models имеют документированный staleness SLO с порогом-инцидентом (alert на apply-lag, не на consumer-lag)
+- [ ] Дашборд eventual-consistency: outbox-age, apply-lag p95/p99, projection errors, DLQ size, read-model freshness
 - [ ] Compensating actions определены для всех saga
 - [ ] Tests: chaos testing с kill -9 на одном из сервисов
 - [ ] Tests: replay сообщений из DLQ работает

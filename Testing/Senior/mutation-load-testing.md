@@ -40,6 +40,9 @@ Mutation score: 87.50% (35 killed, 5 survived)
 | Edge cases остаются непротестированными | Видно конкретные пропущенные случаи |
 | Reviewer пишет "добавь больше тестов" — расплывчато | Stryker конкретно говорит — какие |
 
+> [!warning] AI-сгенерированные тесты усугубляют разрыв coverage ↔ behavior
+> LLM охотно выдаёт пачками тесты, поднимающие coverage до зелёного, но многие из них vacuous — `result.ShouldNotBeNull()` без проверки значения, ассерт ровно того, что вернул мок. Coverage растёт, поведение не проверяется. Mutation score — единственный объективный сигнал, который вскрывает такие тесты: vacuous-тест не убивает ни одну мутацию.
+
 ### Load testing — что
 
 Симуляция нагрузки на систему — десятки/тысячи concurrent users, замер latency, throughput, errors.
@@ -663,7 +666,7 @@ public class PerformanceBudgets
 **Сценарий:** Senior просматривает PR от Junior'а. Стандартные issues: naming, missing nulls, dead code.
 
 **Workflow:**
-1. **AI первый pass** — Copilot Chat / Claude review кода
+1. **AI первый pass** — Copilot Chat review кода
 2. **Senior валидирует AI feedback** — отбрасывает false positives
 3. **Senior фокусируется на architecture** — что AI не видит:
    - Domain logic correctness
@@ -672,8 +675,6 @@ public class PerformanceBudgets
    - Security in context
 
 **Time saved:** 30 min review → 10 min (AI на mechanical, senior на important).
-
-См.[[ai-coding-tools|AI Coding Tools]].
 
 ---
 

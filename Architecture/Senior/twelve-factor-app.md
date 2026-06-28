@@ -291,7 +291,7 @@ builder.Services.AddScoped<IBlobStorage>(sp =>
 
 App's code не меняется при переходе local → S3 → Azure.
 
-См. [[../Infrastructure/cloud-azure-basics|Cloud Azure Basics]] (TBD).
+См. Cloud Azure Basics (TBD).
 
 ---
 
@@ -631,7 +631,7 @@ builder.Build().Run();
 
 Запускаешь `dotnet run` → стартует Postgres + Redis + API. Same environment как prod.
 
-См. [[../Infrastructure/dotnet-aspire|.NET Aspire]] (TBD).
+См. Aspire (TBD).
 
 ---
 
@@ -1344,7 +1344,7 @@ Production config — env vars или secret manager.
 - [[auth-security|Auth & Security]] — secrets management
 - [[hosting-background|Hosting Background]] — workers, graceful shutdown
 - [[migrations|EF Migrations]] — admin tasks
-- [[../Infrastructure/dotnet-aspire|.NET Aspire]] (TBD) — dev/prod parity tool
+- Aspire (TBD) — dev/prod parity tool
 
 ## Reading list
 

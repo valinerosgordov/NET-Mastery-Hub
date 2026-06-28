@@ -1,5 +1,7 @@
 # Snippets — EF Core Queries
 
+> Производительные EF Core read-паттерны: `AsNoTracking` + проекция в DTO, offset- и keyset-пагинация, `AsSplitQuery` против Cartesian explosion, optimistic concurrency, compiled queries и Dapper для отчётов.
+
 ## Базовые best practices
 
 ```csharp
@@ -155,5 +157,4 @@ public async Task<List<OrderReportDto>> GetMonthlyReportAsync(
 
 ## См. также
 
-- [[SQL Optimization|SQL Optimization]]
-- [[EF Core Queries|EF Core Queries]]
+- [[optimization|SQL Optimization]]

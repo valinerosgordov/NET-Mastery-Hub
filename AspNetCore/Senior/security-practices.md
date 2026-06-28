@@ -5,6 +5,8 @@ level: Senior
 
 # Security Practices
 
+> Прикладные приёмы защиты кода: timing-safe сравнение токенов (`FixedTimeEquals`), SHA256-хэширование секретов, защита от path traversal и безопасное хранение секретов.
+
 ## Что это, зачем и когда
 
 ### Что такое Security Practices?
@@ -390,6 +392,100 @@ return Redirect(returnUrl);
 
 ---
 
+## ADO.NET параметры — `AddWithValue` это анти-паттерн
+
+Параметризация защищает от инъекций (см. выше), но **как** добавлять параметр — отдельный вопрос. `SqlCommand.Parameters.AddWithValue` массово встречается в туториалах и старом коде, и у него две тихие проблемы.
+
+### Проблема 1: type inference угадывает тип неверно
+
+`AddWithValue` выводит `SqlDbType` из CLR-типа значения в рантайме. Угадывает он не всегда так, как колонка в БД:
+
+- `string` → `nvarchar` (Unicode), даже если колонка `varchar` (ASCII).
+- `decimal` → precision/scale берутся из значения, а не из колонки → усечение или `OverflowException`.
+- `DateTime` → `datetime`, хотя колонка может быть `date` или `datetime2`.
+
+### Проблема 2: implicit conversion убивает индекс
+
+Самое дорогое следствие. Если колонка `varchar`, а параметр уехал как `nvarchar`, SQL Server вынужден повысить тип **колонки** до `nvarchar` для сравнения (правила data type precedence). Это происходит для **каждой строки** → index seek деградирует в index scan. Запрос, который должен брать одну строку по индексу, читает всю таблицу. На больших таблицах это разница между 1 ms и секундами, и она невидима в коде — план показывает `CONVERT_IMPLICIT` в predicate.
+
+```csharp
+// ✗ Тип угадывается из значения — string всегда nvarchar
+var cmd = new SqlCommand(
+    "SELECT Id, Name FROM Users WHERE Email = @email", conn);
+cmd.Parameters.AddWithValue("@email", email);
+// колонка Email — varchar(256) с индексом → implicit nvarchar → index scan
+```
+
+### Решение: `.Add()` с явным `SqlDbType`
+
+```csharp
+// ✓ Тип и размер заданы явно — совпадают с колонкой
+var cmd = new SqlCommand(
+    "SELECT Id, Name FROM Users WHERE Email = @email", conn);
+cmd.Parameters.Add("@email", SqlDbType.VarChar, 256).Value = email;
+// для decimal — задавай precision и scale:
+cmd.Parameters.Add("@amount", SqlDbType.Decimal).Value = amount;
+cmd.Parameters["@amount"].Precision = 18;
+cmd.Parameters["@amount"].Scale = 2;
+```
+
+Явный тип фиксирует контракт с колонкой: правильная Unicode/ASCII семантика, отсутствие неявных конверсий, рабочие индексы. Чуть многословнее — но предсказуемо.
+
+> [!info] Npgsql и EF Core
+> Для Npgsql эффект тот же, но мягче: PostgreSQL чаще приводит литералы сам. Всё равно предпочитай `NpgsqlParameter` с явным `NpgsqlDbType` для типов, где угадывание дорого (`timestamptz` vs `timestamp`, `jsonb` vs `text`, `numeric`). В EF Core этой проблемы нет — провайдер маппит CLR-тип на тип колонки из модели; см. ниже.
+
+---
+
+## Шифрование данных at-rest — `AesGcm`
+
+Хэш (SHA256/BCrypt) — **односторонний**: проверить совпадение можно, восстановить значение нельзя. Когда значение надо именно **расшифровать обратно** (PII, токены доступа к внешним API, номера документов), нужно симметричное шифрование. Современный выбор — **AES-GCM**: authenticated encryption, который шифрует и одновременно проверяет целостность (tag), защищая от подмены шифротекста.
+
+### Ключевые правила
+
+- **Nonce уникален на каждое шифрование.** Повтор nonce с тем же ключом полностью ломает GCM (раскрывается XOR открытых текстов и подделывается tag). Генерировать через `RandomNumberGenerator`, **никогда** не переиспользовать.
+- Nonce не секретный — хранить рядом с шифротекстом (он нужен для расшифровки).
+- Ключ — из секрет-менеджера/Key Vault, не из кода. 32 байта = AES-256.
+- Tag (16 байт) проверяет целостность: при подмене данных `Decrypt` бросит `AuthenticationTagMismatchException` — это инфраструктурный сбой, не flow control.
+
+```csharp
+using System.Security.Cryptography;
+
+public sealed class FieldEncryptor(byte[] key) // key: 32 bytes из Key Vault
+{
+    // Формат хранения: [nonce(12)][tag(16)][ciphertext] → одна строка/blob
+    public byte[] Encrypt(ReadOnlySpan<byte> plaintext)
+    {
+        var nonce = new byte[AesGcm.NonceByteSizes.MaxSize];   // 12 байт
+        RandomNumberGenerator.Fill(nonce);                     // уникальный nonce!
+
+        var tag = new byte[AesGcm.TagByteSizes.MaxSize];       // 16 байт
+        var ciphertext = new byte[plaintext.Length];
+
+        using var aes = new AesGcm(key, tag.Length);
+        aes.Encrypt(nonce, plaintext, ciphertext, tag);
+
+        return [.. nonce, .. tag, .. ciphertext];              // collection expression
+    }
+
+    public byte[] Decrypt(ReadOnlySpan<byte> stored)
+    {
+        var nonce = stored[..12];
+        var tag = stored[12..28];
+        var ciphertext = stored[28..];
+        var plaintext = new byte[ciphertext.Length];
+
+        using var aes = new AesGcm(key, tag.Length);
+        aes.Decrypt(nonce, ciphertext, tag, plaintext);        // бросит при подмене tag
+        return plaintext;
+    }
+}
+```
+
+> [!warning] Когда НЕ писать своё шифрование
+> Для cookie, antiforgery, Identity-токенов **не** изобретай это сам — используй `IDataProtector` (ASP.NET Core Data Protection): он управляет ключами, ротацией и форматом. `AesGcm` напрямую — для шифрования конкретных полей БД, где ты контролируешь хранение nonce+tag.
+
+---
+
 ## Rate Limiting — защита от abuse
 
 ```csharp
@@ -521,6 +617,8 @@ dotnet list package --vulnerable     # по всем проектам
 | **Файлы** | Path traversal protection | Reject `..`, `\`, проверка `StartsWith(basePath)` |
 | **Ввод** | XSS protection | `WebUtility.HtmlEncode` |
 | **SQL** | Injection protection | Параметризованные запросы (EF делает автоматически) |
+| **SQL** | Корректный тип параметра | `.Add(name, SqlDbType...)`, не `AddWithValue` |
+| **Шифрование** | Обратимое шифрование PII | `AesGcm` с уникальным nonce; для cookie — `IDataProtector` |
 | **CORS** | Конкретные origins | Никогда `AllowAnyOrigin` в production |
 | **Секреты** | Не в git | User Secrets (dev) + Env Vars (prod) |
 | **Rate Limiting** | Brute-force protection | `AddRateLimiter` на auth endpoints |

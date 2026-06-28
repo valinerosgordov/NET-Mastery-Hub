@@ -1,8 +1,8 @@
 # CSharp — язык
 
-> 38 файлов / ~1.1 MB. Всё про C# как язык: от basics до advanced internals.
+> 41 файл / ~2.4 MB. Всё про C# как язык: от basics до advanced internals. Самая большая папка vault'а.
 
-[← Главный README]() · [Полный INDEX]()
+[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
 ---
 
@@ -10,80 +10,75 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Никогда не писал на C# | [`csharp-basics.md`]() → [`dotnet-cli-getting-started.md`]() |
-| Знаю Java/Python, перехожу | [`csharp-vs-other-langs.md`]() |
-| Junior — daily tools | [`debugging-basics.md`](), [`naming-conventions.md`]() |
-| Junior хочу в Middle | [`oop.md`]() → [`error-handling.md`]() → [`collections-linq.md`]() |
-| Middle хочу в Senior | [`async-threading.md`]() → [`types-and-memory.md`]() → [`generics-deep.md`]() |
-| Готовлюсь к собесу | [`async-threading.md`](), [`types-and-memory.md`](), [`collections-linq.md`](), [`design-patterns.md`](), [`gof-patterns-extended.md`]() |
-| Senior performance | [`memory-pooling.md`](), [`unsafe-pointers.md`](), [`numeric-types-math.md`]() |
+| Никогда не писал на C# | [`Junior/csharp-basics.md`](Junior/csharp-basics.md) → [`Junior/dotnet-cli-getting-started.md`](Junior/dotnet-cli-getting-started.md) |
+| Знаю Java/Python, перехожу | [`Senior/csharp-vs-other-langs.md`](Senior/csharp-vs-other-langs.md) |
+| Junior — daily tools | [`Junior/debugging-basics.md`](Junior/debugging-basics.md), [`Junior/naming-conventions.md`](Junior/naming-conventions.md) |
+| Junior хочу в Middle | [`Junior/oop.md`](Junior/oop.md) → [`Middle/error-handling.md`](Middle/error-handling.md) → [`Junior/collections-linq.md`](Junior/collections-linq.md) |
+| Middle хочу в Senior | [`Senior/async-threading.md`](Senior/async-threading.md) → [`Senior/types-and-memory.md`](Senior/types-and-memory.md) → [`Middle/generics-deep.md`](Middle/generics-deep.md) |
+| Готовлюсь к собесу | async-threading, types-and-memory, collections-linq, design-patterns, gof-patterns-extended |
+| Senior performance | [`Senior/memory-pooling.md`](Senior/memory-pooling.md), [`Senior/unsafe-pointers.md`](Senior/unsafe-pointers.md), [`Middle/numeric-types-math.md`](Middle/numeric-types-math.md) |
 
 ---
 
 ## 📚 Все файлы по уровню
 
-### 🌱 Junior — старт и инструменты
+> Гиганты Junior-папки (100+ KB) читаются по диапазонам из roadmap'ов, не подряд — см. [`LearningPath/02_junior-to-middle.md`](../LearningPath/02_junior-to-middle.md).
+
+### 🌱 Junior (13)
 
 | Файл | Описание |
 |------|----------|
-| [`csharp-basics.md`]() | Стартовая точка: переменные, типы, control flow |
-| [`dotnet-cli-getting-started.md`]() ⭐ NEW | dotnet CLI, project templates, package management |
-| [`debugging-basics.md`]() ⭐ NEW | Отладка: breakpoints, watch, immediate, logging |
-| [`naming-conventions.md`]() ⭐ NEW | Naming: PascalCase, camelCase, conventions |
+| [`csharp-basics.md`](Junior/csharp-basics.md) | Стартовая точка: переменные, типы, control flow |
+| [`dotnet-cli-getting-started.md`](Junior/dotnet-cli-getting-started.md) | dotnet CLI, templates, package management |
+| [`debugging-basics.md`](Junior/debugging-basics.md) | Отладка: breakpoints, watch, immediate, logging |
+| [`naming-conventions.md`](Junior/naming-conventions.md) | Naming: PascalCase, camelCase, conventions |
+| [`oop.md`](Junior/oop.md) | Inheritance, polymorphism, abstract — Junior→Senior разделы |
+| [`collections-linq.md`](Junior/collections-linq.md) | Collections, LINQ deep — Junior→Senior разделы |
+| [`datetime-timezones.md`](Junior/datetime-timezones.md) | DateTime, TimeZoneInfo, NodaTime |
+| [`strings-regex.md`](Junior/strings-regex.md) | String operations, Regex, performance |
+| [`enums-flags.md`](Junior/enums-flags.md) | Enum, [Flags], parsing, serialization |
+| [`tuples-deconstruction.md`](Junior/tuples-deconstruction.md) | ValueTuple, deconstruction |
+| [`anonymous-types.md`](Junior/anonymous-types.md) | Anonymous types, when и зачем |
+| [`extension-methods.md`](Junior/extension-methods.md) | this-параметр, fluent APIs, LINQ-like |
+| [`iterators-yield.md`](Junior/iterators-yield.md) | yield return, IAsyncEnumerable |
 
-### 🌿 Junior to Middle — daily work
-
-| Файл | Описание |
-|------|----------|
-| [`datetime-timezones.md`]() | DateTime, TimeZoneInfo, NodaTime |
-| [`strings-regex.md`]() | String operations, Regex, performance |
-| [`enums-flags.md`]() | Enum, [Flags], parsing, serialization |
-| [`tuples-deconstruction.md`]() | ValueTuple, deconstruction |
-| [`anonymous-types.md`]() | Anonymous types, when и зачем |
-| [`extension-methods.md`]() | this-параметр, fluent APIs, LINQ-like |
-| [`iterators-yield.md`]() | yield return, IAsyncEnumerable |
-| [`oop.md`]() | Inheritance, polymorphism, abstract (Junior to Senior) |
-| [`collections-linq.md`]() | Collections, LINQ deep (47 KB, Junior to Senior) |
-
-### 🌳 Middle — production work
+### 🌿 Middle (14)
 
 | Файл | Описание |
 |------|----------|
-| [`io-streams.md`]() | File, Stream, async I/O |
-| [`nullable-types.md`]() | Nullable\<T\>, NRT, null operators |
-| [`equality-comparison.md`]() | Equals, GetHashCode, IEquatable |
-| [`attributes-metadata.md`]() | Attributes, custom attributes, reflection |
-| [`indexers-operators.md`]() | Custom indexers, operator overloading |
-| [`dispose-pattern.md`]() | IDisposable, IAsyncDisposable, SafeHandle |
-| [`keywords-reference.md`]() | C# keywords reference (ref/in/out/scoped/etc) |
-| [`error-handling.md`]() | Exceptions, Result, OneOf (Middle to Senior) |
-| [`delegates-events.md`]() | Delegates, events, Func/Action (Middle to Senior) |
-| [`modern-features.md`]() | Records, primary ctors, raw strings (Middle to Senior) |
+| [`modern-features.md`](Middle/modern-features.md) | Records, primary ctors, raw strings, C# 8→14 |
+| [`error-handling.md`](Middle/error-handling.md) | Exceptions, Result, OneOf |
+| [`nullable-types.md`](Middle/nullable-types.md) | Nullable\<T\>, NRT, null operators |
+| [`generics-deep.md`](Middle/generics-deep.md) | Variance, INumber\<T\>, generic math |
+| [`delegates-events.md`](Middle/delegates-events.md) | Delegates, events, Func/Action |
+| [`equality-comparison.md`](Middle/equality-comparison.md) | Equals, GetHashCode, IEquatable |
+| [`attributes-metadata.md`](Middle/attributes-metadata.md) | Attributes, custom attributes, reflection |
+| [`indexers-operators.md`](Middle/indexers-operators.md) | Custom indexers, operator overloading |
+| [`dispose-pattern.md`](Middle/dispose-pattern.md) | IDisposable, IAsyncDisposable, SafeHandle |
+| [`io-streams.md`](Middle/io-streams.md) | File, Stream, async I/O |
+| [`serialization-deep.md`](Middle/serialization-deep.md) ⭐ NEW | System.Text.Json deep, source-gen, XML, MessagePack/protobuf |
+| [`bcl-essentials.md`](Middle/bcl-essentials.md) ⭐ NEW | Guid (v4/v7, ключи БД), Random.Shared, TimeSpan, Stopwatch, TimeProvider |
+| [`numeric-types-math.md`](Middle/numeric-types-math.md) | BigInteger, Half, Vector\<T\>, SIMD |
+| [`keywords-reference.md`](Middle/keywords-reference.md) | C# keywords reference (ref/in/out/scoped/etc) |
 
-### 🏔️ Middle to Senior
-
-| Файл | Описание |
-|------|----------|
-| [`generics-deep.md`]() | Variance, INumber\<T\>, generic math |
-| [`numeric-types-math.md`]() ⭐ | BigInteger, Half, Vector\<T\>, SIMD |
-
-### 🏆 Senior
+### 🏆 Senior (14)
 
 | Файл | Описание |
 |------|----------|
-| [`async-threading.md`]() | Task, async/await internals (58 KB) ⭐ |
-| [`types-and-memory.md`]() | Value vs reference, boxing, struct (53 KB) ⭐ |
-| [`functional-csharp.md`]() | Records, pattern matching, FP в C# |
-| [`design-patterns.md`]() | 13 GoF patterns в C# |
-| [`gof-patterns-extended.md`]() ⭐ | 8 ещё GoF: Command, Visitor, Composite, Proxy, Memento, Bridge, Flyweight, Prototype |
-| [`reflection-expression-trees.md`]() | Reflection, expression trees, dynamic |
-| [`source-generators.md`]() | Source generators (.NET 5+) |
-| [`memory-pooling.md`]() ⭐ | ArrayPool, ObjectPool, MemoryPool |
-| [`unsafe-pointers.md`]() ⭐ | unsafe, fixed, stackalloc, ref struct |
-| [`csharp-language-design.md`]() | History, design decisions, evolution |
-| [`csharp-vs-other-langs.md`]() | C# vs Java/Go/Rust/Python |
-| [`cli-tools-scripting.md`]() | System.CommandLine, scripting |
-| [`desktop-frameworks.md`]() | WPF, MAUI, Avalonia |
+| [`async-threading.md`](Senior/async-threading.md) | Task, async/await internals ⭐ |
+| [`types-and-memory.md`](Senior/types-and-memory.md) | Value vs reference, boxing, struct ⭐ |
+| [`functional-csharp.md`](Senior/functional-csharp.md) | Records, pattern matching, FP в C# |
+| [`design-patterns.md`](Senior/design-patterns.md) | 13 GoF patterns в C# |
+| [`gof-patterns-extended.md`](Senior/gof-patterns-extended.md) | Ещё 8 GoF: Command, Visitor, Composite, Proxy и др. |
+| [`reflection-expression-trees.md`](Senior/reflection-expression-trees.md) | Reflection, expression trees, dynamic |
+| [`source-generators.md`](Senior/source-generators.md) | Source generators (.NET 5+) |
+| [`memory-pooling.md`](Senior/memory-pooling.md) | ArrayPool, ObjectPool, MemoryPool |
+| [`unsafe-pointers.md`](Senior/unsafe-pointers.md) | unsafe, fixed, stackalloc, ref struct |
+| [`csharp-language-design.md`](Senior/csharp-language-design.md) | History, design decisions, evolution |
+| [`csharp-vs-other-langs.md`](Senior/csharp-vs-other-langs.md) | C# vs Java/Go/Rust/Python/TS |
+| [`cli-tools-scripting.md`](Senior/cli-tools-scripting.md) | System.CommandLine, scripting |
+| [`desktop-frameworks.md`](Senior/desktop-frameworks.md) | WPF, MAUI, Avalonia |
+| [`fenwick-bit.md`](Senior/fenwick-bit.md) ⭐ NEW | Fenwick Tree (BIT): префиксные суммы O(log n), трюк i & -i |
 
 ---
 
@@ -96,8 +91,8 @@
 2. dotnet-cli-getting-started  ← запустить первый проект
 3. debugging-basics             ← отлаживать с первого дня
 4. naming-conventions           ← привычки правильно
-5. oop (Junior сектор)
-6. collections-linq (Junior сектор)
+5. oop (Junior разделы)
+6. collections-linq (Junior разделы)
 7. error-handling (intro)
 8. iterators-yield, enums-flags, strings-regex
 9. nullable-types
@@ -113,7 +108,7 @@
 4. modern-features (records, pattern matching)
 5. attributes-metadata, equality-comparison
 6. extension-methods, indexers-operators
-7. io-streams
+7. io-streams + serialization-deep + bcl-essentials
 8. generics-deep
 9. design-patterns (top 13 GoF)
 10. functional-csharp
@@ -135,7 +130,7 @@
 
 ## 🔗 Связанные папки
 
-- [`Runtime/`](../Runtime/) — CLR internals (GC, JIT, threading) — **расширение** глубже C#
+- [`Runtime/`](../Runtime/) — CLR internals (GC, JIT, threading) — расширение глубже C#
 - [`Performance/`](../Performance/) — performance optimization
-- [`Architecture/design-patterns`](../Architecture/) — patterns в архитектурном контексте
-- [`LearningPath/case-studies-top7.md`]() ⭐ — production case studies
+- [`Architecture/`](../Architecture/) — паттерны в архитектурном контексте
+- [`LearningPath/case-studies-top7.md`](../LearningPath/case-studies-top7.md) — production case studies

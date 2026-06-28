@@ -5,6 +5,8 @@ level: Senior
 
 # MVCC, блокировки и конкурентность в PostgreSQL
 
+> MVCC (читатели не блокируют писателей), табличные и строчные lock modes, `SKIP LOCKED` для очередей без брокера, профилактика deadlock, идемпотентные вставки через `ON CONFLICT` и `LISTEN`/`NOTIFY` — с вызовом из Npgsql.
+
 ## Кратко
 Как Postgres даёт читателям не блокировать писателей (MVCC), что реально происходит при `UPDATE`/`DELETE` на уровне строк, как устроены блокировки (от lock modes до `SKIP LOCKED` для очередей), как не словить deadlock, как делать идемпотентные вставки (`ON CONFLICT`) и слать события (`LISTEN`/`NOTIFY`). Это фундамент, который связывает изоляцию транзакций, VACUUM и производительность под нагрузкой в одну картину.
 
@@ -290,6 +292,9 @@ public async Task<IReadOnlyList<JobDto>> ClaimBatchAsync(int batchSize, Cancella
     return jobs;
 }
 ```
+
+> [!warning] `AddWithValue` здесь и ниже — упрощение
+> `AddWithValue` выводит `NpgsqlDbType` из CLR-типа значения; для неоднозначных типов это даёт implicit conversion, который ломает использование индекса. В проде задавай тип явно через `.Add(new NpgsqlParameter(name, NpgsqlDbType.X) { Value = ... })`. Разбор — [[security-practices]].
 
 ## Ретрай на serialization/deadlock
 ```csharp

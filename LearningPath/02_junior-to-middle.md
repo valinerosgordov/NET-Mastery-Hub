@@ -26,6 +26,9 @@ date: 2026-04-30
 
 **Цель:** уверенно писать на C#, понимать базовые механики.
 
+> [!info]- Стартуешь с полного нуля?
+> Сначала [[csharp-basics|csharp-basics]] (синтаксис), [[dotnet-cli-getting-started|dotnet CLI]] (создать и запустить проект) и [[debugging-basics|debugging-basics]] (отлаживать с первого дня). Это гиганты-справочники: на старте достаточно первых разделов, остальное вернётся само по мере работы.
+
 ### Обязательно
 
 | # | Тема | Файл | Время |
@@ -35,6 +38,9 @@ date: 2026-04-30
 | 3 | Modern features (8→14) | [[modern-features\|modern-features]] | 5-6 ч |
 | 4 | Collections и LINQ | [[collections-linq\|collections-linq]] | 6-7 ч |
 | 5 | Delegates и Events | [[delegates-events\|delegates-events]] | 4-5 ч |
+
+> [!tip]- Как читать гиганты `CSharp/Junior` (100+ KB)
+> `oop`, `tuples-deconstruction`, `strings-regex`, `datetime-timezones`, `enums-flags`, `anonymous-types`, `extension-methods`, `iterators-yield`, `naming-conventions` написаны как учебник + справочник в одном файле. Первый проход: тематические разделы до «Common Pitfalls», сам Pitfalls и Cheat sheet. Decision trees, edge cases и интеграционные разделы — reference, возвращайся точечно. Часы в таблицах рассчитаны на такой проход, не на чтение подряд.
 
 ### Practice
 
@@ -119,7 +125,7 @@ date: 2026-04-30
 | 19 | Relationships | [[relationships\|relationships]] | 4-5 ч |
 | 20 | Queries Performance | [[queries-performance\|queries-performance]] | 4-5 ч |
 | 21 | Concurrency | [[concurrency\|concurrency]] | 3-4 ч |
-| 22 | EF Patterns | [[C# and NET/EFCore/patterns\|patterns]] | 3-4 ч |
+| 22 | EF Patterns | [[ef-patterns\|ef-patterns]] | 3-4 ч |
 | 23 | SQL Optimization | [[optimization\|optimization]] | 4-5 ч |
 | 24 | PostgreSQL Deep | [[postgresql-deep\|postgresql-deep]] | 5-6 ч |
 
@@ -177,7 +183,7 @@ date: 2026-04-30
 | # | Тема | Файл | Время |
 |---|------|------|-------|
 | 29 | SOLID | [[solid\|solid]] | 3-4 ч |
-| 30 | Architecture Patterns | [[C# and NET/Architecture/patterns\|patterns]] | 6-7 ч |
+| 30 | Architecture Patterns | [[architecture-patterns\|architecture-patterns]] | 6-7 ч |
 | 31 | CQRS + MediatR | [[cqrs-mediatr\|cqrs-mediatr]] | 4-5 ч |
 | 32 | DDD intro | [[ddd\|ddd]] | 5-6 ч |
 | 33 | Design Patterns | [[design-patterns\|design-patterns]] | 4-5 ч |

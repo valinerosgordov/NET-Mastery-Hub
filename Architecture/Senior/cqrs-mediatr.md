@@ -5,6 +5,8 @@ level: Senior
 
 # CQRS и Mediator pattern
 
+> Разделение Command/Query и развязка sender'а от handler'а через mediator с pipeline behaviors (validation, logging, transaction). Учитывает commercial license MediatR с 2024 и open-source альтернативы (`Mediator`, FastEndpoints).
+
 ## Что это, зачем и когда
 
 ### Что такое CQRS?

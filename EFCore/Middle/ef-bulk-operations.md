@@ -311,6 +311,125 @@ await bulkCopy.WriteToServerAsync(dataTable);
     └── SQL Server → SqlBulkCopy
 ```
 
+### 4.7. Content-hash change tracking (skip DML wholesale)
+
+**Проблема, которую EF не решает сам.** ChangeTracker делает **per-property dirty-checking**: на каждую загруженную entity он держит снапшот original values и при `SaveChanges` сравнивает текущее состояние property-by-property. Это спасает от лишних UPDATE для **отдельных** колонок, но:
+
+- снапшот **всё равно материализуется** для каждой загруженной row (память + CPU на сравнение);
+- решение «писать или нет» принимается EF **внутри** `SaveChanges`, когда граф уже собран, навигации прицеплены, value-converters прогнаны;
+- при ETL/sync ты обычно **перезаписываешь весь аггрегат** из источника (re-present), поэтому ChangeTracker честно видит «всё поменялось» даже если бизнес-смысл идентичен.
+
+Идея content-hash: **до** записи посчитать хэш контента аггрегата **до и после** enrichment; если совпало — пропустить весь write-path для этой row целиком. Это не замена dirty-checking, а **обход решения о записи на уровне аггрегата** для идемпотентно пере-представленных строк — раньше и грубее, чем per-property сравнение EF.
+
+> [!info] Отличие от per-property dirty-checking
+> EF dirty-checking работает **внутри** `SaveChanges` и всё равно снапшотит каждую загруженную entity. Content-hash отсекает row **до** того, как она вообще попадёт в bulk-batch или в `ChangeTracker`-граф: для unchanged rows нет ни снапшота, ни DML-решения, ни round-trip.
+
+Хэш считаем по стабильной канонической проекции (порядок полей фиксирован, без волатильных полей типа `UpdatedAt`):
+
+```csharp
+using System.IO.Hashing;   // XxHash3 — fast non-crypto hash
+
+// Stable content fingerprint of the aggregate (exclude volatile audit fields)
+private static ulong ComputeContentHash(ProductAggregate p)
+{
+    var hash = new XxHash3();
+
+    hash.Append(MemoryMarshal.AsBytes(p.Sku.AsSpan()));
+    hash.Append(MemoryMarshal.AsBytes(p.Name.AsSpan()));
+    hash.Append(MemoryMarshal.AsBytes(stackalloc[] { p.Price }));
+    hash.Append(MemoryMarshal.AsBytes(stackalloc[] { p.CategoryId }));
+
+    foreach (var v in p.Variants.OrderBy(static x => x.Id))   // deterministic order
+        hash.Append(MemoryMarshal.AsBytes(stackalloc[] { v.Id, v.Stock }));
+
+    return hash.GetCurrentHashAsUInt64();
+}
+```
+
+Pipeline: хэш существующего состояния хранится в колонке (`content_hash bigint`), сравниваем с хэшом после enrichment:
+
+```csharp
+var changed = new List<ProductAggregate>();
+
+foreach (var incoming in source)   // 999 re-presented aggregates
+{
+    Enrich(incoming);   // normalize, attach computed fields
+
+    ulong newHash = ComputeContentHash(incoming);
+
+    if (existingHashes.TryGetValue(incoming.Sku, out ulong oldHash) && oldHash == newHash)
+        continue;   // ← skip the WRITE decision entirely; never enters the DML path
+
+    incoming.ContentHash = newHash;
+    changed.Add(incoming);
+}
+
+// Only the genuinely-changed subset hits the DB
+```
+
+**Измеренный кейс (sync 999 аггрегатов):** 967 строк пропущены по совпадению хэша, в БД ушли только 32 изменённые. End-to-end примерно `991ms -> 154ms` (≈6.4x): исчезли материализация снапшотов, генерация DML и round-trip'ы для 96.7% строк.
+
+**Комбинируем с bulk-путями в ОДНОЙ транзакции.** Из 32 changed часть — новые (INSERT через binary COPY / `SqlBulkCopy`), часть — существующие (batched UPDATE по PK). Всё под одним `BeginTransactionAsync`, чтобы sync был атомарным:
+
+```csharp
+await using var tx = await _db.Database.BeginTransactionAsync(ct);
+try
+{
+    var (toInsert, toUpdate) = Partition(changed, existingKeys);
+
+    // Inserts — Npgsql binary COPY (fastest path, см. 4.4)
+    if (toInsert.Count > 0)
+    {
+        await using var writer = await connection.BeginBinaryImportAsync(
+            "COPY products (sku, name, price, category_id, content_hash) FROM STDIN (FORMAT BINARY)", ct);
+
+        foreach (var p in toInsert)
+        {
+            await writer.StartRowAsync(ct);
+            await writer.WriteAsync(p.Sku, NpgsqlDbType.Text, ct);
+            await writer.WriteAsync(p.Name, NpgsqlDbType.Text, ct);
+            await writer.WriteAsync(p.Price, NpgsqlDbType.Numeric, ct);
+            await writer.WriteAsync(p.CategoryId, NpgsqlDbType.Integer, ct);
+            await writer.WriteAsync((long)p.ContentHash, NpgsqlDbType.Bigint, ct);
+        }
+
+        await writer.CompleteAsync(ct);
+    }
+
+    // Updates — batched ExecuteUpdate per row group (or temp-table + UPDATE...FROM for big sets)
+    foreach (var p in toUpdate)
+    {
+        await _db.Products
+            .Where(x => x.Sku == p.Sku)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(x => x.Name, p.Name)
+                .SetProperty(x => x.Price, p.Price)
+                .SetProperty(x => x.ContentHash, (long)p.ContentHash), ct);
+    }
+
+    await tx.CommitAsync(ct);
+}
+catch
+{
+    await tx.RollbackAsync(ct);
+    throw;
+}
+```
+
+> [!warning] COPY и ExecuteUpdate делят connection, но НЕ транзакцию автоматически
+> `ExecuteUpdate` идёт через `DbContext`, binary COPY — через `NpgsqlConnection`. Чтобы оба попали в один `tx`, бери connection из `_db.Database.GetDbConnection()` (тот же, что enlistнут в транзакцию EF), а не открывай новый. Иначе COPY закоммитится отдельно и rollback его не откатит.
+
+**Когда применять:**
+
+- high-volume **sync / ETL**, где **большинство** строк пере-представляются без реальных изменений (идемпотентный источник: внешний каталог, CDC-feed, nightly full-refresh);
+- DML — **доказанное** узкое место (профайл показывает время в INSERT/UPDATE + round-trip, а не в чтении источника);
+- есть стабильная каноническая проекция контента (детерминированный порядок коллекций, исключённые волатильные поля).
+
+**Когда НЕ применять:** малые объёмы (хэш — лишняя сложность); источник, где почти всё меняется (хэш совпадёт редко → только overhead); аггрегаты без устойчивой канонизации (false negatives → пропущенные изменения = data drift).
+
+> [!tip] Связь с single-property no-op guard
+> Это **аггрегатное обобщение** point-guard из [[optimization-patterns|Performance/Middle/optimization-patterns]] (раздел «Skip unchanged work»): там `if (entity.Status == status) return;` отсекает запись одной property; здесь один хэш отсекает запись **целого аггрегата** ещё до входа в DML-путь. Та же идея «не делай работу, результат которой уже достигнут», поднятая с поля на граф.
+
 ---
 
 ## 5. Best Practices

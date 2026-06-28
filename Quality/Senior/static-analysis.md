@@ -78,6 +78,8 @@ string? maybe = null;   // OK
 
 В сочетании с `.editorconfig` — стиль становится частью build.
 
+Два разных свойства закрывают две группы правил: `CodeAnalysisTreatWarningsAsErrors` поднимает до ошибок `CAxxxx` (quality/reliability/security analyzers), а `EnforceCodeStyleInBuild` включает в build `IDExxxx` (code-style). Это ортогональные тумблеры — типичная ошибка ждать, что один потянет оба.
+
 ```ini
 # .editorconfig
 [*.cs]
@@ -157,6 +159,7 @@ dotnet_diagnostic.CA1051.severity = warning  # Public fields
 - `S3260` — Sealed for inheritance prevention
 - `S3776` — Cognitive complexity (метрика читабельности)
 - `S109` — Magic numbers — assign to constant
+- `S5344` — Weak password hashing (PBKDF2/bcrypt с малым числом итераций, MD5/SHA1 для паролей) — security hotspot
 
 ```csharp
 // ❌ S2629 — string interpolation всегда выполняется, даже если log level disabled

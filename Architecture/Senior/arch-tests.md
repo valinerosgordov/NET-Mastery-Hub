@@ -5,6 +5,8 @@ level: Senior
 
 # Архитектурные тесты
 
+> Правила архитектуры (Domain не зависит от Infrastructure, naming conventions, module boundaries) как исполняемые тесты в CI через NetArchTest.eNhancedEdition / ArchUnitNET — fitness functions, ловящие нарушения слоёв до merge.
+
 ## Что это, зачем и когда
 
 ### Что такое architecture tests?
@@ -283,6 +285,15 @@ public void OrdersModule_ShouldNotDependOn_OtherModules()
 
     result.IsSuccessful.ShouldBeTrue();
 }
+```
+
+Module-boundary тест в CI ловит запрещённую зависимость кодом, но не отвечает на вопрос «кто должен ревьюить cross-context изменение». Дополни его авто-генерируемым `CODEOWNERS` (путь модуля → владеющая команда): тогда правка в чужом контексте требует approve от его команды на уровне PR, а не только зелёного теста. Генерируй файл из той же карты модулей, что использует arch-тест, чтобы две защиты не разъезжались.
+
+```text
+# CODEOWNERS — auto-generated from the module map
+/src/Modules/Orders/         @org/orders-team
+/src/Modules/Inventory/      @org/inventory-team
+/src/Modules/Notifications/  @org/notifications-team
 ```
 
 ### 6. Forbidden namespaces

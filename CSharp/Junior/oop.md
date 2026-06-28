@@ -482,7 +482,57 @@ user.Rename("Alice");  // ✅
 
 Private setter — public read, private write. Изменение только через методы класса.
 
-### 3.8. Why encapsulation matters
+### 3.8. `private` — это per-type, а не per-instance
+
+Джуны часто читают `private` как «доступно только через `this`». Это не так. **В C# `private` действует на уровне ТИПА, а не экземпляра.** Код внутри `class Order` имеет доступ к private-членам **любого** `Order`, не только текущего — например, к `other._items` внутри `Equals`, копирования или слияния.
+
+```csharp
+public sealed class Order
+{
+    private readonly List<OrderItem> _items;
+
+    private Order(List<OrderItem> items) => _items = items;
+
+    // other — ДРУГОЙ экземпляр, но _items доступен: private проверяется по типу
+    public bool HasSameItems(Order other) => _items.Count == other._items.Count;
+}
+```
+
+`other._items` компилируется именно потому, что `HasSameItems` живёт внутри `Order` — а `private` открыт всему коду типа `Order`, для всех его экземпляров сразу.
+
+Это и делает чистыми aggregate-паттерны: приватный backing-список + `IReadOnlyList<T>` наружу + статическая фабрика, которая собирает новый объект, читая internals соседних экземпляров.
+
+```csharp
+public sealed class Order
+{
+    private readonly List<OrderItem> _items;
+
+    // Наружу — только read-only view. Внешний код не мутирует список.
+    public IReadOnlyList<OrderItem> Items => _items;
+
+    private Order(List<OrderItem> items) => _items = items;
+
+    // Фабрика читает приватные _items ОБОИХ orders — это legal
+    public static Order Merge(Order left, Order right)
+    {
+        // ВАЛИДАЦИЯ инварианта остаётся обязательной
+        if (left._items.Count == 0 || right._items.Count == 0)
+            throw new ArgumentException("Cannot merge an empty order");
+
+        var merged = new List<OrderItem>(left._items.Count + right._items.Count);
+        merged.AddRange(left._items);
+        merged.AddRange(right._items);
+        return new Order(merged);
+    }
+}
+```
+
+> [!warning] Доступ к private — это НЕ валидация
+> Тот факт, что фабрика/метод **может** дотянуться до `other._items`, не означает, что собранный объект автоматически валиден. Доступ к приватному полю — это разрешение читать/писать, а не проверка инвариантов. Любая фабрика или бизнес-метод обязаны **сами** проверить правила (`_items` не пуст, валюты совпадают, сумма неотрицательна) перед тем, как вернуть новый объект. Иначе инкапсуляция спасает от *чужого* кода, но не от *своего*.
+
+Глубже про Aggregate Root, приватный backing-список и фабрики — [[ddd|DDD — Aggregate Root]].
+
+### 3.9. Why encapsulation matters
 
 ```csharp
 // Без encapsulation — invariants могут сломаться

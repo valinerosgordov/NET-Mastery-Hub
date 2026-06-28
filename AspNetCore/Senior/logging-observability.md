@@ -83,7 +83,7 @@ builder.Logging.AddEventSourceLogger(); // ETW / dotnet-trace
 | `Critical` | Фатальная ошибка, приложение может упасть |
 | `None` | Отключить логирование для категории |
 
-### Использование ILogger<T>
+### Использование `ILogger<T>`
 
 ```csharp
 public class OrderService
@@ -183,6 +183,8 @@ LogMessages.OrderCreated(_logger, order.Id, dto.CustomerId);
 - Нет аллокации `params object[]`
 - Проверка `IsEnabled` генерируется автоматически
 - Compile-time проверка количества и типов аргументов
+
+В .NET 9 / C# 13+ ручные `ILogger`-вызовы получили перегрузки с `params ReadOnlySpan<T>` — они полностью устраняют аллокацию массива `params object[]` и boxing аргументов даже без `[LoggerMessage]`.
 
 ---
 

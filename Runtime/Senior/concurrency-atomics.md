@@ -11,6 +11,7 @@ tags:
   - deepdive
 complexity: Senior
 date: 2026-04-30
+level: Senior
 ---
 
 # Concurrency: гарантии прогресса, атомарность, memory model

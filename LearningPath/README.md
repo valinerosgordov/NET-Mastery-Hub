@@ -1,8 +1,8 @@
 # LearningPath — roadmaps и interview prep
 
-> 9 файлов / ~93 KB. Куда двигаться: Junior → Middle → Senior + interview prep + reading list.
+> 10 файлов / ~130 KB. Куда двигаться: Junior → Middle → Senior + interview prep + reading list.
 
-[← Главный README]() · [Полный INDEX]()
+[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
 ---
 
@@ -19,10 +19,11 @@
 | Senior cheatsheet | — | [`09_senior-tips-cheatsheet.md`](09_senior-tips-cheatsheet.md) |
 | Behavioral / soft skills | — | [`10_interview-behavioral.md`](10_interview-behavioral.md) |
 | Что почитать дальше | — | [`99_reading-list.md`](99_reading-list.md) |
+| Разборы реальных продакшн-кейсов | Middle → Senior | [`case-studies-top7.md`](case-studies-top7.md) |
 
 ---
 
-## 📚 Все 9 файлов
+## 📚 Все 10 файлов
 
 | Файл | Описание |
 |------|----------|
@@ -35,6 +36,7 @@
 | [`09_senior-tips-cheatsheet.md`](09_senior-tips-cheatsheet.md) | Senior quick reference |
 | [`10_interview-behavioral.md`](10_interview-behavioral.md) | Soft skills, STAR method |
 | [`99_reading-list.md`](99_reading-list.md) | Books, blogs, conferences |
+| [`case-studies-top7.md`](case-studies-top7.md) | Топ-7 ключевых файлов vault'а через реальные production-кейсы: что ломается и как чинится |
 
 > ℹ️ Нумерация с пропусками (00, 02, 03, 04, 05, 09, 10, 99) — намеренная: оставляет место для будущих файлов в каждой "категории" (entry / progression / interview / reference).
 
@@ -43,5 +45,5 @@
 ## 🔗 Связанные папки
 
 - Все папки vault'а — application of learning path
-- ⭐ [`Architecture/real-world-scenarios`]() — практика в проектах
-- ⭐ [`Architecture/patterns-decision-guide`]() — decision-making
+- ⭐ [`Architecture/Middle/real-world-scenarios.md`](../Architecture/Middle/real-world-scenarios.md) — практика в проектах
+- ⭐ [`Architecture/Middle/patterns-decision-guide.md`](../Architecture/Middle/patterns-decision-guide.md) — decision-making

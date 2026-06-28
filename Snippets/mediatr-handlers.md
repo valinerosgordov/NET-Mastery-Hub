@@ -1,5 +1,7 @@
 # Snippets — MediatR Handlers
 
+> CQRS-обвязка на MediatR: Command/Query handlers, возвращающие `Result<T>`, FluentValidation validator и `IPipelineBehavior<TRequest, TResponse>` для валидации и логирования, плюс регистрация в Program.cs.
+
 ## Command Handler (с Result<T>)
 
 ```csharp
@@ -141,5 +143,4 @@ builder.Services.AddValidatorsFromAssembly(typeof(CreateOrderCommandValidator).A
 
 ## См. также
 
-- [[Result Pattern + CQRS|Result Pattern + CQRS]]
-- [[Result Usage|Result Usage]]
+- [[result-pattern|Result Pattern + CQRS]]

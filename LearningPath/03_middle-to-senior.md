@@ -43,6 +43,7 @@ Senior не достигается просто чтением — нужен **
 | # | Тема | Файл | Время |
 |---|------|------|-------|
 | 1 | GC и память | [[gc-memory\|gc-memory]] | 8-10 ч |
+| 1a | Stack vs Heap | [[memory-stack-heap\|memory-stack-heap]] | 2-3 ч |
 | 2 | Compilation / JIT | [[compilation-jit\|compilation-jit]] | 4-5 ч |
 | 3 | Span и Layout | [[span-layout\|span-layout]] | 6-7 ч |
 | 4 | Concurrency atomics | [[concurrency-atomics\|concurrency-atomics]] | 6-7 ч |
@@ -95,14 +96,18 @@ Senior не достигается просто чтением — нужен **
 
 | # | Тема | Файл | Время |
 |---|------|------|-------|
-| 12 | Architecture Patterns deep | [[C# and NET/Architecture/patterns\|patterns]] | 8-10 ч |
+| 12 | Architecture Patterns deep | [[architecture-patterns\|architecture-patterns]] | 8-10 ч |
 | 13 | DDD на практике | [[ddd\|ddd]] | 7-8 ч |
 | 14 | CQRS + MediatR глубоко | [[cqrs-mediatr\|cqrs-mediatr]] | 5-6 ч |
 | 15 | Distributed Systems | [[distributed-systems\|distributed-systems]] | 8-10 ч |
 | 16 | System Design | [[system-design\|system-design]] | 6-8 ч |
 | 17 | Architecture Tests | [[arch-tests\|arch-tests]] | 2-3 ч |
 | 18 | ADRs | [[architecture-decisions\|architecture-decisions]] | 3-4 ч |
-| 19 | EF Patterns | [[C# and NET/EFCore/patterns\|patterns]] | 5-6 ч |
+| 18a | Agent-Safe Architecture | [[agent-safe-architecture\|agent-safe-architecture]] | 3-4 ч |
+| 18b | EIP: Content-Based Router | [[eip-content-based-router\|eip-content-based-router]] | 2-3 ч |
+| 19 | EF Patterns | [[ef-patterns\|ef-patterns]] | 5-6 ч |
+| 19a | EF Value Converters | [[ef-value-converters\|ef-value-converters]] | 2-3 ч |
+| 19b | Lazy vs Eager Loading | [[lazy-eager-loading\|lazy-eager-loading]] | 2-3 ч |
 
 ### Practice
 
@@ -132,6 +137,7 @@ Senior не достигается просто чтением — нужен **
 | 20 | GraphQL | [[graphql\|graphql]] | 5-6 ч |
 | 21 | SignalR | [[signalr\|signalr]] | 5-6 ч |
 | 22 | gRPC / IPC | [[ipc-named-pipes-grpc\|ipc-named-pipes-grpc]] | 4-5 ч |
+| 22a | Kestrel как raw HTTP host | [[kestrel-as-raw-host\|kestrel-as-raw-host]] | 3-4 ч |
 | 23 | Native AOT | [[native-aot\|native-aot]] | 3-4 ч |
 | 24 | Blazor WASM | [[blazor-wasm\|blazor-wasm]] | 4-5 ч |
 | 25 | Blazor Server | [[blazor-server\|blazor-server]] | 3-4 ч |
@@ -153,10 +159,16 @@ Senior не достигается просто чтением — нужен **
 | 26 | Observability deep | [[observability\|observability]] | 5-6 ч |
 | 27 | Messaging | [[messaging\|messaging]] | 5-6 ч |
 | 28 | Performance | [[performance\|performance]] | 5-6 ч |
+| 28a | ThreadPool Starvation / Hill-Climbing | [[threadpool-starvation-hill-climbing\|threadpool-starvation-hill-climbing]] | 3-4 ч |
+| 28b | Performance Budgets | [[performance-budgets\|performance-budgets]] | 2-3 ч |
+| 28c | HttpClient Resilience | [[http-client-resilience\|http-client-resilience]] | 2-3 ч |
+| 28d | Fenwick Tree / BIT | [[fenwick-bit\|fenwick-bit]] | 2-3 ч |
 | 29 | HFT / Low Latency | [[hft-low-latency\|hft-low-latency]] | 4-5 ч |
 | 30 | Docker production | [[docker\|docker]] | 5-6 ч |
 | 31 | LLM/RAG patterns | [[llm-rag-patterns\|llm-rag-patterns]] | 5-6 ч |
 | 32 | Security practices | [[security-practices\|security-practices]] | 4-5 ч |
+| 32a | Rate Limiting (ASP.NET) | [[aspnet-rate-limiting\|aspnet-rate-limiting]] | 2-3 ч |
+| 32b | SQL Security | [[sql-security\|sql-security]] | 2-3 ч |
 | 33 | Testing deep | [[testing\|testing]] | 5-6 ч |
 
 ### Practice

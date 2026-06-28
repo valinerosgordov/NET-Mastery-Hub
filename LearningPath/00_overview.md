@@ -1,7 +1,7 @@
 ---
 tags: [learning-path, overview, navigation]
 level: All
-date: 2026-04-30
+date: 2026-06-12
 ---
 
 # 📚 Learning Path — Overview
@@ -29,111 +29,39 @@ date: 2026-04-30
 
 ## 🗺️ Структура vault
 
+Внутри каждой тематической папки файлы разложены по уровням `Junior/` → `Middle/` → `Senior/` (файлы уровня All — в корне папки). Полное оглавление с описанием каждого файла — `INDEX.md` в корне раздела (генерируется скриптом `Scripts/generate_index.ps1`).
+
 ```
-C#/                        — язык: основы, продвинутые темы, FP, language design
-├── async-threading        — Task, async/await, Channels, ValueTask
-├── collections-linq       — Collections, LINQ, ImmutableArray
-├── delegates-events       — Func/Action, events, weak events
-├── design-patterns        — GoF и .NET-specific patterns
-├── error-handling         — Exceptions vs Result<T,E>
-├── functional-csharp      ★ FP стиль: records, pattern matching, monads
-├── modern-features        — все language features 8→14
-├── oop                    — классы, interfaces, inheritance
-├── reflection-expression-trees ★ метапрограммирование, EF/AutoMapper internals
-├── source-generators      — compile-time codegen
-├── types-and-memory       — value/reference, struct, ref returns
-├── csharp-language-design ★ эволюция C# 1.0→14, философия
-├── csharp-vs-other-langs  ★ C# vs TS/Kotlin/Rust/Go/Python/F#
-├── cli-tools-scripting    ★ System.CommandLine, Spectre.Console
-└── desktop-frameworks     ★ WPF/Avalonia/Uno/MAUI comparison
-
-Runtime/                   — низкий уровень CLR
-├── compilation-jit        — Roslyn, IL, JIT, tiered, AOT
-├── concurrency-atomics    — locks, atomics, memory model
-├── diagnostics-tools      ★ dotnet-counters/trace/dump/monitor
-├── gc-memory              — GC generations, regions, DATAS, leaks
-├── interop-pinvoke        ★ P/Invoke, COM, marshalling
-└── span-layout            — Span<T>, struct layout, stackalloc
-
-AspNetCore/                — web framework
-├── api-design             — REST, OpenAPI, versioning
-├── auth-security          — JWT, OAuth, OIDC, RBAC
-├── blazor-server          — Blazor Server (SignalR-based)
-├── blazor-wasm            ★ Blazor WebAssembly
-├── caching                — IMemoryCache, IDistributedCache, Redis
-├── di-configuration       — DI lifetimes, Options, IConfiguration
-├── graphql                ★ HotChocolate, DataLoader, Federation
-├── hosting-background     — IHostedService, BackgroundService
-├── logging-observability  — ILogger, Serilog, OpenTelemetry
-├── native-aot             — AOT compilation, trimming
-├── pipeline-middleware    — middleware, IExceptionHandler
-├── resilience             — Polly, Polly.RateLimit, retries
-├── security-practices     — OWASP top 10, security checklist
-└── signalr                ★ Real-time, Hubs, Redis backplane
-
-EFCore/                    — ORM
-├── basics-tracking        — DbContext, Change Tracker, AsNoTracking
-├── concurrency            — optimistic, pessimistic locks
-├── migrations             — code-first migrations, idempotent SQL
-├── patterns               — Repository, UoW, Specification, Soft Delete
-├── queries-performance    — N+1, projections, AsSplitQuery
-└── relationships          — 1:1, 1:N, N:N, TPH/TPT/TPC
-
-SQL/                       — реляционные БД
-├── optimization           — индексы, EXPLAIN ANALYZE
-└── postgresql-deep        — PostgreSQL specifics, RLS, JSONB
-
-Architecture/              — архитектура и паттерны
-├── arch-tests             — NetArchTest для архитектурных правил
-├── architecture-decisions — ADR, RFC, Design Docs
-├── cqrs-mediatr           — CQRS pattern, MediatR
-├── ddd                    — Domain-Driven Design
-├── distributed-systems    — Saga, Outbox, eventual consistency
-├── patterns               — Modular Monolith, Vertical Slices, Clean
-├── solid                  — SOLID principles
-├── system-design          — high-level system design
-└── webai-csharp-architecture — AI integration patterns
-
-Infrastructure/            — DevOps, deployment, integration
-├── docker                 — Dockerfile, multi-stage, security
-├── ipc-named-pipes-grpc   — IPC patterns
-├── llm-rag-patterns       — LLM/RAG в .NET
-├── messaging              — RabbitMQ, MassTransit, Kafka
-├── observability          — OTel, Prometheus, Jaeger
-├── project-setup          — Directory.Build.props, CPM, .editorconfig
-├── semantic-kernel        — Microsoft Semantic Kernel
-└── wpf-production         — WPF production patterns
-
-Performance/               — performance work
-├── hft-low-latency        — HFT patterns, MetaTrader
-└── performance            — BenchmarkDotNet, profiling
-
-Quality/                   — качество кода
-└── code-quality           — analyzers, linting, code review
-
-Testing/                   — тестирование
-└── testing                — xUnit, integration, Testcontainers, NSubstitute
-
-Snippets/                  — готовые рецепты
-├── crud-example
-├── efcore-queries
-├── mediatr-handlers
-├── result-pattern
-└── wpf-viewmodel
-
-LearningPath/              — этот раздел
+LearningPath/    10  roadmaps, interview prep, reading list — этот раздел
+CSharp/          40  язык: basics → modern features → async → метапрограммирование
+Runtime/          9  CLR: GC, JIT, memory model, threading internals, диагностика
+AspNetCore/      22  web: pipeline, auth, DI, HttpClient, SignalR, Blazor, AOT
+EFCore/          13  ORM: tracking, запросы, миграции, паттерны, Dapper
+SQL/              8  реляционные БД: indexes, optimization, PostgreSQL deep
+Architecture/    14  SOLID, DDD, CQRS, distributed, decision guides, case studies
+Quality/          5  clean code, refactoring, code review, static analysis
+Testing/          5  fundamentals → mocking → integration → mutation
+Performance/     11  профилирование, кеширование, оптимизация, HFT
+Infrastructure/  15  Docker, k8s, CI/CD, messaging, observability, LLM/AI
+Snippets/         5  готовые рецепты: CRUD, Result, MediatR, EF, MVVM
 ```
 
-★ = недавно добавлено / расширено
+Ключевые точки входа по темам:
+
+- Язык с нуля → [[csharp-basics|C# Basics]], дальше по [[01_language-map\|Language Map]]
+- Async и многопоточность → [[async-threading|Async и Threading]] + [[threading-basics|Threading Basics]]
+- Память и GC → [[gc-memory|GC и Memory]] + [[types-and-memory|Types и Memory]]
+- Web-фреймворк → [[pipeline-middleware|Pipeline]] + [[aspnet-dependency-injection-deep|DI deep]]
+- Выбор архитектуры → [[patterns-decision-guide|Patterns Decision Guide]] + [[real-world-scenarios|Real-World Scenarios]]
 
 ---
 
 ## 📊 Статистика vault
 
-- **Всего файлов:** ~80
-- **Общий объём:** ~2.3 MB
-- **Уровень:** Senior+ (большинство файлов)
-- **Покрытие:** ~92% Senior .NET topics 2026
+- **Всего файлов:** 157 контентных заметок (+ README в каждой папке + INDEX)
+- **Общий объём:** ~5.5 MB
+- **По уровням:** Junior 25 · Middle 29 · Middle→Senior 14 · Senior 73 · остальное — All/paths
+- **Покрытие:** все 15 блоков «Complete C# 2026» cheat sheet + architecture/distributed/infra сверху
 - **Языки:** русский (основной), технические термины — английские
 
 ---

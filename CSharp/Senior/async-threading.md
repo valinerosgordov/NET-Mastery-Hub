@@ -827,9 +827,74 @@ queue.TryDequeue(out var item);
 // Concurrent bag (unordered)
 var bag = new ConcurrentBag<string>();
 bag.Add("hello");
+
+// Concurrent stack (LIFO)
+var stack = new ConcurrentStack<int>();
+stack.Push(42);
+stack.TryPop(out var top);
 ```
 
 Thread-safe alternatives к Dictionary / List / Queue.
+
+#### Senior gotchas — concurrent collections
+
+> [!warning] `GetOrAdd` НЕ атомарен относительно value factory
+
+Подпись `GetOrAdd(key, valueFactory)` выглядит как «вычисли-если-нет», но под contention **factory может выполниться больше одного раза** для одного и того же ключа: несколько потоков, не найдя ключ, параллельно зовут factory. В словарь попадёт ровно **один** результат (победитель CAS), лишние — отбрасываются. Это by design: `ConcurrentDictionary` не держит lock на время вызова factory, чтобы не блокировать другие bucket'ы.
+
+```csharp
+// ❌ Factory с side effect / дорогая — может выполниться N раз, утечь N-1 объектов
+var conn = _pool.GetOrAdd(key, k => OpenExpensiveConnection(k));
+// под нагрузкой: открыли 3 соединения, в словаре осталось 1, два утекли (не Dispose'нуты)
+
+// ✅ Вариант 1 — factory идемпотентна и дёшева (no side effects)
+var meta = _cache.GetOrAdd(key, static k => new Metadata(k));   // повторный new безвреден
+
+// ✅ Вариант 2 — хранить Lazy<T>, материализация ровно один раз
+var lazy = _cache.GetOrAdd(key, static k => new Lazy<Connection>(
+    () => OpenExpensiveConnection(k), LazyThreadSafetyMode.ExecutionAndPublication));
+var conn = lazy.Value;   // Lazy гарантирует single execution даже если самих Lazy создали несколько
+```
+
+`Lazy<T>` как stored value — стандартный приём: даже если несколько `Lazy<T>`-обёрток создалось, в словаре останется одна, и её `.Value` выполнит дорогую инициализацию строго один раз. `AddOrUpdate` страдает тем же: и `addValueFactory`, и `updateValueFactory` могут вызваться повторно при ретраях CAS.
+
+> [!warning] `Count` и `ToArray()` берут ВСЕ внутренние локи
+
+`ConcurrentDictionary.Count`, `IsEmpty`, `ToArray()`, `Keys`, `Values`, `Clear()` захватывают **все** lock'и таблицы (по умолчанию `~4 × ProcessorCount`), полностью сериализуя коллекцию на время вызова. На hot path это убивает масштабируемость.
+
+```csharp
+// ❌ Count в горячем цикле — каждый вызов лочит всю таблицу
+while (dict.Count > threshold) { ... }
+
+// ✅ Если нужна лишь проверка «пусто/нет» — IsEmpty дешевле Count, но тоже не free;
+//    для счётчика держи отдельный Interlocked-счётчик рядом со словарём
+if (Interlocked.Read(ref _approxCount) > threshold) { ... }
+```
+
+`TryGetValue` / `TryAdd` / индексатор, наоборот, lock-free на чтение и берут лишь один bucket-lock на запись — их и используй на hot path.
+
+> [!info] ConcurrentBag, ConcurrentStack — частные случаи, не general-purpose очереди
+
+- `ConcurrentBag<T>` оптимизирован под сценарий **«тот же поток добавил — тот же поток забрал»** (work-stealing: у каждого потока свой локальный сегмент, чужой берётся только при опустошении своего). Как обычная общая очередь producer≠consumer он медленнее и даёт неупорядоченную выдачу — для этого `ConcurrentQueue<T>` (FIFO) или `Channel<T>`.
+- `ConcurrentStack<T>` — LIFO, через `Push` / `TryPop` (lock-free CAS на head). Нет `Pop()` без `Try` — пустой стек не бросает, а возвращает `false`.
+
+> [!info] `BlockingCollection<T>` — синхронный bounded producer/consumer; для async бери `Channel<T>`
+
+`BlockingCollection<T>` оборачивает любой `IProducerConsumerCollection<T>` (по умолчанию `ConcurrentQueue<T>`) и добавляет **блокирующие** `Add` / `Take`, опциональную ёмкость (backpressure) и `CompleteAdding()` + `GetConsumingEnumerable()`:
+
+```csharp
+using var bc = new BlockingCollection<int>(boundedCapacity: 100);
+
+// Producer (блокирует поток, если очередь полна)
+bc.Add(42);
+bc.CompleteAdding();
+
+// Consumer — блокирующая итерация до CompleteAdding
+foreach (var item in bc.GetConsumingEnumerable())
+    Process(item);
+```
+
+Ключевое: `Take` / `Add` **блокируют поток** (не `await`). В async-коде это ведёт к thread-pool starvation — там предпочитай `Channel<T>` (см. [[#9. Channels и IAsyncEnumerable|раздел 9]]), у которого `WriteAsync` / `ReadAllAsync` освобождают поток. `BlockingCollection<T>` оправдан в чисто синхронном пайплайне (старый код, dedicated worker-потоки).
 
 ### 6.8. ReadyToRun / AsyncLocal
 
@@ -971,6 +1036,107 @@ Prevention:
 - If nested necessary — consistent ordering
 - Use timeouts (Monitor.TryEnter с timeout)
 ```
+
+### 7.7. COM / STA deadlock — почему «hang без локов»
+
+Разделы 7.2 и 5.1 объясняют sync-over-async через `SynchronizationContext`: UI-поток блокируется на `.Result`, а continuation хочет вернуться на тот же поток. Но под этим есть ещё один слой — **COM apartment model**, который даёт hang, не объяснимый никаким анализом локов. Понять его важно при любом desktop-interop (WPF/WinForms + COM-объекты: Office, MetaTrader, Shell, WIA, MSAA). См. [[interop-pinvoke]].
+
+#### Механизм: COM-вызов = window message
+
+UI-поток в WPF/WinForms — это **STA** (Single-Threaded Apartment). При входе в apartment `CoInitializeEx(COINIT_APARTMENTTHREADED)` создаёт **скрытое окно** класса `OleMainThreadWndClass`. Это не косметика: оно — точка приёма межапартментных вызовов.
+
+Why before how: COM гарантирует, что объект из STA вызывается **только своим потоком**. Если поток B хочет позвать метод объекта из STA-потока A, вызов нельзя выполнить на B — его надо **доставить** потоку A. Доставка делается **in-band через ту же очередь сообщений**, что разносит UI-события: COM-маршалинг постит сообщение в `OleMainThreadWndClass`, а stub на стороне A исполняет реальный вызов, когда A качает (`pump`) очередь через `PeekMessageW` / `GetMessageW` → `DispatchMessageW`.
+
+```text
+Поток B (RPC/другой apartment)          STA-поток A (UI)
+  call obj.Method()  ──marshal──▶  PostMessage → OleMainThreadWndClass
+       (ждёт ответ)                          │
+                                    A: GetMessage/DispatchMessage  ← насос ОБЯЗАН крутиться
+                                    stub вызывает реальный obj.Method()
+  ◀──── reply (тоже message) ──────────────┘
+```
+
+Ключевой вывод: **awaited COM-ответ — это window message**. Та же очередь несёт три разных потока событий вперемешку:
+
+1. UI-события (клики, paint, ввод);
+2. posted continuations (когда `SynchronizationContext` = `DispatcherSynchronizationContext`, continuation постится в очередь);
+3. **маршалированные COM-вызовы и их ответы** (cross-apartment RPC).
+
+Канал доставки **один**. Заблокируешь насос — встанут все три.
+
+#### Что значит «заблокировать насос»
+
+```csharp
+// ❌ STA UI-поток: любой из них останавливает PeekMessage/DispatchMessage loop
+var result = comTask.Result;            // sync-over-async на RCW
+comTask.Wait();                         //  то же самое
+lock (_gate) { /* долго */ }            // поток стоит в WaitForSingleObject, не качает очередь
+for (...) { HeavyCpu(); }               // CPU-bound на UI-потоке — очередь не обрабатывается
+var s = rcw.SomeProperty;               // синхронный вызов RCW, ждущий cross-apartment reply,
+                                        //   пока сам поток не качает чужие сообщения
+```
+
+Любой из них держит STA-поток в `WaitForSingleObject`/спин **вместо** message loop. Тогда:
+
+- cross-apartment вызов из потока B никогда не доставится (некому `DispatchMessage`);
+- ответ на твой же исходящий COM-вызов не придёт (reply — message, который ты не качаешь);
+- continuation твоего `await` (если context = Dispatcher) не выполнится.
+
+Результат — взаимная блокировка, где **нет ни одного managed-лока**: поток ждёт хендл, который сигналит COM, который ждёт, пока поток покачает очередь. Анализ `lock`-ов покажет чистую картину — отсюда «hang, который не объясняется».
+
+> [!warning] `CoWaitForMultipleHandles` — «простое» ожидание может ре-entrant'но качать очередь
+
+Даже «безобидное» ожидание хендла из STA может **сам** запустить откачку. Цепочка в managed-стеке:
+
+```text
+WaitHandle.WaitOne / SemaphoreSlim.Wait (на STA)
+  → CoWaitForMultipleHandles
+    → ClassicSTAThreadWaitForHandles
+      → CCliModalLoop::BlockFn      ← здесь крутится модальный цикл
+        → качает RPC / DDE сообщения, пока ждёт хендл
+```
+
+То есть «подождать хендл» на STA-потоке — это **не** чистый блок: рантайм входит в **модальный цикл** и обрабатывает входящие COM/DDE-вызовы во время ожидания. Это палка о двух концах: спасает от части deadlock'ов (ответ может прийти), но допускает **реентрантность** — твой код может быть вызван повторно посреди ожидания (обработчик события сработает внутри `Wait`), что ломает инварианты, рассчитанные на одно-в-один выполнение.
+
+#### Диагностическая сигнатура
+
+Узнаётся по стеку, а не по симптому «висит»:
+
+- hang именно на **UI/STA-потоке**, держащем **RCW** (`System.__ComObject` / RCW-обёртка в локалах);
+- в managed-стеке — **модальный цикл ожидания**: `CoWaitForMultipleHandles` / `ClassicSTAThreadWaitForHandles` / `CCliModalLoop::BlockFn`, либо `Dispatcher.PushFrame`/`DoEvents` вперемешку с `WaitOne`/`.Result`;
+- CPU ≈ 0% (поток стоит в ожидании, не спинит);
+- никаких `Monitor.Enter`/contended `lock` в стеке — отсюда «lock-анализ ничего не находит».
+
+`dotnet-dump analyze` → `clrstack` на UI-потоке + `!syncblk` (покажет, что managed-локов нет).
+
+> [!warning] Caveats — что НЕ чинит проблему
+
+- **`ConfigureAwait(false)` не помогает.** Он лишь убирает marshalling continuation обратно в `SynchronizationContext`. Но сам **cross-apartment COM-вызов всё равно маршалится** через очередь STA-потока, владеющего объектом — это свойство apartment model, а не `await`. RCW из STA нельзя «дёрнуть» с pool-потока без маршалинга.
+- **`Task.Run` только переносит работу, а не вызов.** Обернёшь обращение к RCW в `Task.Run` — pool-поток всё равно сделает cross-apartment call к STA-владельцу, который снова уходит в очередь сообщений. Перемещается *откуда* зовут, но *куда* доставляют — тот же STA, и если он не качает насос, стоят оба.
+
+#### Fix: не паркуй STA-поток на async — держи насос живым
+
+```csharp
+// ❌ STA UI: блокируем поток, который ОБЯЗАН качать очередь
+private void OnButtonClick(object sender, RoutedEventArgs e)
+{
+    var data = LoadFromComAsync().Result;   // насос встал → cross-apartment reply не дойдёт
+    Render(data);
+}
+
+// ✅ async UI-handler: await освобождает STA-поток, message loop продолжает крутиться,
+//    доставляя COM-ответы И continuation
+private async void OnButtonClick(object sender, RoutedEventArgs e)   // async void OK — это event handler
+{
+    var data = await LoadFromComAsync();    // STA-поток вернулся в message loop, качает очередь
+    Render(data);                           // continuation на STA через DispatcherSynchronizationContext
+}
+```
+
+Правило: на STA-потоке **никогда** не блокируйся на async (`.Result`/`.Wait()`/sync `lock`/тяжёлый CPU) при наличии RCW — поток должен оставаться в message loop. Если синхронный API над COM неизбежен, выноси сам **COM-объект** в выделенный STA-поток с собственным насосом (`Dispatcher`/`Application.Run`-петля), а UI-поток общается с ним через `await` + marshalling, но никогда блокирующим ожиданием.
+
+> [!question]- Интервью: UI-поток висит на COM-объекте, локов нет — что произошло?
+> Почти наверняка **STA-apartment deadlock**, не lock-deadlock. UI-поток в WPF/WinForms — STA: `CoInitializeEx` создал скрытое окно `OleMainThreadWndClass`, и **cross-apartment COM-вызовы маршалятся in-band через ту же message-очередь** (`PeekMessageW`/`DispatchMessageW`), что несёт UI-события и posted continuations. Awaited COM-ответ — это window message. Sync-over-async (`.Result`/`.Wait()`), синхронный `lock` или тяжёлый CPU на STA-потоке **останавливают насос** — единственный канал доставки, и ответ/continuation/входящий вызов никогда не приходят. Сигнатура: hang на UI-потоке с RCW и модальным циклом (`CoWaitForMultipleHandles → ClassicSTAThreadWaitForHandles → CCliModalLoop::BlockFn`) в стеке, CPU≈0%, `!syncblk` пуст. `ConfigureAwait(false)` не чинит (маршалинг — свойство apartment, не `await`), `Task.Run` лишь переносит вызов. Fix: не паркуй STA на async — держи message loop живым (`await`, а не `.Result`). См. [[interop-pinvoke]].
 
 > [!question]- Интервью: как избежать deadlock в async коде?
 > 1) **Don't `.Result` / `.Wait()`** async methods — primary deadlock source. Make caller async (`async Task` instead of sync return). 2) **Don't `lock` в async методах** — `lock(obj) { await ...; }` не compile (good). Use `SemaphoreSlim.WaitAsync()` instead. 3) **Avoid nested locks** — minimize. 4) **Consistent lock ordering** if nested necessary (always A before B). 5) **`ConfigureAwait(false)`** в libraries — не marshal to original SyncContext. 6) **Timeouts on lock acquire** — `Monitor.TryEnter(obj, timeout)`. 7) **Use immutable data** где possible — eliminates lock need. **Production**: ASP.NET Core (no SyncContext) reduces deadlock risk vs WPF/WinUI. Still: never sync-over-async.
@@ -1395,11 +1561,15 @@ Interlocked.CompareExchange(ref _value, newValue, expected);
 // === Concurrent collections ===
 var dict = new ConcurrentDictionary<int, string>();
 dict.AddOrUpdate(1, "A", (k, old) => "B");
-var v = dict.GetOrAdd(1, k => $"Value-{k}");
+var v = dict.GetOrAdd(1, k => $"Value-{k}");   // factory может run >1 раз — idempotent или Lazy<T>; Count/ToArray лочат всё (см. 6.7)
 
 var queue = new ConcurrentQueue<int>();
 queue.Enqueue(42);
 queue.TryDequeue(out var item);
+
+var cstack = new ConcurrentStack<int>();
+cstack.Push(42);
+cstack.TryPop(out var popped);
 
 // === Channel<T> ===
 var channel = Channel.CreateBounded<int>(100);

@@ -923,11 +923,11 @@ var users = await conn.QueryAsync<User>("...");
 
 - [[basics-tracking|EF Core Basics]] — что такое DbContext
 - [[queries-performance|EF Queries Performance]] — N+1, AsNoTracking
-- [[C# and NET/EFCore/patterns|EF Patterns]] — Repository, UoW
+- [[ef-patterns|EF Patterns]] — Repository, UoW
 - [[sql-basics|SQL Basics]] — JOINs, transactions
 - [[indexes-deep|Indexes Deep]] — production performance
 - [[source-generators|Source Generators]] — Dapper.AOT
-- [[C# and NET/Architecture/patterns|Architecture Patterns]]
+- [[architecture-patterns|Architecture Patterns]]
 
 ## Reading list
 

@@ -607,6 +607,8 @@ int v = concDict.GetOrAdd("key", k => ComputeValue(k));
 
 Для multi-threaded scenarios. Подробнее — отдельный topic про concurrency.
 
+> [!warning] «Atomic» с оговоркой: value factory у `GetOrAdd` / `AddOrUpdate` под contention может выполниться несколько раз (в словарь попадёт только один результат). Делай factory идемпотентной/дешёвой или храни `Lazy<T>`. Также `Count` / `ToArray()` берут все внутренние локи. Детали — [[async-threading]] (раздел 6.7).
+
 ### 5.7. FrozenDictionary, FrozenSet (.NET 8+)
 
 ```csharp
@@ -617,11 +619,45 @@ var frozenDict = new Dictionary<string, int>
     ["b"] = 2
 }.ToFrozenDictionary();
 
-// Read-only, но **сильно faster lookup** чем Dictionary
-// (preprocessing при создании ускоряет hash function)
+// Read-only, но заметно быстрее на чтение, чем Dictionary
 ```
 
-Для read-only данных, инициализированных при app startup и часто читаемых (config, lookups).
+**Как устроен Frozen — почему быстрее.** Обычный `Dictionary<TKey, TValue>` обязан в любой момент уметь `Add`/`Remove`, поэтому его структура — компромисс. `ToFrozenDictionary()` получает **весь набор ключей заранее** и на этапе построения анализирует его, выбирая специализированную внутреннюю реализацию:
+
+- **Маленькие наборы** (единицы элементов) → реализация с линейным сканом: на 3–5 элементах перебор дешевле любого хеширования.
+- **Строковые ключи** → анализ длин и подстрок: ищется минимальный дискриминатор (например, «все ключи различаются длиной» или «достаточно хешировать символы 2–4»), и хешируется только он, а не вся строка.
+- **Плотные int-ключи** → прямое обращение по индексу в массиве, хеш не нужен вообще.
+- **Общий случай** → хеш-таблица с предвычисленными при построении хеш-кодами и подобранным числом бакетов почти без коллизий (perfect-hash-подход).
+
+**Trade-off — за что платим.** Построение на порядок-два дороже, чем у обычного `Dictionary`: вся аналитика выполняется в `ToFrozenDictionary()`. Чтение — быстрее: от десятков процентов в общем случае до разов на строковых ключах с удачным дискриминатором. Это классический build-cost vs read-speed: окупается, когда коллекция строится один раз и читается миллионы раз.
+
+**`GetAlternateLookup` (.NET 9+)** — поиск по `ReadOnlySpan<char>` без материализации строки-ключа:
+
+```csharp
+var routes = new Dictionary<string, int>
+{
+    ["orders"] = 1,
+    ["users"] = 2
+}.ToFrozenDictionary();
+
+var lookup = routes.GetAlternateLookup<ReadOnlySpan<char>>();
+
+ReadOnlySpan<char> segment = "users/42".AsSpan(0, 5); // срез без аллокации
+int handlerId = lookup[segment];
+```
+
+Классика применения — парсинг: ключ приходит как кусок входной строки, и раньше пришлось бы делать `Substring` (аллокация) ради одного lookup'а.
+
+**Когда НЕ использовать Frozen:**
+
+- данные периодически перестраиваются (кеш с рефрешем) — build-cost съест выигрыш чтения; «изменить» Frozen нельзя, только построить заново целиком;
+- коллекция читается один-два раза — не окупится;
+- нужна дешёвая «модифицированная копия» — это ниша `ImmutableDictionary` (структурный шеринг: O(log n) на копию-с-изменением, но и чтение медленнее). Frozen и Immutable решают разные задачи: Frozen — максимум чтения без изменений, Immutable — дешёвые снапшоты с изменениями.
+
+> [!question]- Интервью: FrozenDictionary vs ImmutableDictionary — оба же read-only?
+> Read-only — единственное сходство. `ImmutableDictionary` оптимизирован под **дешёвое создание изменённых копий**: внутри дерево со структурным шерингом, `SetItem` стоит O(log n) и не копирует всё, но и lookup — O(log n), медленнее обычного Dictionary. `FrozenDictionary` оптимизирован под **чтение**: при построении анализирует ключи и выбирает специализированную реализацию (linear scan для маленьких, дискриминатор по подстроке для строк, прямой индекс для плотных int), lookup быстрее Dictionary, но любое «изменение» = полная пересборка. Снапшоты с эволюцией → Immutable; построил-однажды-читаешь-всегда → Frozen.
+
+Для read-only данных, инициализированных при app startup и часто читаемых (config, lookup-таблицы, роутинг).
 
 ---
 
@@ -1142,7 +1178,7 @@ private static readonly FrozenDictionary<string, int> _lookup =
 _lookup["a"];
 ```
 
-Для config / lookup tables, init at startup, не меняется.
+Для config / lookup tables: init at startup, не меняется. Механизм ускорения (анализ ключей, специализированные реализации, `GetAlternateLookup` без аллокаций) — §5.7.
 
 > [!question]- Интервью: чем `Count()` отличается от `Count` property?
 > `Count()` — LINQ extension method, может быть O(n) (итерирует через всю collection). На `ICollection<T>` / `IReadOnlyCollection<T>` оптимизирован — O(1). `Count` — property на `List<T>`, `Array.Length`, `Dictionary<K,V>.Count` — всегда O(1). Используй property когда тип concrete (List, Array). `Count()` LINQ — для general `IEnumerable<T>`, может быть медленным для lazy queries. Для существования — `Any()` (останавливается на первом) лучше `Count() > 0`.

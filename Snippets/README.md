@@ -1,8 +1,8 @@
 # Snippets — ready-to-copy code patterns
 
-> 5 файлов / 32 KB. Готовые куски кода которые можно скопировать и адаптировать.
+> 5 файлов / ~31 KB. Готовые куски кода которые можно скопировать и адаптировать.
 
-[← Главный README]() · [Полный INDEX]()
+[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 🔗 Связанные папки
 
-- [`CSharp/error-handling`]() — Result pattern explained
-- [`Architecture/cqrs-mediatr`]() — MediatR в context
+- [`CSharp/Middle/error-handling.md`](../CSharp/Middle/error-handling.md) — Result pattern explained
+- [`Architecture/Senior/cqrs-mediatr.md`](../Architecture/Senior/cqrs-mediatr.md) — MediatR в context
 - [`EFCore/`](../EFCore/) — EF queries в context
-- [`AspNetCore/api-design`]() — CRUD API design
+- [`AspNetCore/Senior/api-design.md`](../AspNetCore/Senior/api-design.md) — CRUD API design

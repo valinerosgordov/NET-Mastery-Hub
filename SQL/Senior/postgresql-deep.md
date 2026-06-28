@@ -5,6 +5,8 @@ level: Senior
 
 # PostgreSQL Deep для .NET-разработчика
 
+> Production-паттерны Npgsql (`NpgsqlDataSource`, multiplexing, bulk `COPY`, pipelining), JSONB и GIN-индексы, Row-Level Security для multi-tenant, партиционирование, window functions, EXPLAIN ANALYZE, pgvector и VACUUM/bloat — углублённый Postgres под стек .NET.
+
 ## Что это, зачем и когда
 
 ### Что такое PostgreSQL?
@@ -83,6 +85,9 @@ public class TaskRepository(NpgsqlDataSource dataSource)
 ```
 
 `NpgsqlDataSource` — singleton, переиспользуется через всё приложение. **Не путай с `NpgsqlConnection`** — соединения создаёшь короткими через `OpenConnectionAsync()`.
+
+> [!warning] `AddWithValue` в примерах — упрощение
+> `AddWithValue` выводит `NpgsqlDbType` из CLR-типа значения, и для неоднозначных типов (`timestamptz` vs `timestamp`, `jsonb` vs `text`, `numeric` precision/scale) это даёт implicit conversion, который ломает использование индекса. В проде задавай тип явно: `cmd.Parameters.Add(new NpgsqlParameter("id", NpgsqlDbType.Uuid) { Value = id })`. Разбор — [[security-practices]].
 
 ### EF Core с PostgreSQL
 
@@ -1050,6 +1055,7 @@ SELECT clock_timestamp(), pg_sleep(2), clock_timestamp();  -- разные
 ## См. также
 
 - [SQL Optimization](optimization.md) — общие принципы планов выполнения, индексы, join-алгоритмы
+- [[eav-flexible-store-indexing|EAV Flexible Store Indexing]] — partial/covering индексы для гибкого хранилища атрибутов, RLS multi-tenant + EAV
 - [EF Core Queries и Performance]() — N+1, проекции, compiled queries
 - [EF Core Concurrency]() — optimistic concurrency, transactions, retry
 - [LLM / RAG patterns]() — pgvector в реальной RAG-системе

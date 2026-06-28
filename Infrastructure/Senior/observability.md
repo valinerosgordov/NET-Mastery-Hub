@@ -5,6 +5,8 @@ level: Senior
 
 # Observability — OpenTelemetry, метрики, traces, alerting
 
+> Три pillars наблюдаемости (logs, metrics, traces) на OpenTelemetry для .NET: экспорт в Prometheus / Grafana / Loki / Tempo, SLI/SLO и error-budget alerting — чтобы по внешним сигналам понимать состояние системы.
+
 ## Что это, зачем и когда
 
 ### Что такое observability?

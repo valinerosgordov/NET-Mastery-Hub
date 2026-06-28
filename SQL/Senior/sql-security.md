@@ -26,6 +26,9 @@ await using var cmd = new NpgsqlCommand("SELECT * FROM users WHERE email = @e", 
 cmd.Parameters.AddWithValue("e", email);
 ```
 
+> [!warning] `AddWithValue` — анти-паттерн по типу параметра
+> От инъекций защищает любой параметр, но `AddWithValue` **выводит тип из значения** (`string` → Unicode `nvarchar`/`text`). Если колонка другого типа, СУБД делает implicit conversion на каждую строку → **index scan вместо seek**. Предпочитай явный тип: `cmd.Parameters.Add("e", NpgsqlDbType.Varchar).Value = email`. Разбор и SQL Server-вариант — [[security-practices]].
+
 ## Виды инъекций
 - **Classic / in-band** — результат виден прямо в ответе (`' OR 1=1 --`, `UNION SELECT ...`).
 - **Blind (boolean / time-based)** — ответ не видно, но атакующий выводит данные по поведению: `... AND (SELECT ...) = 'x'` (страница меняется) или `... AND pg_sleep(5)` (отвечает дольше).

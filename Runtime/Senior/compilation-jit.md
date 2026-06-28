@@ -7,9 +7,12 @@ tags:
   - deepdive
 complexity: Senior
 date: 2026-02-23
+level: Senior
 ---
 
 # .NET Runtime: от исходного кода до машинных инструкций
+
+> Полный pipeline исполнения: Roslyn компилирует C# в IL, CLR грузит assembly и MethodTable, RyuJIT через Tiered Compilation, OSR, Dynamic PGO и R2R/NativeAOT превращает IL в native code. Зачем — чтобы диагностировать startup, JIT-аллокации и понимать lowering.
 
 ## Что это, зачем и когда
 
@@ -122,6 +125,85 @@ Roslyn **до** генерации IL упрощает высокоуровне�
 
 > [!warning] Ключевой инсайт
 > Многие «фичи языка» не существуют на уровне IL. `async/await` — это синтаксический сахар над state machine. `record` — это обычный класс с автогенерированными методами. Понимание lowering критично для диагностики производительности.
+
+### Incremental parsing в IDE — переиспользование старого syntax tree
+
+Всё выше описывает **single-pass** компиляцию: `csc` парсит файл один раз и уходит. Но в IDE Roslyn парсит **на каждое нажатие клавиши** — и парсить весь файл с нуля на каждый символ непозволительно дорого. Здесь работает отдельный механизм — **incremental parsing**, который переиспользует узлы предыдущего syntax tree.
+
+> [!info] Это НЕ то же самое, что incremental generators
+> `IIncrementalGenerator` кэширует результаты pipeline между прогонами source generator (см. [[source-generators|Source Generators]]). Incremental **parsing** работает на уровень ниже — внутри самого парсера, переиспользуя `SyntaxNode` старого дерева при построении нового. Один — про кэш генерации кода, другой — про переиспользование AST. Не путать.
+
+**Why before how.** Редактор держит старое дерево от предыдущего keystroke и `TextChangeRange` — описание того, какой диапазон текста изменился. Большая часть файла не тронута, значит её узлы валидны как есть. Задача парсера — переиспользовать максимум старых узлов и пере-лексировать только то, что реально задето правкой.
+
+#### Blender: смешивание старого дерева и свежих токенов
+
+Сердце механизма — **`Blender`**. Он «подмешивает» (blend) узлы и токены старого дерева в поток свежего лексера. Для каждой позиции принимается решение **reuse-vs-relex**: взять готовый токен/узел из старого дерева или попросить лексер выдать свежий.
+
+```
+Старое дерево ─┐
+               ├──► Blender ──► поток узлов: [reused | relexed | reused | ...]
+Свежий лексер ─┘        │
+                        └─ per-token решение: reuse или relex?
+```
+
+Позиции в старом и новом тексте не совпадают — правка сдвигает всё, что идёт после неё. Blender держит **`_changeDelta`**: для узла за пределами всех правок `newPosition = oldPosition + changeDelta`. Так старая позиция узла отображается в его место в новом тексте без полного пересчёта.
+
+#### Cursor: O(1) навигация по старому дереву
+
+Чтобы быстро ходить по старому дереву (в т.ч. **назад**, когда lookahead откатывается), Blender использует **`Cursor`** — `readonly struct`, который хранит явный путь до текущего узла:
+
+| Поле | Назначение |
+|------|------------|
+| `PathNode` parent stack | стек родителей — явный путь от корня, без рекурсии |
+| `indexInParent` | индекс узла в его родителе |
+
+Явный путь вместо рекурсивного обхода даёт **O(1) на ход назад**: вместо повторного спуска от корня Cursor просто декрементирует `indexInParent` или поднимается по стеку `PathNode`. Рекурсивный обход здесь дал бы O(depth) на каждое движение и риск переполнения стека на больших файлах.
+
+#### ReadToken: атомарный lookahead с откатом
+
+Парсеру нужен **lookahead** — заглянуть вперёд и при неудаче откатиться. `Blender.ReadToken` возвращает пару:
+
+- immutable **`BlendedNode`** — переиспользованный узел/токен;
+- **новое состояние `Blender`** (тоже значение, не мутация).
+
+Поскольку старое состояние не мутируется, откат lookahead — это просто «выбросить новый `Blender` и продолжить со старого». Атомарность бесплатна за счёт immutability — никакого ручного undo.
+
+```csharp
+// Концептуально (упрощённо): lookahead с откатом без мутации
+var (node, advanced) = blender.ReadToken();   // advanced — НОВЫЙ Blender
+if (LooksWrong(node))
+    return ParseFreshFrom(blender);            // откат: старый blender как был
+return ParseWith(node, advanced);              // принять: идём с advanced
+```
+
+#### Условия переиспользования — «when in doubt, don't reuse»
+
+Узел старого дерева можно переиспользовать **только если выполнены ВСЕ** условия:
+
+| Условие | Почему |
+|---------|--------|
+| Нет diagnostics / skipped text | узел с ошибкой мог бы по-другому распарситься в новом контексте |
+| Позиции совпадают после `_changeDelta` | сдвинутый узел должен сесть ровно на своё место в новом тексте |
+| Нет пересечения с изменённым `TextSpan` | задетый правкой текст обязан быть пере-лексирован |
+| Lexer mode консистентен | напр. внутри/вне interpolated string, `#if` региона, директивы — режим лексера должен совпадать |
+
+Принцип отрасли — **«when in doubt, don't reuse»**: при любой неоднозначности парсер пере-лексирует. Ложный relex стоит немного CPU; ложный reuse даёт **некорректное дерево** — куда хуже.
+
+> [!warning] Инвариант валидации каждого парса
+> После каждого incremental-парса Roslyn проверяет `code.Length == syntax.FullWidth`. `FullWidth` узла — это суммарная ширина всего его текста включая trivia (whitespace, комментарии). Если ширина итогового дерева не равна длине исходного текста — где-то reuse «съел» или «добавил» символы, дерево рассинхронизировано с буфером. Это дешёвый, но мощный контроль целостности всего слияния.
+
+#### Выигрыш и когда он не нужен
+
+На реальных деревьях incremental parsing даёт огромную экономию именно на **широких и неглубоких** деревьях (длинный файл из множества top-level членов): большинство соседних узлов не задеты правкой и переиспользуются как есть.
+
+| Метрика | Эффект |
+|---------|--------|
+| Скорость | ~30x быстрее (один бенч: 26ms → 0.3ms) |
+| Аллокации | ~98% меньше — переиспользованные узлы не создаются заново |
+| Профиль дерева | максимум выигрыша на wide-shallow; на узких глубоких — скромнее |
+
+> [!warning] Только для per-keystroke сценария
+> Incremental parsing оправдан, когда один и тот же файл переписывается много раз подряд (IDE, language server). Для **single-pass** компилятора (`csc`, CI-сборка) старого дерева нет — переиспользовать нечего, а накладные расходы на ведение `Blender`/`Cursor` лишь замедлят. Не тащите этот механизм в одноразовый парсинг.
 
 ---
 
@@ -408,6 +490,110 @@ DOTNET_EnableEventPipe=1 DOTNET_EventPipeOutputPath=trace.nettrace dotnet run
 # Анализ R2R покрытия
 crossgen2 --print-repro-instructions MyApp.dll
 ```
+
+---
+
+## 6. JIT уже убрал boxing, который вы помните
+
+Многие «правила производительности» из эпохи .NET Framework устарели: современный JIT lowering снимает аллокации, ради которых раньше писали ручные обходы. Два хрестоматийных случая — `Enum.HasFlag` и string interpolation. **Why before how:** прежде чем переписывать читаемый код на bitwise-арифметику или `string.Concat`, надо знать, что именно JIT и Roslyn делают с исходником на вашем target runtime — иначе вы усложняете код ради аллокации, которой уже нет.
+
+### 6.1. `HasFlag` больше не боксит (.NET Core 2.1+)
+
+Историческая проблема: `Enum.HasFlag` в .NET Framework принимал параметр как `Enum` (reference type), поэтому каждый вызов **боксил** и сам enum, и флаг — две аллокации на проверку бита. Отсюда совет «в hot path замени `HasFlag` на `(state & flag) == flag`».
+
+С **.NET Core 2.1** JIT распознаёт паттерн `someEnum.HasFlag(someFlag)` как intrinsic и lowering превращает его ровно в ту самую bitwise-проверку — никакого boxing, никакого reflection-вызова `Enum.HasFlag`:
+
+```csharp
+[Flags]
+public enum Permission { None = 0, Read = 1, Write = 2, Delete = 4 }
+
+// Исходный, читаемый код:
+bool canWrite = perm.HasFlag(Permission.Write);
+
+// JIT на .NET Core 2.1+ lowering превращает в:
+// movzx eax, ...        // загрузить perm
+// and   eax, 2          // & Permission.Write
+// cmp   eax, 2          // == Permission.Write
+// sete  al
+// — ноль аллокаций, идентично ручному (perm & flag) == flag
+```
+
+> [!info] Условие intrinsic
+> JIT де-боксит `HasFlag`, когда **оба** аргумента — один и тот же enum-тип, известный на момент компиляции метода. Вызов через `Enum`-переменную или generic `where T : Enum` без конкретизации может не попасть под intrinsic — проверяйте disasm для своего случая. Подробности по самим флагам — [[enums-flags]].
+
+Вывод: для конкретного enum-типа `HasFlag` сегодня настолько же дёшев, как ручная битовая логика, но читается лучше. Ручной де-боксинг оправдан только если disasm на вашем runtime показал, что intrinsic не сработал.
+
+### 6.2. String interpolation больше не боксит value types (C# 10)
+
+До C# 10 интерполяция компилировалась в `string.Format(format, args)`, а `args` — это `params object[]`. Каждый `int`, `double`, `DateTime`, `Guid` в `$"...{value}..."` **боксился** при упаковке в `object[]`, плюс аллокация самого массива.
+
+С **C# 10** Roslyn делает lowering в `DefaultInterpolatedStringHandler`. У него generic-метод `AppendFormatted<T>(T value)` — value type передаётся по своему типу, форматируется через `ISpanFormattable.TryFormat` прямо в внутренний буфер. Boxing исчезает:
+
+```csharp
+int orderId = 42;
+decimal total = 19.99m;
+
+// C# 10+ lowering (упрощённо):
+// var handler = new DefaultInterpolatedStringHandler(literalLength, formattedCount);
+// handler.AppendLiteral("Order ");
+// handler.AppendFormatted<int>(orderId);       // generic — без boxing int
+// handler.AppendLiteral(" total ");
+// handler.AppendFormatted<decimal>(total);     // generic — без boxing decimal
+// string s = handler.ToStringAndClear();
+string s = $"Order {orderId} total {total}";
+```
+
+> [!warning] Boxing возвращается через `params object[]`
+> Аллокация снова появляется, когда **интерполированная строка попадает в перегрузку, принимающей `params object[]` или `object`** — там handler не используется, value type упаковывается в `object`. Классический капкан — логирование:
+
+```csharp
+// ✗ Boxing: interpolation вычисляется ВСЕГДА, аргументы боксятся в object[],
+//   плюс строка строится, даже если этот log level выключен.
+logger.LogInformation($"Order {orderId} created for {total}");
+
+// ✓ Message template: параметры по object?[], но deferred — строка не строится,
+//   если уровень выключен. А source-generated [LoggerMessage] вообще без boxing.
+logger.LogInformation("Order {OrderId} created for {Total}", orderId, total);
+```
+
+То есть «интерполяция бесплатна» верно для прямого присваивания в `string` и для целевых типов с interpolated-string-handler, но **не** когда строка передаётся как обычный `object`-аргумент. Подробнее про сами строки и `DefaultInterpolatedStringHandler` — [[strings-regex]].
+
+### 6.3. Дисциплина: measure-on-your-runtime
+
+Главный принцип — **не доверяй памяти о boxing из старых версий, измеряй на конкретном target runtime**. Фикс мог уже стать бесплатным, и ручная «оптимизация» только ухудшит читаемость.
+
+Рецепт верификации:
+
+1. **BenchmarkDotNet с `[MemoryDiagnoser]`.** Смотри колонку `Allocated`. Если для подозрительного кода `Allocated == 0` (за вычетом неизбежного результата) — boxing нет, переписывать нечего.
+
+```csharp
+[MemoryDiagnoser]
+public class FlagBench
+{
+    private readonly Permission _perm = Permission.Read | Permission.Write;
+
+    [Benchmark]
+    public bool HasFlag() => _perm.HasFlag(Permission.Write);
+
+    [Benchmark]
+    public bool Bitwise() => (_perm & Permission.Write) == Permission.Write;
+    // Ожидаемо: обе строки Allocated = 0 B, Mean в пределах шума.
+}
+```
+
+2. **Подтверди на уровне native code через `DOTNET_JitDisasm`** — на том самом runtime, где код поедет в прод (TFM, x64/ARM64, Debug/Release одинаково важны). Затем grep по дизасму на helper boxing’а:
+
+```bash
+# Сдампить native code метода на целевом runtime
+DOTNET_JitDisasm="MyNamespace.FlagBench:HasFlag" \
+DOTNET_TieredCompilation=0 \
+dotnet run -c Release | grep -i CORINFO_HELP_BOX
+```
+
+3. **Решение по результату grep:** если `CORINFO_HELP_BOX` в дизасме **нет** — JIT уже убрал boxing, оставляй читаемый код. Если helper **есть** — только тогда дебоксируй вручную (bitwise для флагов, явный `.ToString()`/template для строк) и повтори замер.
+
+> [!info] Почему именно дизасм, а не «здравый смысл»
+> intrinsic и interpolation-handler — оптимизации конкретного JIT/компилятора конкретной версии. `[MemoryDiagnoser]` отвечает «есть ли аллокация», а `DOTNET_JitDisasm` + поиск `CORINFO_HELP_BOX` отвечает «почему и где именно». Вместе они закрывают вопрос объективно, а не по воспоминаниям о .NET Framework.
 
 ---
 

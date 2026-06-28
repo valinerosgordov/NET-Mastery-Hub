@@ -5,6 +5,8 @@ level: Senior
 
 # Dependency Injection и Configuration
 
+> DI-контейнер ASP.NET Core, lifetimes, Keyed Services и типизированная конфигурация через `IOptions` с учётом AOT-ограничений.
+
 ## Что это, зачем и когда
 
 ### Что такое DI?

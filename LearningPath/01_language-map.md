@@ -190,20 +190,21 @@ date: 2026-06-06
 | attributes | [[attributes-metadata\|attributes-metadata]] | ✅ |
 | regex | [[strings-regex\|strings-regex]] | ✅ |
 | file streams, async I/O | [[io-streams\|io-streams]] | ✅ |
-| JSON serialization (`System.Text.Json`, source-gen) | [[io-streams\|io-streams]], [[source-generators\|source-generators]] | ✅ |
-| **`Guid` & `Random`**, **`TimeSpan` & `Stopwatch`**, **XML / Binary serialization** | разбросано по 30+ файлам | 🟡 нет канонической ноты «BCL essentials» |
+| JSON serialization (`System.Text.Json`, source-gen) | [[serialization-deep\|serialization-deep]] | ✅ |
+| **`Guid` & `Random`**, **`TimeSpan` & `Stopwatch`**, `TimeProvider` | [[bcl-essentials\|bcl-essentials]] | ✅ |
+| **XML / Binary serialization** + `System.Text.Json` deep | [[serialization-deep\|serialization-deep]] | ✅ |
 
 ---
 
 ## Белые пятна — что углубить под «max background»
 
-После сверки реальных секций (а не упоминаний) критичных языковых дыр против шпаргалки **нет**. Осталось два кандидата на углубление:
+После сверки реальных секций (а не упоминаний) критичных языковых дыр против шпаргалки **нет**. Оба кандидата на углубление закрыты 2026-06-12:
 
-1. **Frozen Collections — механизм.** Сейчас [[collections-linq]] §5.7/§9.8 показывает `.ToFrozenDictionary()` и «~30% faster», но не объясняет *почему*: построение perfect-hash при создании, trade-off build-cost vs read-speed, специализированные внутренние реализации для маленьких наборов, `GetAlternateLookup`, когда **не** использовать (частые rebuild). → добавить блок «как устроен Frozen» в [[collections-linq]] или вынести в [[span-layout]]/perf.
-2. **BCL essentials — канонический файл.** `Guid`/`Random` (вкл. `Guid.CreateVersion7`, `Random.Shared`), `TimeSpan`/`Stopwatch` (вкл. `Stopwatch.GetTimestamp`), XML/Binary serialization сейчас живут вкраплениями. → создать одну ноту-сборник, чтобы было на что ссылаться (для учебника важнее организация, чем объём).
+1. ✅ **Frozen Collections — механизм.** [[collections-linq]] §5.7 теперь объясняет: анализ ключей при построении (perfect-hash подход), специализированные реализации (linear scan для маленьких наборов, дискриминатор по подстроке для строк, прямой индекс для плотных int), trade-off build-cost vs read-speed, `GetAlternateLookup` (.NET 9, lookup по `ReadOnlySpan<char>` без аллокаций) и анти-кейсы (частый rebuild → `ImmutableDictionary`).
+2. ✅ **BCL essentials — канонический файл.** Создан [[bcl-essentials]]: `Guid` (v4 vs v7, ключи БД, порядок байтов SQL Server), `Random` (thread safety, `Random.Shared`, граница с `RandomNumberGenerator`), `TimeSpan`, `Stopwatch` (`GetTimestamp`/`GetElapsedTime` без аллокаций), `TimeProvider` (.NET 8, тестируемое время). XML/Binary/JSON serialization — отдельный canonical [[serialization-deep]].
 
 > [!info]- Что НЕ покрывает эта шпаргалка (и почему карта только про язык)
-> «Complete C# 2026» — чисто синтаксис языка. Senior-в-бигтехе и тимлид гейтятся тем, чего в ней нет: архитектура, distributed systems, observability, testing, leadership. Это закрыто другими папками vault'а ([[patterns]], [[ddd]], [[distributed-systems]], [[observability]], `Testing/`). Эта карта намеренно про язык — остальные оси см. в [[00_overview]] и INDEX.
+> «Complete C# 2026» — чисто синтаксис языка. Senior-в-бигтехе и тимлид гейтятся тем, чего в ней нет: архитектура, distributed systems, observability, testing, leadership. Это закрыто другими папками vault'а ([[architecture-patterns]], [[ddd]], [[distributed-systems]], [[observability]], `Testing/`). Эта карта намеренно про язык — остальные оси см. в [[00_overview]] и INDEX.
 
 ---
 

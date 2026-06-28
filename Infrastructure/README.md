@@ -1,8 +1,8 @@
 # Infrastructure — DevOps & deploy
 
-> 10 файлов / 331 KB. Docker, Kubernetes, CI/CD, observability, messaging, IPC, AI/LLM integration.
+> 14 файлов / ~470 KB. Docker, Kubernetes, CI/CD, observability, messaging, NoSQL, IPC, AI/LLM integration.
 
-[← Главный README]() · [Полный INDEX]()
+[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
 ---
 
@@ -10,58 +10,53 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Никогда не делал Docker | [`docker.md`]() |
-| Deploy в Kubernetes | [`kubernetes.md`]() |
-| Setup CI/CD | [`cicd-github-actions.md`]() |
-| Production observability | [`observability.md`]() |
-| Message queue / Kafka | [`messaging.md`]() |
-| Setup нового .NET проекта | [`project-setup.md`]() |
-| AI / LLM в .NET | [`llm-rag-patterns.md`](), [`semantic-kernel.md`]() |
+| Никогда не делал Docker | [`Junior/docker-for-dev.md`](Junior/docker-for-dev.md) → потом [`Senior/docker.md`](Senior/docker.md) |
+| Первый .NET-проект с нуля | [`Junior/project-setup-basics.md`](Junior/project-setup-basics.md) |
+| Setup CI/CD | [`Middle/cicd-github-actions.md`](Middle/cicd-github-actions.md) |
+| Deploy в Kubernetes | [`Middle/kubernetes.md`](Middle/kubernetes.md) |
+| Production observability | [`Senior/observability.md`](Senior/observability.md) |
+| Message queue / Kafka | [`Senior/messaging.md`](Senior/messaging.md) |
+| Когда NoSQL вместо Postgres | [`Senior/nosql-databases.md`](Senior/nosql-databases.md) |
+| LLM / RAG в .NET | [`Senior/llm-rag-patterns.md`](Senior/llm-rag-patterns.md), [`Senior/semantic-kernel.md`](Senior/semantic-kernel.md) |
 
 ---
 
-## 📚 Все 10 файлов
+## 📚 Все 14 файлов
 
-### Containerization & deploy
-
-| Файл | Описание |
-|------|----------|
-| [`docker.md`]() | Docker, multistage, optimization (63 KB) ⭐ |
-| [`kubernetes.md`]() | Pod/Deployment/Service, .NET deploy, Helm |
-| [`cicd-github-actions.md`]() | CI/CD pipelines, secrets, environments |
-
-### Production operations
+### 🌱 Junior
 
 | Файл | Описание |
 |------|----------|
-| [`observability.md`]() | OpenTelemetry, Prometheus, Jaeger ⭐ |
-| [`project-setup.md`]() | csproj, Directory.Build.props, packaging |
+| [`docker-for-dev.md`](Junior/docker-for-dev.md) | Контейнеры с нуля: daily команды, Dockerfile основы, compose для local dev |
+| [`project-setup-basics.md`](Junior/project-setup-basics.md) | dotnet CLI, solution + projects, .gitignore, базовый git workflow |
 
-### Communication
-
-| Файл | Описание |
-|------|----------|
-| [`messaging.md`]() | RabbitMQ, Kafka, MassTransit |
-| [`ipc-named-pipes-grpc.md`]() | Named pipes, gRPC, IPC |
-
-### AI / LLM integration
+### 🌿 Middle
 
 | Файл | Описание |
 |------|----------|
-| [`llm-rag-patterns.md`]() | LLM integration, RAG, vector DBs (50 KB) |
-| [`semantic-kernel.md`]() | Microsoft Semantic Kernel |
+| [`cicd-github-actions.md`](Middle/cicd-github-actions.md) | CI/CD для .NET: build, test, lint, security scan, deploy |
+| [`kubernetes.md`](Middle/kubernetes.md) | Pod/Deployment/Service, deploy .NET app, health checks, Helm |
 
-### Desktop production
+### 🏆 Senior
 
 | Файл | Описание |
 |------|----------|
-| [`wpf-production.md`]() | WPF production deployment |
+| [`docker.md`](Senior/docker.md) | Docker deep: multistage, optimization, security ⭐ |
+| [`observability.md`](Senior/observability.md) | OpenTelemetry, Prometheus, Jaeger ⭐ |
+| [`messaging.md`](Senior/messaging.md) | RabbitMQ, Kafka, MassTransit |
+| [`api-gateway.md`](Senior/api-gateway.md) | YARP/Ocelot: routing, auth, rate limiting в одной точке |
+| [`nosql-databases.md`](Senior/nosql-databases.md) | MongoDB / Redis / Cosmos / DynamoDB / Cassandra — когда какой |
+| [`ipc-named-pipes-grpc.md`](Senior/ipc-named-pipes-grpc.md) | Named pipes, gRPC, межпроцессное взаимодействие |
+| [`project-setup.md`](Senior/project-setup.md) | Directory.Build.props, CPM, .editorconfig, packaging |
+| [`llm-rag-patterns.md`](Senior/llm-rag-patterns.md) | LLM integration, RAG, vector DBs |
+| [`semantic-kernel.md`](Senior/semantic-kernel.md) | Microsoft Semantic Kernel |
+| [`wpf-production.md`](Senior/wpf-production.md) | WPF production deployment |
 
 ---
 
 ## 🔗 Связанные папки
 
-- [`Architecture/distributed-systems`]() — для messaging
-- [`AspNetCore/logging-observability`]() — code-level
-- [`Runtime/diagnostics-tools`]() — runtime diagnostics
-- [`CSharp/desktop-frameworks`]() — для wpf-production
+- [`Architecture/Senior/distributed-systems.md`](../Architecture/Senior/distributed-systems.md) — для messaging
+- [`AspNetCore/Senior/logging-observability.md`](../AspNetCore/Senior/logging-observability.md) — code-level observability
+- [`Runtime/Senior/diagnostics-tools.md`](../Runtime/Senior/diagnostics-tools.md) — runtime diagnostics
+- [`CSharp/Senior/desktop-frameworks.md`](../CSharp/Senior/desktop-frameworks.md) — для wpf-production

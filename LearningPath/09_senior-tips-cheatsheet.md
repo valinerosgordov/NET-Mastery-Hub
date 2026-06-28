@@ -1,5 +1,7 @@
 # C# Senior-Level Tips, Patterns & Anti-Patterns
 
+> Концентрат Senior-практик: allocation-free паттерны (`Span<T>`, `ArrayPool<T>`, `FrozenDictionary`), async-дисциплина, DI, source generators, pattern matching, тестирование и security-чеклист — с готовыми сниппетами и явными anti-patterns.
+
 Собрано из: опыт, каналы (@csharp_ci, .NET Blog), Microsoft Learn, community best practices.
 
 ---
@@ -166,6 +168,10 @@ _ = DoSomethingAsync().ContinueWith(
     TaskContinuationOptions.OnlyOnFaulted);
 ```
 
+### ThreadPool Starvation -- sync-over-async обманывает hill-climbing
+
+Блокирующее ожидание (`.Result`, `.Wait()`) внутри work-item паркует поток пула на всё время I/O. Hill-climbing меряет throughput по числу завершённых work-item, не по полезной работе CPU, поэтому добавляет потоки темпом ~4/сек, а не мгновенно. Сигнатура аварии: throughput падает, p99 уходит в секунды, `ThreadCount` растёт «лестницей», а CPU при этом ~8%. `SetMinThreads` лечит симптом, не причину — убирай блокировку (`await` all the way) и изолируй опасные пути bulkhead'ом. Подробно: [[threadpool-starvation-hill-climbing\|threadpool-starvation-hill-climbing]].
+
 ---
 
 ## 3. Dependency Injection -- Senior Patterns
@@ -278,6 +284,10 @@ var result = numbers switch
 3. **Result<T>** -- все ошибки как значения
 4. **Domain Events** -- реакции через MediatR notifications
 5. **Specification Pattern** -- сложные запросы инкапсулируются
+
+### Agent-Safe Architecture -- границы, переживающие AI-codegen
+
+Когда код пишет (и переписывает) AI-агент, на прозу полагаться нельзя: `AGENTS.md` гниёт под context rot, граница «в комментарии» для агента не существует. Держат только физические границы (отдельные проекты — нарушение не компилируется) и CI-gate'ы (NetArchTest fitness functions + human-owned contract tests, которые агенту нельзя переписывать под свою реализацию). Принцип: где границы нет — соединяется всё со всем, coupling растёт монотонно. Подробно: [[agent-safe-architecture\|agent-safe-architecture]].
 
 ---
 

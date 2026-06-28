@@ -17,12 +17,12 @@ date: 2026-04-30
 Vault содержит **много отдельных файлов** про patterns:
 
 - `CSharp/design-patterns.md` — 13 GoF patterns (Strategy, Factory, Decorator, ...)
-- `Architecture/patterns.md` — N-Layer / Clean / VSA / Hybrid
+- `Architecture/Senior/architecture-patterns.md` — N-Layer / Clean / VSA / Hybrid
 - `Architecture/solid.md` — SOLID, DRY, KISS, YAGNI
 - `Architecture/ddd.md` — Bounded Contexts, Aggregates, Value Objects
 - `Architecture/cqrs-mediatr.md` — Command/Query separation
 - `Architecture/microservices-vs-monolith.md` — when split
-- `EFCore/patterns.md` — Repository, UoW, Specification
+- `EFCore/Senior/ef-patterns.md` — Repository, UoW, Specification
 - `Snippets/result-pattern.md` — Result\<T, E\>
 
 **Проблема:** Senior должен знать **когда что использовать**, не просто "что это". Нет одного места которое объединяет всё.
@@ -71,7 +71,7 @@ Vault содержит **много отдельных файлов** про pat
 | Несколько bounded contexts, разные команды | **Modular Monolith** — modules + DI boundaries          |
 | Independent teams, scaling, polyglot       | **Microservices** (но осторожно — costs)                |
 
-См.[[C# and NET/Architecture/patterns|Architecture Patterns]] для глубокого сравнения.
+См. [[architecture-patterns|Architecture Patterns]] для глубокого сравнения.
 
 ### Триггеры — когда менять
 
@@ -128,7 +128,7 @@ ICompressor compressor = config.Algorithm switch
 
 **Когда:** Каждое if-elif-elif которое выбирает algorithm — кандидат на Strategy.
 
-См.[[design-patterns#Strategy|Strategy]].
+См. [[design-patterns#Strategy|Strategy]].
 
 ### Object creation
 
@@ -202,7 +202,7 @@ services.AddScoped<IUserService>(sp =>
 
 **В ASP.NET:** middleware = decorator pipeline. `DelegatingHandler` для HttpClient — decorator.
 
-См.[[pipeline-middleware|Pipeline & Middleware]].
+См. [[pipeline-middleware|Pipeline & Middleware]].
 
 ### Notification / pub-sub
 
@@ -230,7 +230,7 @@ await bus.Publish(new OrderPlaced(...));
 - **Mediator** — same process, decoupled (handlers regstrируются автоматом)
 - **Message bus** — между процессами / services
 
-См. [[cqrs-mediatr|CQRS & MediatR]] и[[messaging|Messaging]].
+См. [[cqrs-mediatr|CQRS & MediatR]] и [[messaging|Messaging]].
 
 ### Adapter — incompatible interfaces
 
@@ -322,7 +322,7 @@ public class SubmittedState : OrderState { /* allowed: Approve, Cancel */ }
 // ... etc
 ```
 
-См.[[design-patterns#State|State Pattern]] и[[enums-flags#State-machine|State Machine via enum]].
+См. [[design-patterns#State|State Pattern]] и [[enums-flags#State-machine|State Machine via enum]].
 
 ### Filtering / specifications
 
@@ -342,7 +342,7 @@ public class ActiveSpec : Specification<User>
 }
 ```
 
-См.[[C# and NET/EFCore/patterns#Specification|Specification Pattern]].
+См. [[ef-patterns#Specification|Specification Pattern]].
 
 ---
 
@@ -401,7 +401,7 @@ public class Order
 
 **Rich OK для:** сложная domain логика, DDD проекты, long-lived products.
 
-См. [[ddd|DDD]] и[[oop|OOP]].
+См. [[ddd|DDD]] и [[oop|OOP]].
 
 ---
 
@@ -484,7 +484,7 @@ public class UserRepository : IUserRepository
 }
 ```
 
-См.[[C# and NET/EFCore/patterns|EF Patterns]] и[[dapper-comparison|Dapper vs EF]].
+См. [[ef-patterns|EF Patterns]] и [[dapper-comparison|Dapper vs EF]].
 
 ---
 
@@ -551,7 +551,7 @@ Same process, loose:    Mediator (MediatR)
 Same machine, decouple: Named pipes / gRPC
 ```
 
-См.[[ipc-named-pipes-grpc|IPC]].
+См. [[ipc-named-pipes-grpc|IPC]].
 
 ### Synchronous (cross-service)
 
@@ -562,7 +562,7 @@ Real-time push:         SignalR / WebSocket
 Federated query:        GraphQL (один endpoint, flexible)
 ```
 
-См.[[api-design|API Design]] и[[graphql|GraphQL]].
+См. [[api-design|API Design]] и [[graphql|GraphQL]].
 
 ### Asynchronous
 
@@ -573,7 +573,7 @@ Workflow / saga:        MassTransit / Dapr
 Reliable retry:         Outbox pattern (DB + bus)
 ```
 
-См.[[messaging|Messaging]] и [[distributed-systems|Distributed Systems]].
+См. [[messaging|Messaging]] и [[distributed-systems|Distributed Systems]].
 
 ### Decision tree
 
@@ -661,7 +661,7 @@ public async Task<IActionResult> Place(PlaceOrderRequest req)
 }
 ```
 
-См.[[error-handling|Error Handling]] и[[result-pattern|Result Pattern Snippet]].
+См. [[error-handling|Error Handling]] и [[result-pattern|Result Pattern Snippet]].
 
 ---
 
@@ -694,7 +694,7 @@ catch (DbUpdateConcurrencyException)
 }
 ```
 
-См.[[concurrency|EF Concurrency]].
+См. [[concurrency|EF Concurrency]].
 
 ### Distributed transactions
 
@@ -796,7 +796,7 @@ Tests:           Unit + integration + arch tests
 Observability:   OpenTelemetry, Serilog structured
 ```
 
-См.[[observability|Observability]] и [[arch-tests|Architecture Tests]].
+См. [[observability|Observability]] и [[arch-tests|Architecture Tests]].
 
 ### Combo 4: Microservices (multiple teams)
 
@@ -911,7 +911,7 @@ public async Task Test()
 }
 ```
 
-См.[[mocking-strategies|Mocking Strategies]].
+См. [[mocking-strategies|Mocking Strategies]].
 
 ---
 
@@ -1004,7 +1004,7 @@ public async Task Test()
 
 **Timeline:** 12-18 months для full migration.
 
-См.[[api-gateway|API Gateway]].
+См. [[api-gateway|API Gateway]].
 
 ---
 
@@ -1111,14 +1111,14 @@ Strategy pattern: IPriceCalculator with multiple implementations.
 
 ### GoF Patterns (implementation)
 
--[[design-patterns|Design Patterns]] — 13 GoF в C# контексте
--[[oop|OOP]] — fundamentals
--[[generics-deep|Generics Deep]] — generic patterns
--[[functional-csharp|Functional C#]] — FP patterns
+- [[design-patterns|Design Patterns]] — 13 GoF в C# контексте
+- [[oop|OOP]] — fundamentals
+- [[generics-deep|Generics Deep]] — generic patterns
+- [[functional-csharp|Functional C#]] — FP patterns
 
 ### Architecture (macro)
 
--[[C# and NET/Architecture/patterns|Architecture Patterns]] — N-Layer / Clean / VSA / Hybrid
+- [[architecture-patterns|Architecture Patterns]] — N-Layer / Clean / VSA / Hybrid
 - [[solid|SOLID]] — основы
 - [[ddd|DDD]] — Domain-Driven Design
 - [[cqrs-mediatr|CQRS & MediatR]]
@@ -1130,17 +1130,17 @@ Strategy pattern: IPriceCalculator with multiple implementations.
 
 ### Implementation patterns
 
--[[C# and NET/EFCore/patterns|EF Patterns]] — Repository, UoW, Specification
--[[dapper-comparison|Dapper vs EF]]
--[[error-handling|Error Handling]] — Result, exceptions
--[[pipeline-middleware|Pipeline & Middleware]]
--[[messaging|Messaging Patterns]]
+- [[ef-patterns|EF Patterns]] — Repository, UoW, Specification
+- [[dapper-comparison|Dapper vs EF]]
+- [[error-handling|Error Handling]] — Result, exceptions
+- [[pipeline-middleware|Pipeline & Middleware]]
+- [[messaging|Messaging Patterns]]
 
 ### Quality
 
--[[clean-code|Clean Code]]
--[[refactoring|Refactoring]]
--[[code-review|Code Review]]
+- [[clean-code|Clean Code]]
+- [[refactoring|Refactoring]]
+- [[code-review|Code Review]]
 
 ## Reading list
 

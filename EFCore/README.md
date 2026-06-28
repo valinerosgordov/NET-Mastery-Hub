@@ -1,8 +1,8 @@
 # EFCore — Entity Framework Core
 
-> 7 файлов / 237 KB. EF Core deep dive: tracking, queries, migrations, patterns + сравнение с Dapper.
+> 13 файлов / ~420 KB. EF Core deep dive: tracking, queries, migrations, patterns + сравнение с Dapper.
 
-[← Главный README]() · [Полный INDEX]()
+[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
 ---
 
@@ -10,38 +10,51 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Первый раз с EF | [`basics-tracking.md`]() |
-| N+1 проблема? | [`queries-performance.md`]() |
-| Связи one-to-many | [`relationships.md`]() |
-| Когда EF, когда Dapper | [`dapper-comparison.md`]() |
-| Нужен Repository? | [`patterns.md`]() |
+| Первый раз с EF | [`Junior/ef-basics.md`](Junior/ef-basics.md) → [`Junior/ef-crud-queries.md`](Junior/ef-crud-queries.md) |
+| Как реально работает tracking | [`Senior/basics-tracking.md`](Senior/basics-tracking.md) |
+| N+1 проблема? | [`Senior/queries-performance.md`](Senior/queries-performance.md) |
+| Include vs split vs lazy | [`Middle/ef-loading-strategies.md`](Middle/ef-loading-strategies.md) |
+| Связи one-to-many | [`Senior/relationships.md`](Senior/relationships.md) |
+| Когда EF, когда Dapper | [`Middle/dapper-comparison.md`](Middle/dapper-comparison.md) |
+| Нужен Repository? | [`Senior/ef-patterns.md`](Senior/ef-patterns.md) |
 
 ---
 
-## 📚 Все 7 файлов
+## 📚 Все 13 файлов
 
-### Core
-
-| Файл | Описание |
-|------|----------|
-| [`basics-tracking.md`]() | DbContext, ChangeTracker, AsNoTracking ⭐ |
-| [`queries-performance.md`]() | N+1, Include, projections ⭐ |
-| [`relationships.md`]() | One-to-many, many-to-many, owned types |
-| [`migrations.md`]() | EF migrations, scripts, rollback |
-
-### Advanced
+### 🌱 Junior
 
 | Файл | Описание |
 |------|----------|
-| [`concurrency.md`]() | Optimistic locking, RowVersion |
-| [`patterns.md`]() | Repository, UoW, Specification |
-| [`dapper-comparison.md`]() | Dapper vs EF, hybrid patterns |
+| [`ef-basics.md`](Junior/ef-basics.md) | DbContext, DbSet, первая модель — вход в EF |
+| [`ef-crud-queries.md`](Junior/ef-crud-queries.md) | CRUD-операции, базовые LINQ-запросы |
+
+### 🌿 Middle
+
+| Файл | Описание |
+|------|----------|
+| [`ef-loading-strategies.md`](Middle/ef-loading-strategies.md) | Eager / lazy / explicit loading, AsSplitQuery |
+| [`ef-transactions-concurrency.md`](Middle/ef-transactions-concurrency.md) | Транзакции, SaveChanges, изоляция |
+| [`ef-bulk-operations.md`](Middle/ef-bulk-operations.md) | ExecuteUpdate/Delete, bulk insert |
+| [`ef-value-converters.md`](Middle/ef-value-converters.md) | Value converters, owned types, JSON columns |
+| [`dapper-comparison.md`](Middle/dapper-comparison.md) | Dapper vs EF, hybrid patterns |
+
+### 🏆 Senior
+
+| Файл | Описание |
+|------|----------|
+| [`basics-tracking.md`](Senior/basics-tracking.md) | DbContext, ChangeTracker, AsNoTracking ⭐ |
+| [`queries-performance.md`](Senior/queries-performance.md) | N+1, Include, projections ⭐ |
+| [`relationships.md`](Senior/relationships.md) | One-to-many, many-to-many, owned types, TPH/TPT/TPC |
+| [`migrations.md`](Senior/migrations.md) | EF migrations, scripts, rollback |
+| [`concurrency.md`](Senior/concurrency.md) | Optimistic locking, RowVersion |
+| [`ef-patterns.md`](Senior/ef-patterns.md) | Repository, UoW, Specification, Soft Delete, audit |
 
 ---
 
 ## 🔗 Связанные папки
 
 - [`SQL/`](../SQL/) — что под капотом EF
-- [`Architecture/cqrs-mediatr`]() — CQRS с EF
-- [`Performance/lazy-eager-loading`]() — strategies
-- [`Snippets/efcore-queries`]() — готовые запросы
+- [`Architecture/Senior/cqrs-mediatr.md`](../Architecture/Senior/cqrs-mediatr.md) — CQRS с EF
+- [`Performance/Middle/lazy-eager-loading.md`](../Performance/Middle/lazy-eager-loading.md) — strategies
+- [`Snippets/efcore-queries.md`](../Snippets/efcore-queries.md) — готовые запросы

@@ -5,6 +5,8 @@ level: Senior
 
 # Оптимизация SQL
 
+> Индексы (clustered/covering/filtered, leftmost prefix), чтение execution plan и join-алгоритмы, паттерны запросов (keyset-пагинация, N+1, bulk, conditional aggregation), партиционирование, materialized views, CTE, window functions и PgBouncer — как ускорить запросы к БД на порядки.
+
 ## Что это, зачем и когда
 
 ### Что такое оптимизация SQL?
@@ -219,6 +221,77 @@ WHERE Id > @lastId ORDER BY Id LIMIT 20;
 
 **Нюанс:** keyset требует уникальный и стабильный ключ сортировки. Для составной сортировки: `WHERE (CreatedAt, Id) > (@lastDate, @lastId)`.
 
+#### Row-value tuple vs OR-форма — почему это критично
+
+Составная keyset-пагинация почти всегда сначала пишется в «наивной» OR-форме — потому что именно так разворачивается лексикографическое сравнение «в уме»: сперва по дате, при равенстве дат — по `id`. Выглядит правильно, но **убивает seek по составному индексу `(date, id)`**.
+
+```sql
+-- Плохо: OR-форма. ~298 ms, ~900k строк просканировано
+SELECT *
+FROM orders
+WHERE created_at < @d
+   OR (created_at = @d AND id <= @lastId)
+ORDER BY created_at DESC, id DESC
+LIMIT 20;
+```
+
+**Почему OR-форма проваливает seek:** индекс B-tree упорядочен лексикографически по `(date, id)` и умеет делать **один range-seek** к точке `(@d, @lastId)` с последующим последовательным чтением. Но `OR` разрывает предикат на два независимых условия по разным «осям»: оптимизатор не может доказать, что они складываются в один непрерывный диапазон ключа. В результате он откатывается к широкому фильтру — index/seq scan почти всей таблицы (~900k строк) с пост-фильтрацией, вместо того чтобы сразу спозиционироваться в нужную точку.
+
+```sql
+-- Хорошо: единое row-value сравнение. ~0.66 ms, seek + чтение 20 строк
+SELECT *
+FROM orders
+WHERE (created_at, id) <= (@d, @lastId)
+ORDER BY created_at DESC, id DESC
+LIMIT 20;
+```
+
+Row-value comparison `(created_at, id) <= (@d, @lastId)` — это **одно** лексикографическое условие, ровно совпадающее с порядком ключа индекса. Движок переводит его в один seek по `(date, id)` и читает страницы подряд. ~298 ms -> ~0.66 ms (≈450x) — не за счёт нового индекса, а за счёт того, что предикат снова стал «seek-able».
+
+> [!warning] Порядок колонок индекса обязан совпадать с `ORDER BY`
+> Row-value трюк работает только если индекс `(created_at, id)` совпадает по порядку и направлению с `ORDER BY created_at, id`. Индекс `(id, created_at)` или сортировка `ORDER BY id, created_at` снова ломают seek — оптимизатор не сможет пройти диапазон одним проходом.
+
+Матрица движков — кто оптимизирует row-value comparison:
+
+| СУБД | Row-value `(a, b) <= (x, y)` | Что делать |
+|------|------------------------------|------------|
+| PostgreSQL 8.2+ | Да -> один index seek | Писать row-value напрямую |
+| MySQL 8.0+ / MariaDB | Да -> seek | Row-value |
+| SQLite 3.15+ | Да -> seek | Row-value |
+| Oracle | Да -> seek | Row-value |
+| **SQL Server (любой, вкл. 2022)** | **Нет** — нет синтаксиса row-value в `WHERE` | Ручная переписка (см. ниже) |
+
+SQL Server не поддерживает row-value tuple в предикате вообще. Эквивалент, сохраняющий seek, — переписать так, чтобы первое условие было «голым» range по ведущей колонке, а равенство уводилось в `AND` *под тем же* range:
+
+```sql
+-- SQL Server: seek-able эквивалент row-value сравнения
+SELECT TOP (20) *
+FROM orders
+WHERE created_at < @d
+   OR (created_at = @d AND id <= @lastId)
+ORDER BY created_at DESC, id DESC
+OPTION (RECOMPILE);
+```
+
+Здесь та же OR-форма, но на SQL Server её приходится «вытягивать» подсказками плана и тщательно подобранным индексом `(created_at DESC, id DESC)`; гарантии single-seek, как в Postgres, нет — это компромисс, а не бесплатный обед.
+
+> [!info] EF Core не переводит row-value tuples
+> У EF Core **нет** нативной трансляции кортежного сравнения: выражение вида `orders.Where(o => ValueTuple.Create(o.CreatedAt, o.Id) <= ...)` не превращается в SQL `(created_at, id) <= (...)`. Чтобы получить seek-able row-value запрос, обходи LINQ-провайдер:
+>
+> ```csharp
+> var page = await db.Orders
+>     .FromSqlInterpolated($"""
+>         SELECT * FROM orders
+>         WHERE (created_at, id) <= ({lastDate}, {lastId})
+>         ORDER BY created_at DESC, id DESC
+>         LIMIT 20
+>         """)
+>     .AsNoTracking()
+>     .ToListAsync(cancellationToken);
+> ```
+>
+> Альтернатива — Dapper с тем же текстом запроса для read-side. Параметры (`{lastDate}`, `{lastId}`) `FromSqlInterpolated` биндит безопасно, без конкатенации. Подробнее про границы трансляции LINQ -> SQL и client-side evaluation — [[queries-performance|EF Core Performance]].
+
 ### N+1 проблема
 
 ```sql
@@ -269,6 +342,76 @@ SELECT Id, Name, Email FROM Users;
 -- Хорошо: параметры → безопасность + кэш плана
 SELECT * FROM Users WHERE Name = @name
 ```
+
+### Single-pass conditional aggregation
+
+Классический анти-паттерн отчётов: одна строка с несколькими счётчиками по статусам, собранная через **N коррелированных подзапросов** (или N self-join'ов) — каждый делает отдельный проход по таблице.
+
+```sql
+-- Плохо: 4 коррелированных подзапроса = 4 прохода по orders
+SELECT
+    c.id,
+    c.name,
+    (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id AND o.status = 'pending')   AS pending,
+    (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id AND o.status = 'paid')      AS paid,
+    (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id AND o.status = 'shipped')   AS shipped,
+    (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id AND o.status = 'cancelled') AS cancelled
+FROM customers c;
+```
+
+**Почему это медленно:** каждый подзапрос — отдельный seq/index scan по `orders`, повторённый для каждой строки `customers`. На таблице в десятки миллионов строк это легко вырождается в запрос на 2 минуты.
+
+**Механика решения:** сделать **один** проход и развести статусы внутри агрегата через `CASE WHEN`. Ключевой факт — **агрегаты игнорируют `NULL`**: `COUNT()` не считает `NULL`, `SUM()` пропускает `NULL`. Поэтому `CASE WHEN status = 'X' THEN 1 END` без `ELSE` отдаёт `NULL` для «не тех» строк, и они просто не попадают в счётчик.
+
+```sql
+-- Хорошо: один проход по orders, GROUP BY
+SELECT
+    o.customer_id,
+    COUNT(*)                                          AS total,
+    COUNT(CASE WHEN o.status = 'pending'   THEN 1 END) AS pending,
+    COUNT(CASE WHEN o.status = 'paid'      THEN 1 END) AS paid,
+    COUNT(CASE WHEN o.status = 'shipped'   THEN 1 END) AS shipped,
+    COUNT(CASE WHEN o.status = 'cancelled' THEN 1 END) AS cancelled,
+    SUM(CASE WHEN o.status = 'paid' THEN o.total ELSE 0 END) AS paid_revenue
+FROM orders o
+GROUP BY o.customer_id;
+```
+
+Это тот самый класс переписывания, где **~2 минуты → ~1.4 секунды**: вместо `N × scan` остаётся один scan + агрегация в памяти.
+
+> [!warning]
+> `COUNT(CASE WHEN cond THEN 1 END)` (без `ELSE`) считает только строки, где `cond` истинно — потому что `CASE` без `ELSE` возвращает `NULL`, а `COUNT` игнорирует `NULL`. А вот `SUM(CASE WHEN cond THEN 1 ELSE 0 END)` нужно с `ELSE 0`, иначе `SUM` по полностью пустой группе вернёт `NULL`, а не `0`. Не путать `COUNT(*)` (считает все строки группы) с `COUNT(expr)` (считает строки, где `expr IS NOT NULL`).
+
+#### FILTER (WHERE ...) — чистый SQL:2003-сиблинг
+
+Стандарт SQL:2003 дал тот же приём в читаемой форме — `aggregate FILTER (WHERE condition)`. Семантика идентична `CASE`-варианту, но без визуального шума.
+
+```sql
+SELECT
+    customer_id,
+    COUNT(*)                                  AS total,
+    COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+    COUNT(*) FILTER (WHERE status = 'paid')    AS paid,
+    COUNT(*) FILTER (WHERE status = 'shipped') AS shipped,
+    SUM(total) FILTER (WHERE status = 'paid')  AS paid_revenue
+FROM orders
+GROUP BY customer_id;
+```
+
+Подвох в переносимости — `FILTER` поддержан **не везде**. Матрица диалектов:
+
+| СУБД | `FILTER (WHERE ...)` | Что использовать |
+|------|---------------------|------------------|
+| PostgreSQL 9.4+ | Да | `FILTER` |
+| SQLite 3.30+ | Да | `FILTER` |
+| Oracle 21c+ | Да | `FILTER` |
+| MySQL / MariaDB | Нет | `CASE`-fallback |
+| SQL Server (любой) | **Нет** | `CASE`-fallback (`COUNT(CASE WHEN ... THEN 1 END)`) |
+
+Правило: пишешь под Postgres/SQLite/Oracle — бери `FILTER` (читаемее, оптимизатор разворачивает в то же самое). Пишешь под SQL Server или кросс-СУБД-код — оставайся на `CASE WHEN`, который понимают все.
+
+> [!info]
+> Оба варианта (`CASE` и `FILTER`) комбинируются с `GROUP BY ROLLUP`/`GROUPING SETS` и с оконными функциями — например `COUNT(*) FILTER (WHERE status = 'paid') OVER (PARTITION BY customer_id)` даёт счётчик «оплаченных» без коллапса строк. См. раздел «Window Functions» ниже про окна и раздел «CTE» про то, как вынести промежуточный pre-aggregate в читаемый `WITH`-блок.
 
 ---
 

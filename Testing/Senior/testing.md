@@ -5,6 +5,8 @@ level: Senior
 
 # Тестирование — стратегия и инструменты
 
+> Стратегия и tooling-стек тестирования в .NET 2026: пирамида vs алмаз, xUnit/TUnit, NSubstitute, Testcontainers + WebApplicationFactory, Stryker mutation testing, FsCheck property-based, Playwright E2E и NBomber load — что выбрать и когда.
+
 ## Что это, зачем и когда
 
 ### Что такое тестирование?
@@ -982,7 +984,7 @@ public async Task Test() => await DoSomethingAsync();
 **Сценарий:** Senior просматривает PR от Junior'а. Стандартные issues: naming, missing nulls, dead code.
 
 **Workflow:**
-1. **AI первый pass** — Copilot Chat / Claude review кода
+1. **AI первый pass** — Copilot Chat review кода
 2. **Senior валидирует AI feedback** — отбрасывает false positives
 3. **Senior фокусируется на architecture** — что AI не видит:
    - Domain logic correctness
@@ -991,8 +993,6 @@ public async Task Test() => await DoSomethingAsync();
    - Security in context
 
 **Time saved:** 30 min review → 10 min (AI на mechanical, senior на important).
-
-См.[[ai-coding-tools|AI Coding Tools]].
 
 ---
 

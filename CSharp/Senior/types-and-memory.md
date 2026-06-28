@@ -258,6 +258,91 @@ struct Point : IEquatable<Point>
 > [!question]- Интервью: что такое boxing?
 > Конверсия **value type → object** (или interface). Allocates heap memory, copies value into heap object. **Cost**: ~30ns + GC pressure. **Examples**: 1) `object o = 42` — int boxed. 2) `List<object>.Add(intValue)` — boxes. 3) `string.Format("{0}", intValue)` — boxes. 4) `IComparable<int>.CompareTo` — interface dispatch на struct boxes если без generic constraint. **Avoiding**: 1) Generic methods с `where T : struct`. 2) Specific overloads (`Console.WriteLine(int)` exists separate of `Console.WriteLine(object)`). 3) `IEquatable<T>` interface для struct. 4) `Span<T>` для slicing без boxing. 5) `Nullable<T>` (HasValue check) для optional values. **Modern**: most BCL APIs avoid boxing через generics. С# generics reified — no boxing для primitives (vs Java erasure).
 
+### 2.8. Struct → interface variable BOXES (и каждый вызов идёт по копии)
+
+Почему: интерфейс — reference type. Присвоить struct в переменную типа интерфейса значит дать ссылку, а ссылаться можно только на heap-объект — поэтому JIT кладёт **копию** struct в box на куче. Дальше каждый interface-dispatched вызов выполняется **на этой boxed-копии**, а не на исходном значении. Это и аллокация, и тихий баг с мутабельным struct: меняешь box, оригинал не двигается.
+
+```csharp
+public interface IShape
+{
+    double Area();
+}
+
+public struct Circle(double radius) : IShape
+{
+    public double Area() => Math.PI * radius * radius;
+}
+```
+
+```csharp
+var circle = new Circle(2.0);
+
+// ❌ struct → interface variable: BOXES once, копия Circle уходит на кучу
+IShape shape = circle;
+double a = shape.Area();   // virtual dispatch на boxed-копии
+
+// ✅ переменная конкретного типа: вызов прямой, без box
+Circle direct = circle;
+double b = direct.Area();   // no box, no heap
+```
+
+Хуже всего — приём `IShape` в сигнатуру: каждый аргумент-struct боксится на входе:
+
+```csharp
+// ❌ boxes каждый переданный struct на границе вызова
+static double SumAreas(IReadOnlyList<IShape> shapes)
+{
+    double total = 0;
+    foreach (var s in shapes) total += s.Area();
+    return total;
+}
+
+// ✅ generic constraint → JIT монорфизирует под Circle, value-type dispatch, no box
+static double SumAreas<T>(IReadOnlyList<T> shapes) where T : struct, IShape
+{
+    double total = 0;
+    for (int i = 0; i < shapes.Count; i++) total += shapes[i].Area();
+    return total;
+}
+```
+
+`where T : struct, IShape` — ключ: для value-типа JIT генерирует отдельную специализацию метода (monomorphization), вызывает `Area()` напрямую на значении, без box и без virtual dispatch.
+
+> [!info]- Как доказать: MemoryDiagnoser delta + IL в ILSpy
+
+> ```csharp
+> [MemoryDiagnoser]
+> public class ShapeDispatchBench
+> {
+>     private readonly Circle[] _circles =
+>         Enumerable.Range(1, 1000).Select(i => new Circle(i)).ToArray();
+>
+>     [Benchmark(Baseline = true)]
+>     public double ViaInterface()        // boxes 1000 раз
+>     {
+>         double total = 0;
+>         foreach (Circle c in _circles)
+>         {
+>             IShape s = c;               // box на каждой итерации
+>             total += s.Area();
+>         }
+>         return total;
+>     }
+>
+>     [Benchmark]
+>     public double ViaGeneric()          // 0 B
+>     {
+>         double total = 0;
+>         foreach (Circle c in _circles) total += AreaOf(c);
+>         return total;
+>     }
+>
+>     private static double AreaOf<T>(T shape) where T : struct, IShape => shape.Area();
+> }
+> ```
+>
+> Ожидаемый delta: `ViaInterface` показывает `Allocated ≈ 1000 × sizeof(box)` (≈ 24 KB на x64 для бокса с double-полем), `ViaGeneric` — `0 B`. В ILSpy у `ViaInterface` на месте `IShape s = c;` видна инструкция `box Circle`; у `ViaGeneric` она отсутствует — вместо неё прямой `call`/`callvirt` без бокса на специализированной версии метода.
+
 ---
 
 ## 3. Reference types — class deep
@@ -1089,6 +1174,30 @@ public void Process(List<int> items, int threshold)
 }
 ```
 
+Если лямбда всё-таки нужна — помечай её `static` (C# 9+). Это не «оптимизация на потом», а compile-time гарантия: компилятор **запрещает** захват любого внешнего состояния, поэтому случайный capture (а с ним `<>c__DisplayClass`-аллокация на каждый вызов) становится ошибкой сборки, а не тихой регрессией. Состояние передавай явно через state-passing перегрузки `Func<TState, T>` — в BCL их теперь много (`ConcurrentDictionary.GetOrAdd`, `MemoryCache`, `String.Create`, `Enumerable.Aggregate` и т.д.).
+
+```csharp
+// ❌ captures threshold → компилятор генерит <>c__DisplayClass, alloc на каждый вызов
+public List<int> Filter(List<int> items, int threshold) =>
+    items.Where(x => x > threshold).ToList();
+```
+
+```csharp
+// ✅ static lambda + state-passing перегрузка: захват ЗАПРЕЩЁН компилятором, 0 closure-alloc
+public bool GetOrAddFlag(ConcurrentDictionary<string, bool> cache, string key, int threshold) =>
+    cache.GetOrAdd(key, static (_, t) => t > 0, threshold);   // threshold идёт аргументом, не захватом
+```
+
+```csharp
+// ✅ static lambda не компилируется, если попытаться что-то захватить — баг ловится на сборке
+static int CapturesNothing(int x) => x * 2;
+// var bad = static () => threshold;  // CS8820: a static lambda cannot capture 'threshold'
+```
+
+> [!info]- Как найти утечку: dotnet-gcdump показывает `<>c__DisplayClass`
+
+> Захват, доживший до Gen 2 (лямбда, подписанная на долгоживущий event/таймер/кэш), держит весь `DisplayClass` со всеми захваченными полями. В дампе `dotnet-gcdump collect --process-id <pid>` тип имеет вид `MyNamespace.MyService+<>c__DisplayClass12_0` — суффикс `<>c__DisplayClass` плюс **имя метода**, в котором объявлена лямбда, прямо называют источник. Дальше `gcroot` по этому объекту показывает удерживающий event/делегат. `static`-лямбды этого класса не создают вовсе.
+
 ### 9.7. String operations
 
 ```csharp
@@ -1122,6 +1231,75 @@ public struct CustomCollection<T> : IEnumerable<T>
     // Compiler uses struct enumerator если returns struct directly
 }
 ```
+
+### 9.9. Типизация коллекции как `IEnumerable<T>` боксит struct-энумератор
+
+Почему один лишний alloc там, где «никто ничего не аллоцирует»: `List<T>.GetEnumerator()` возвращает **struct** `List<T>.Enumerator`. Когда переменную типизируют как `IEnumerable<T>`, `foreach` вынужден вызывать интерфейсный `IEnumerable<T>.GetEnumerator()`, который возвращает `IEnumerator<T>` — а это значит struct-энумератор **боксится один раз на каждый `foreach`** (одна heap-аллокация на вызов). Плюс каждый `MoveNext`/`Current` идёт через interface dispatch (virtual), теряя инлайнинг.
+
+```csharp
+// ❌ поле/параметр типа IEnumerable<int>: struct-энумератор боксится на каждом foreach
+private readonly IEnumerable<int> _items;   // под капотом List<int>, но тип стёрт
+
+public int SumBoxed()
+{
+    int total = 0;
+    foreach (var x in _items) total += x;   // box List<int>.Enumerator + virtual MoveNext
+    return total;
+}
+```
+
+```csharp
+// ✅ конкретный тип: foreach берёт struct-энумератор по значению, 0 аллокаций
+private readonly List<int> _items;
+
+public int SumConcrete()
+{
+    int total = 0;
+    foreach (var x in _items) total += x;   // struct enumerator, no box, MoveNext инлайнится
+    return total;
+}
+```
+
+На hot path: принимай и храни конкретный `List<T>` / `T[]`, либо итерируй по индексу (`for` + `Count`/`Length`). Для публичного API не заставляй вызывающего боксить — добавь generic-перегрузку:
+
+```csharp
+// Публичный API: generic-перегрузка вместо единственной IEnumerable<T>
+public static int Sum<TList>(TList items) where TList : IReadOnlyList<int>
+{
+    int total = 0;
+    for (int i = 0; i < items.Count; i++) total += items[i];   // no enumerator box
+    return total;
+}
+```
+
+> [!info]- Как доказать: concrete-vs-interface MemoryDiagnoser delta
+
+> ```csharp
+> [MemoryDiagnoser]
+> public class EnumeratorBoxingBench
+> {
+>     private readonly List<int> _list = Enumerable.Range(0, 1000).ToList();
+>
+>     [Benchmark(Baseline = true)]
+>     public int OverInterface()
+>     {
+>         IEnumerable<int> seq = _list;   // тип стёрт до интерфейса
+>         int total = 0;
+>         foreach (var x in seq) total += x;   // boxes struct enumerator
+>         return total;
+>     }
+>
+>     [Benchmark]
+>     public int OverConcrete()
+>     {
+>         int total = 0;
+>         foreach (var x in _list) total += x;   // struct enumerator, no box
+>         return total;
+>     }
+> }
+> ```
+>
+> Ожидаемый delta: `OverInterface` — `Allocated ≈ 40 B` (один boxed `List<int>.Enumerator` на вызов), `OverConcrete` — `0 B`. Та же 40-байтная аллокация умножается на частоту вызова: на 1M `foreach`/сек это ~40 MB/сек постоянного Gen 0 давления буквально из-за типа переменной.
 
 > [!question]- Интервью: как уменьшить allocations в hot path?
 > 1) **Use structs для small data** (Point, Money, < 32 bytes). 2) **`Span<T>` + `stackalloc`** для temporary buffers. 3) **`ArrayPool<T>`** для large arrays (> 1KB). 4) **Avoid LINQ в tight loops** — manual foreach. 5) **Avoid closures** — closures allocate (compiler generates class). 6) **`StringBuilder`** для string concat в loops. 7) **Cache reusable objects** (StringBuilder, regex). 8) **`IEquatable<T>`** для structs — avoids boxing в comparisons. 9) **Reuse delegates** (cache as field). 10) **`ValueTask<T>`** instead of `Task<T>` для completed-sync paths. **Tools**: BenchmarkDotNet `[MemoryDiagnoser]` measures. PerfView/dotMemory finds hot allocations. **Trade-off**: optimization complexity vs benefit. Profile first.

@@ -5,6 +5,8 @@ level: Senior
 
 # Zero-downtime миграции схемы в PostgreSQL
 
+> Как менять схему большой таблицы под нагрузкой: карта стоимости DDL, `lock_timeout` + retry против head-of-line blocking, `CREATE INDEX CONCURRENTLY`, `NOT VALID` + `VALIDATE`, `SET NOT NULL` без full scan, паттерн expand-contract и безопасный батч-backfill — с поправками на EF Core.
+
 ## Кратко
 Как менять схему большой таблицы под нагрузкой, не роняя прод: какие DDL-операции дёшевы, а какие переписывают/сканируют таблицу под жёсткой блокировкой; приёмы `lock_timeout` + retry, `CREATE INDEX CONCURRENTLY`, `NOT VALID` + `VALIDATE`, `SET NOT NULL` без full scan; и паттерн **expand-contract**, который нужен потому, что во время деплоя старый и новый код живут одновременно. Раздел прямо под требование «тысячи пользователей, быстрый отклик».
 
@@ -268,7 +270,7 @@ EF-овский `SetColumnNullable(false)` = `SET NOT NULL` с full scan. На �
 - [[postgres-functions-triggers]] — процедуры для батч-backfill с COMMIT
 - [[postgresql-deep]] — VACUUM, bulk-операции
 - [[indexes-deep]] — `CREATE INDEX CONCURRENTLY`, invalid index
-- [[../EFCore/...]] — миграции EF Core (общий контекст)
+- Раздел EFCore — миграции EF Core (общий контекст)
 
 ## Reading list
 - PostgreSQL docs: `ALTER TABLE` (lock levels), `CREATE INDEX CONCURRENTLY`, constraints (`NOT VALID`/`VALIDATE`)

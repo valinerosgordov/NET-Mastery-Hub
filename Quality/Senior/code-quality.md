@@ -5,6 +5,8 @@ level: Senior
 
 # Code Quality — analyzers, EditorConfig, SonarCloud
 
+> Автоматический enforcement стиля и качества кода: `.editorconfig` + Roslyn/Meziantou/SonarAnalyzer analyzers в IDE и CI плюс SonarCloud для PR-gating, чтобы ловить баги и code smells до merge в main.
+
 ## Что это, зачем и когда
 
 ### Что такое code quality enforcement?

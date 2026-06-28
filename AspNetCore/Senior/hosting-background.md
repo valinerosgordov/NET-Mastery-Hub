@@ -5,6 +5,8 @@ level: Senior
 
 # Hosting и фоновые задачи
 
+> Фоновая обработка через `BackgroundService` с `Channel<T>` и `PeriodicTimer`, управление жизненным циклом приложения (`IHostApplicationLifetime`) и graceful shutdown.
+
 ## Что это, зачем и когда
 
 ### Что такое Background Service?

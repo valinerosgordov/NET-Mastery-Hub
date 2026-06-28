@@ -5,6 +5,8 @@ level: Senior
 
 # System Design — типовые ответы для Tech Lead интервью
 
+> Фреймворк system design интервью (requirements, capacity estimation, tradeoffs) плюс готовые шаблоны: rate limiter, URL shortener, news feed, distributed cache, chat, file storage, search — с обоснованием выбора и bottleneck'ами.
+
 ## Что это, зачем и когда
 
 ### Что такое system design интервью?
