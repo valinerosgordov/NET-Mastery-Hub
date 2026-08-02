@@ -1,7 +1,7 @@
 ---
 tags: [csharp, extension-methods, junior, syntax-sugar, fluent-api, linq]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # Extension Methods — методы-расширения
@@ -102,9 +102,9 @@ httpClient.AsTypedClient<IUserApi>();
 | **C# 9.0** | 2020 | `static abstract` в interfaces (но не для extensions) |
 | **C# 12** | 2023 | Primary constructors для классов — упрощает паттерн helper-классов |
 | **C# 13** | 2024 | `params` для коллекций — `params ReadOnlySpan<int>` параметр |
-| **C# 14** | 2025 | **Extension members** (preview) — extensions для свойств, операторов, индексаторов |
+| **C# 14** | 2025 | **Extension members** (релиз с .NET 10) — extension-блоки: properties, static-члены, операторы |
 
-С **C# 14** концепция расширилась: можно делать не только методы, но и свойства/операторы/индексаторы. Раздел 16 — об этом.
+С **C# 14** концепция расширилась: можно делать не только методы, но и properties, static-члены и операторы. Раздел 16 — об этом.
 
 ### 1.5. Когда применять, когда нет
 
@@ -266,7 +266,7 @@ class Program
 }
 ```
 
-Это работает потому, что compiler ищет extension methods в **импортированных namespace'ах**. Если impose не сделан — компилятор не найдёт метод и выдаст CS1061: `string does not contain a definition for 'WordCount'`.
+Это работает потому, что compiler ищет extension methods в **импортированных namespace'ах**. Если import (`using`) не сделан — компилятор не найдёт метод и выдаст CS1061: `string does not contain a definition for 'WordCount'`.
 
 ### 2.5. Global usings (.NET 6+)
 
@@ -1978,67 +1978,94 @@ Null безопасность?
 
 ---
 
-## 16. C# 14 — Extension members (preview)
+## 16. C# 14 — Extension members
 
 ### 16.1. Что нового
 
-В C# 14 (preview) можно делать **extensions для свойств, операторов, индексаторов**, не только методов. Синтаксис:
+C# 14 вышел в релиз вместе с .NET 10 в ноябре 2025 — extension members это **released-фича**, не preview. Теперь extensions могут быть не только методами: появились **extension properties, static extension members и extension operators**. Синтаксис — `extension`-блок **внутри обычного static class**:
 
 ```csharp
-// C# 14 preview — синтаксис новый
-public extension StringExtensions for string
+public static class StringExtensions
 {
-    // Extension property
-    public bool IsEmpty => this.Length == 0;
+    // Extension-блок: receiver объявляется один раз для всех членов
+    extension(string s)
+    {
+        // Extension property — до C# 14 было невозможно
+        public bool IsEmpty => s.Length == 0;
 
-    // Extension method (как раньше, но без `this`)
-    public int WordCount() => this.Split(' ').Length;
-
-    // Extension indexer
-    public char this[int index] => this[index];
+        // Extension method — эквивалент старого `this string s`
+        public string Truncate(int max) => s.Length <= max ? s : s[..max];
+    }
 }
 
-"hello".IsEmpty;       // false
-"".IsEmpty;            // true
-"hello world".WordCount();   // 2
+bool a = "hello".IsEmpty;              // false — property, без скобок
+bool b = "".IsEmpty;                   // true
+string t = "hello world".Truncate(5);  // "hello"
 ```
+
+Ключевое отличие от старого стиля: receiver (`string s`) объявлен один раз в заголовке блока и доступен всем членам — не нужно повторять `this string s` в каждой сигнатуре. Generic-блоки тоже поддерживаются: `extension<T>(IEnumerable<T> source) { ... }`. Extension-блок может жить только в non-nested, non-generic static class — то есть в том же самом классе, где живут и старые `this`-методы.
 
 ### 16.2. Зачем
 
-До C# 14 extensions могли быть только методами — нельзя было сделать `string.IsEmpty` как property. Это лимитировало API design. Теперь fluent API может смешивать properties и methods.
+До C# 14 extensions могли быть только методами — нельзя было сделать `string.IsEmpty` как property, только `IsEmpty()`. Это лимитировало API design: «родные» члены типа выглядят как properties (`Length`), а расширения — только как методы со скобками. Теперь extension-члены могут быть неотличимы от родных, и fluent API смешивает properties и methods без швов.
 
 ### 16.3. Static extension members
 
-Можно даже добавлять static члены:
+Блок `extension(Type)` **без имени параметра** добавляет static-члены к самому типу:
 
 ```csharp
-public extension StringExtensions for string
+public static class StringExtensions
 {
-    public static string DefaultGreeting => "Hello";
+    extension(string)
+    {
+        public static bool HasValue(string? value) => !string.IsNullOrEmpty(value);
+    }
 }
 
-string greet = string.DefaultGreeting;   // "Hello"
+bool ok = string.HasValue("hi");   // true — вызов выглядит как static-метод string
 ```
 
-### 16.4. Operator extensions
+### 16.4. Extension operators
+
+Внутри static-блока можно объявлять user-defined операторы для чужих типов:
 
 ```csharp
-public extension MoneyExt for Money
+public static class PathExtensions
 {
-    public static Money operator +(Money a, Money b) => a.Plus(b);
+    extension(string)
+    {
+        public static string operator /(string left, string right)
+            => Path.Combine(left, right);
+    }
 }
 
-var total = 100m.USD() + 50m.USD();   // оператор + теперь определён через extension
+string path = "logs" / "2026" / "app.txt";   // Path.Combine через оператор /
 ```
 
-Это огромное расширение возможностей — можно добавлять операторы к чужим типам.
+Это огромное расширение возможностей — операторы к чужим типам раньше были невозможны в принципе. Что **не** вошло в C# 14: extension indexers и extension constructors — отложены на будущие версии языка.
 
-### 16.5. Когда доступно
+### 16.5. Связь со старым синтаксисом
 
-C# 14 в preview по состоянию на 2026-05. Релиз — ноябрь 2026 (.NET 11 стабильный + C# 15 preview). Старый синтаксис (`this T` параметр) остаётся, новые extension members — дополнение.
+Старый синтаксис (`this T` первым параметром) **остаётся полностью валидным и никуда не девается** — оба стиля компилируются в одинаковые статические методы и могут сосуществовать в одном static class:
+
+```csharp
+public static class MixedExtensions
+{
+    // Старый стиль — по-прежнему норма для одиночных методов
+    public static int WordCount(this string s) => s.Split(' ').Length;
+
+    // Новый стиль — когда нужны property/static/operator или общий receiver
+    extension(string s)
+    {
+        public bool IsEmpty => s.Length == 0;
+    }
+}
+```
+
+Практическое правило: одиночный метод-расширение — старый стиль читается проще; группа членов с общим receiver, property, static-член или оператор — extension-блок.
 
 > [!question]- Интервью: что такое extension members в C# 14?
-> Расширение концепции extensions: можно добавлять не только методы, но и properties, indexers, operators, static members к чужим типам. Синтаксис изменился — `extension Class for Type { ... }` блок вместо `static class` с `this T` параметром. Старый синтаксис продолжает работать. Это закрывает gap в API design: до C# 14 нельзя было сделать `string.IsEmpty` как property, только метод. Теперь — можно. На момент 2026-05 в preview, релиз ожидается с C# 15.
+> Расширение концепции extensions, вышедшее в релиз с C# 14 / .NET 10 (ноябрь 2025). Внутри обычного static class объявляется блок `extension(string s) { ... }`: receiver указывается один раз, а члены блока могут быть не только методами, но и properties, static-членами и user-defined операторами. Блок `extension(Type)` без имени параметра добавляет static-члены к самому типу. Это закрывает gap в API design: до C# 14 нельзя было сделать `string.IsEmpty` как property — только метод. Старый синтаксис `this T` остаётся валидным, оба стиля компилируются в одинаковые статические методы. Extension indexers и constructors в C# 14 не вошли — отложены на будущие версии.
 
 ---
 
@@ -2387,7 +2414,8 @@ var response = await httpClient.SendAsync(request);
 - **Microsoft Docs — Standard Query Operators (LINQ)** — learn.microsoft.com/dotnet/csharp/linq
 - **Microsoft Docs — System.Linq.Enumerable** — learn.microsoft.com/dotnet/api/system.linq.enumerable
 - **C# Language Specification — Extension Methods** — github.com/dotnet/csharplang/blob/main/spec/classes.md
-- **C# 14 Extension Members proposal** — github.com/dotnet/csharplang/issues/8704
+- **Microsoft Docs — What's new in C# 14 (extension members)** — learn.microsoft.com/dotnet/csharp/whats-new/csharp-14
+- **.NET Blog — C# 14: Exploring extension members** — devblogs.microsoft.com/dotnet/csharp-exploring-extension-members
 - **Eric Lippert — Extension methods design notes** — ericlippert.com (поиск «extension methods»)
 - **Stephen Toub — Performance of extension methods** — devblogs.microsoft.com/dotnet
 - **Mark Seemann — Builder pattern в .NET** — blog.ploeh.dk

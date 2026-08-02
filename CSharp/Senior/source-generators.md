@@ -1,7 +1,7 @@
 ---
 tags: [csharp, source-generators, senior, roslyn, compile-time, code-generation, incremental-generators]
 level: Senior
-date: 2026-05-09
+date: 2026-08-02
 ---
 
 # Source Generators — генерация кода во время компиляции
@@ -86,7 +86,7 @@ public partial class ViewModel : INotifyPropertyChanged
   - [JsonSerializable] (.NET 6+)
   - [LoggerMessage]
   - CommunityToolkit.Mvvm ([ObservableProperty], [RelayCommand])
-  - MediatR.SourceGenerators
+  - Mediator.SourceGenerator (martinothamar)
 ```
 
 ### 1.4. ISourceGenerator vs IIncrementalGenerator
@@ -237,34 +237,54 @@ public partial class ViewModel : ObservableObject
 
 `[ObservableProperty]` → public property с `OnPropertyChanged`. `[RelayCommand]` → `ICommand` implementation. WPF/MAUI standard.
 
-### 2.6. MediatR.SourceGenerators
+### 2.6. Mediator.SourceGenerator (martinothamar/Mediator)
+
+Source-generated альтернатива MediatR: тот же mediator pattern, но dispatch генерируется на compile-time — no reflection, no runtime assembly scanning, AOT-friendly. Актуальность выросла после того, как сам MediatR с v13 перешёл на коммерческую лицензию (Lucky Penny Software; 12.x остаётся Apache 2.0). Два пакета: `Mediator.SourceGenerator` (генератор, `PrivateAssets="all"`) и `Mediator.Abstractions` (интерфейсы `IRequest<TResponse>`, `IRequestHandler<TRequest, TResponse>`, `IMediator`). Stable — 3.0.2.
 
 ```csharp
-[GenerateMediatRRequest]
-public partial class CreateUserCommand
-{
-    public string Email { get; init; }
-    public string Name { get; init; }
-}
+public sealed record Ping(Guid Id) : IRequest<Pong>;
+public sealed record Pong(Guid Id);
 
-// Generator создаёт IRequest<TResult> + handler interface
+public sealed class PingHandler : IRequestHandler<Ping, Pong>
+{
+    public ValueTask<Pong> Handle(Ping request, CancellationToken cancellationToken) =>
+        new(new Pong(request.Id));
+}
 ```
 
-Reflection-free dispatch — compile-time wired commands.
+```csharp
+// Генератор создаёт Mediator-класс + extension AddMediator на compile-time
+services.AddMediator(options =>
+{
+    options.ServiceLifetime = ServiceLifetime.Singleton;   // default — max performance
+    options.Assemblies = [typeof(Ping)];                   // где искать messages/handlers
+});
+
+var pong = await mediator.Send(new Ping(Guid.NewGuid()));
+```
+
+Handlers регистрируются в DI сгенерированным `AddMediator` автоматически. `ValueTask<TResponse>` вместо `Task<TResponse>` — меньше аллокаций на синхронных путях.
 
 ### 2.7. Microsoft.Extensions.Configuration source-gen (.NET 8+)
 
+```xml
+<PropertyGroup>
+  <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+</PropertyGroup>
+```
+
 ```csharp
-public partial class AppConfig
+// Обычный POCO — partial НЕ нужен
+public sealed class AppConfig
 {
     public string ConnectionString { get; init; } = "";
     public int MaxRetries { get; init; } = 3;
 }
 
-// Configuration.Get<AppConfig>() generates compile-time binding
+// Вызов Configuration.Get<AppConfig>() / Bind() перехватывается interceptor'ом
 ```
 
-Replaces reflection-based binding. AOT-essential.
+В отличие от классических SG, которые дописывают partial-часть типа, binder-генератор работает через **C# interceptors** (C# 12): перехватывает call sites `Get<T>()` / `Bind()` / `Configure<T>()` и подставляет generated-код вместо reflection-based binding. Изменения в user-коде не нужны — включается MSBuild-property (в Native AOT web-шаблонах включён по умолчанию). AOT-essential.
 
 > [!question]- Интервью: чем `[GeneratedRegex]` лучше `new Regex()`?
 > 1) **No runtime parsing** — pattern компилируется на compile-time, generated method возвращает уже built Regex. 2) **Faster** — specialized code для exact pattern (vs general regex engine). 3) **AOT-compatible** — Native AOT не позволяет dynamic regex compilation. 4) **Static analyzer warnings** — compile-time validation pattern syntax. 5) **Cached static instance** автоматически. Best practice 2024+: `partial Regex EmailRegex()` через `[GeneratedRegex]` вместо `private static readonly Regex _email = new(...)`.
@@ -278,7 +298,8 @@ Replaces reflection-based binding. AOT-essential.
 ```xml
 <ItemGroup>
   <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
-  <PackageReference Include="MediatR" Version="12.0.0" />
+  <PackageReference Include="Mediator.SourceGenerator" Version="3.0.2" PrivateAssets="all" />
+  <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
 </ItemGroup>
 ```
 
@@ -1156,7 +1177,7 @@ Generator runs many times. Allocations накапливаются.
 │   ├── Logging structured → [LoggerMessage]
 │   ├── P/Invoke → [LibraryImport] (.NET 7+)
 │   ├── MVVM → CommunityToolkit.Mvvm
-│   ├── Mediator → MediatR.SourceGenerators
+│   ├── Mediator → Mediator.SourceGenerator (martinothamar)
 │   └── Configuration binding → .NET 8+ source-gen
 │
 ├── Создать свой SG
@@ -1463,6 +1484,6 @@ public partial class User
 - **Andrew Lock — Source generators series** (10+ articles) — andrewlock.net/series/creating-a-source-generator/
 - **Stefan Pölz — Source generator design** — codingoptimism.com
 - **CommunityToolkit.Mvvm** — github.com/CommunityToolkit/dotnet
-- **MediatR.SourceGenerators** — github.com/martinothamar/Mediator
+- **Mediator.SourceGenerator** — github.com/martinothamar/Mediator
 - **Verify.SourceGenerators** — github.com/VerifyTests/Verify.SourceGenerators
 - **SharpLab** — sharplab.io (interactive SG explorer)

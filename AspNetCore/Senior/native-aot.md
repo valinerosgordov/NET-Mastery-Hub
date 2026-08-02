@@ -1,6 +1,7 @@
 ---
 tags: [native-aot, trimming, performance, dotnet-10, deployment, source-generators]
 level: Senior
+date: 2026-08-02
 ---
 
 # Native AOT в .NET — production guide
@@ -140,7 +141,7 @@ var asm = Assembly.LoadFrom("plugin.dll");
 // ✅ AOT — все assemblies должны быть статически известны
 ```
 
-Если плагины критичны — выноси их в **отдельные процессы** (см. [IPC patterns]()).
+Если плагины критичны — выноси их в **отдельные процессы** (см. [[ipc-named-pipes-grpc|IPC patterns]]).
 
 ### JSON serialization — нужен JsonSerializerContext
 
@@ -156,7 +157,7 @@ public partial class AppJsonContext : JsonSerializerContext { }
 var json = JsonSerializer.Serialize(myObject, AppJsonContext.Default.MyType);
 ```
 
-См. [Source Generators]() — AOT и SG взаимосвязаны, без SG большинство фреймворков сломается.
+См. [[source-generators|Source Generators]] — AOT и SG взаимосвязаны, без SG большинство фреймворков сломается.
 
 ### Configuration binding
 
@@ -180,7 +181,7 @@ private static readonly Func<AppDbContext, Guid, Task<User?>> GetUserById =
 await GetUserById(_db, userId);
 
 // Или
-// ✅ Dapper / raw SQL — без LINQ Expression Trees
+// ✅ Dapper.AOT / raw ADO.NET — без LINQ Expression Trees (vanilla Dapper падает: Reflection.Emit)
 await using var conn = await _dataSource.OpenConnectionAsync(ct);
 var users = await conn.QueryAsync<User>("SELECT * FROM users WHERE active = true");
 ```
@@ -203,7 +204,7 @@ warning IL3050: Using member 'Y' which has 'RequiresDynamicCodeAttribute'
 
 **1. Найти AOT-friendly альтернативу:**
 - AutoMapper → Mapperly
-- FluentValidation → ручная (зависит от версии — современный supports AOT)
+- FluentValidation → частичная AOT-поддержка с 12.x, полной гарантии нет — либо ручная валидация
 - AutoFixture → ручные test-builders
 - NewtonSoft.Json → System.Text.Json + JsonSerializerContext
 
@@ -462,17 +463,18 @@ ENTRYPOINT ["./MyApp"]
 Известно совместимы (.NET 10, 2026):
 - ✅ ASP.NET Core (Minimal API)
 - ✅ EF Core (с compiled queries)
-- ✅ Dapper
+- ✅ Dapper.AOT (build-time interceptors; vanilla Dapper — ❌, Reflection.Emit)
 - ✅ Npgsql, Microsoft.Data.SqlClient
 - ✅ Polly v8, Microsoft.Extensions.Http.Resilience
 - ✅ Serilog, OpenTelemetry
-- ✅ MediatR (с CompiledExpressionExecutionStrategy)
+- ✅ Mediator (martinothamar, source-generated: пакеты Mediator.SourceGenerator + Mediator.Abstractions) — AOT-дружественная замена MediatR
 - ✅ Mapperly
 - ✅ CommunityToolkit.Mvvm
 
 Несовместимо или partial:
+- ❌ MediatR — reflection + assembly scanning для discovery handler'ов, AOT-совместимости нет (use source-generated Mediator)
 - ⚠️ Старый AutoMapper (use Mapperly)
-- ❌ Старый FluentValidation (новые версии supports)
+- ⚠️ FluentValidation — частичная поддержка с 12.x (убрано assembly scanning), полной гарантии Native AOT нет: ядро на expression trees, под AOT они интерпретируются
 - ❌ Newtonsoft.Json (use STJ)
 - ❌ NHibernate (heavy reflection)
 
@@ -581,11 +583,11 @@ builder.Services.AddTransient<IRepo, Repo>();
 
 ## См. также
 
-- [Source Generators]() — фундамент AOT (без них большинство frameworks ломается)
-- [Compilation и JIT]() — как работает обычная JIT-компиляция
-- [Modern C# 8–14]() — primary constructors, collection expressions (всё AOT-friendly)
-- [Project Setup]() — современная структура с AOT-готовностью
-- [Docker]() — distroless containers + AOT
+- [[source-generators|Source Generators]] — фундамент AOT (без них большинство frameworks ломается)
+- [[compilation-jit|Compilation и JIT]] — как работает обычная JIT-компиляция
+- [[modern-features|Modern C# 8–14]] — primary constructors, collection expressions (всё AOT-friendly)
+- [[project-setup|Project Setup]] — современная структура с AOT-готовностью
+- [[docker|Docker]] — distroless containers + AOT
 
 ## Reading list
 

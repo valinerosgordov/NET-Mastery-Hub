@@ -1,6 +1,7 @@
 ---
 tags: [testing, xunit, tunit, testcontainers, mutation-testing, property-based, playwright, aspire, nbomber]
 level: Senior
+date: 2026-08-02
 ---
 
 # Тестирование — стратегия и инструменты
@@ -84,7 +85,7 @@ level: Senior
 > list.Should().Contain(x);        list.ShouldContain(x);
 > action.Should().Throw<Ex>();     Should.Throw<Ex>(action);
 > ```
-> То же касается **FluentValidation** (тот же автор, тот же ход).
+> Не путать с **FluentValidation** — это другой автор (Jeremy Skinner), библиотека остаётся Apache 2.0 и бесплатной для commercial use.
 
 ---
 
@@ -780,13 +781,13 @@ NBomberRunner
 - Regression check после major changes
 - Before/after оптимизаций
 
-См. подробно в[System Design]()) — capacity estimation.
+См. подробно в[[system-design|System Design]] — capacity estimation.
 
 ---
 
 ## Architecture tests — NetArchTest
 
-См. подробно в[arch-tests.md]()). Кратко — проверка архитектурных правил кодом.
+См. подробно в [[arch-tests|Architecture Tests]]. Кратко — проверка архитектурных правил кодом.
 
 ```csharp
 [Fact]
@@ -1103,12 +1104,12 @@ Quality issue?
 
 ## См. также
 
--[Architecture Tests]()) — NetArchTest для архитектурных правил
--[Performance]()) — BenchmarkDotNet, NBomber, profiling
--[Distributed Systems]()) — testing distributed flows, saga
--[Blazor Server]()) — bUnit для component testing
--[Auth и Security]()) — TestAuthHandler для integration tests
--[Source Generators]()) — Verify для snapshot-тестирования генератора
+- [[arch-tests|Architecture Tests]] — NetArchTest для архитектурных правил
+- [[performance|Performance]] — BenchmarkDotNet, NBomber, profiling
+- [[distributed-systems|Distributed Systems]] — testing distributed flows, saga
+- [[blazor-server|Blazor Server]] — bUnit для component testing
+- [[auth-security|Auth и Security]] — TestAuthHandler для integration tests
+- [[source-generators|Source Generators]] — Verify для snapshot-тестирования генератора
 
 ## Reading list
 
