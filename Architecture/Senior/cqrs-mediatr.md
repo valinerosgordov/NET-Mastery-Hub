@@ -582,7 +582,7 @@ app.UseFastEndpoints();
 | API endpoints — единственный entry point | Background jobs тоже dispatch'ат commands |
 | Source-gen, AOT-friendly | Reflection-heavy (старые версии) |
 
-В NexusAI / [anonymized] — FastEndpoints для API + Mediator для internal cross-cutting (если нужно). Можно комбинировать.
+В production-проектах автора (NexusAI и др.) — FastEndpoints для API + Mediator для internal cross-cutting (если нужно). Можно комбинировать.
 
 ---
 

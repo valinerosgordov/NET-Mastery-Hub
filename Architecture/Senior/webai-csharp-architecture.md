@@ -1,15 +1,15 @@
 ---
 tags: [architecture, case-study, migration, modular-monolith]
 level: Senior
-date: 2026-06-12
+date: 2026-08-02
 ---
 
-# WebAI C# Architecture — Big Tech Level Design Document
+# WebAI C# Architecture — Production Case Study (anonymized)
 
 > Landing page generator: user fills form -> AI generates texts + images -> site published instantly.
-> Migration from Next.js 16 / TypeScript / Supabase to **.NET 10 / C# 14 modular monolith** — migration completed 2026-04 (originally planned as .NET 9 LTS / C# 13; bumped when the repo moved to net10 preview SDK).
+> Migration from Next.js 16 / TypeScript / Supabase to **.NET 10 / C# 14 modular monolith** — migration completed 2026-04.
 >
-> **Доки устарели местами.** Dockerfile/CI snippets ниже показаны как `dotnet/sdk:9.0` и `dotnet-version: '9.0.x'` — актуальный проект на `net10.0`. Раздел "Current Vulnerabilities (Next.js)" — исторический, все CRITICAL/HIGH пофикшены в hardening pass 2026-04-19 (см. `docs/active-work.md` → Completed recently). Для актуального статуса compliance против правил vault'а — см. `docs/projects.md` → [anonymized] → Compliance vs vault. Код в `C:\SideProjects\WebDevelopment\[anonymized]\backend` — истина.
+> **Анонимизированный case study реального production-проекта.** Имя продукта, домены и инфраструктурные детали из публичной версии убраны; архитектурные решения, код и найденные уязвимости — подлинные. Раздел 12 — **исторический** security-аудит legacy Next.js-версии: все CRITICAL/HIGH закрыты hardening-проходом в апреле 2026, остальные пункты сняты самой миграцией на .NET (разделы 7–8 показывают, чем именно).
 
 ---
 
@@ -26,7 +26,7 @@ date: 2026-06-12
 9. [Performance Optimization](#9-performance-optimization)
 10. [Docker & CI/CD](#10-docker--cicd)
 11. [Migration Plan](#11-migration-plan)
-12. [Current Vulnerabilities (Next.js)](#12-current-vulnerabilities)
+12. [Legacy Next.js Security Audit (historical)](#12-legacy-nextjs-security-audit-historical)
 
 ---
 
@@ -731,7 +731,7 @@ volumes: { pgdata:, miniodata: }
 ### Dockerfile (multi-stage)
 
 ```dockerfile
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY *.sln .
 COPY src/WebAI.Domain/*.csproj src/WebAI.Domain/
@@ -742,7 +742,7 @@ RUN dotnet restore
 COPY . .
 RUN dotnet publish src/WebAI.Api -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 USER $APP_UID
@@ -764,9 +764,9 @@ jobs:
         env: { POSTGRES_DB: webai_test, POSTGRES_USER: test, POSTGRES_PASSWORD: test }
         ports: ["5432:5432"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with: { dotnet-version: '9.0.x' }
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v6
+        with: { dotnet-version: '10.0.x' }
       - run: dotnet build --verbosity minimal
       - run: dotnet test --verbosity minimal
       - run: dotnet publish src/WebAI.Api -c Release -o publish
@@ -776,10 +776,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: docker/login-action@v3
         with: { registry: ghcr.io, username: ${{ github.actor }}, password: ${{ secrets.GITHUB_TOKEN }} }
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with: { push: true, tags: "ghcr.io/${{ github.repository }}:latest" }
 ```
 
@@ -816,7 +816,10 @@ builder.Services.AddOpenTelemetry()
 
 ---
 
-## 12. Current Vulnerabilities (Next.js) — FIX IMMEDIATELY
+## 12. Legacy Next.js Security Audit (historical)
+
+> [!warning] Исторический раздел — все пункты закрыты
+> Это реальный результат аудита legacy-версии (Next.js + Supabase) **до** миграции. CRITICAL/HIGH закрыты hardening-проходом (апрель 2026), MEDIUM — снят миграцией на .NET (см. разделы 7–8: rate limiting, path traversal, constant-time сравнение, body limits). Оставлено как учебный пример типовых дыр вайб-кодовой базы — и как чек-лист для аудита чужого Next.js-проекта.
 
 ### CRITICAL
 
@@ -837,7 +840,7 @@ builder.Services.AddOpenTelemetry()
 9. **Social links not URL-validated** — potential `javascript:` URLs
 10. **CSP allows `'unsafe-inline'`** — weakens script injection protection
 
-### Priority Fix Order
+### Порядок, в котором чинили
 
 ```
 Day 1: Rotate credentials, fix select("*"), fix SSRF

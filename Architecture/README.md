@@ -52,7 +52,7 @@
 | [[architecture-decisions|`architecture-decisions.md`]] | ADRs — документирование решений |
 | [[arch-tests|`arch-tests.md`]] | NetArchTest, ArchUnit — fitness functions |
 | [[twelve-factor-app|`twelve-factor-app.md`]] | 12-factor методология для cloud apps |
-| [[webai-csharp-architecture|`webai-csharp-architecture.md`]] | WebAI / [anonymized] project architecture (case study) |
+| [[webai-csharp-architecture|`webai-csharp-architecture.md`]] | Анонимизированный production case study: AI-генератор лендингов, миграция Next.js → .NET 10 |
 | [[agent-safe-architecture|`agent-safe-architecture.md`]] ⭐ NEW | Архитектура, устойчивая к AI-агентам: физические границы + CI-гейты + human-owned contract tests |
 | [[eip-content-based-router|`eip-content-based-router.md`]] ⭐ NEW | EIP Content-Based Router: IProcessor, Choice/When DSL, InOnly vs InOut |
 

@@ -276,7 +276,7 @@ var firstNames = await db.Users
 > - Поле требует FK constraint
 > - Поле имеет фиксированный тип, проверки (numeric range, enum)
 >
-> На NexusAI / [anonymized] используется гибрид: критичные поля (id, created_at, tenant_id) — отдельные колонки, неструктурированные опции — JSONB.
+> В production-проектах автора (NexusAI и др.) используется гибрид: критичные поля (id, created_at, tenant_id) — отдельные колонки, неструктурированные опции — JSONB.
 
 ---
 

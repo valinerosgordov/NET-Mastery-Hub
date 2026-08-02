@@ -2,7 +2,7 @@
 
 > Автогенерируется скриптом `Scripts/generate_index.ps1` из frontmatter (`level:`) и tagline'ов файлов. **Не редактировать руками** — перегенерировать после изменений.
 >
-> **168 файлов / 6,1 MB** · обновлено 2026-08-02
+> **169 файлов / 6,1 MB** · обновлено 2026-08-02
 
 ---
 
@@ -144,7 +144,7 @@
 | [Senior/sql-security.md](SQL/Senior/sql-security.md) | Senior | 17,4 | От инъекций защищает любой параметр, но `AddWithValue` выводит тип из значения (`string` → Unicode `nvarcha... |
 | [Senior/zero-downtime-migrations.md](SQL/Senior/zero-downtime-migrations.md) | Senior | 20,1 | Как менять схему большой таблицы под нагрузкой: карта стоимости DDL, `lock_timeout` + retry против head-of-... |
 
-### Architecture — 17 файлов / 629 KB
+### Architecture — 17 файлов / 630 KB
 
 | Файл | Уровень | KB | Описание |
 |---|---|---:|---|
@@ -164,7 +164,7 @@
 | [Senior/solid.md](Architecture/Senior/solid.md) | Senior | 24 | Пять принципов SOLID (SRP, OCP, LSP, ISP, DIP) плюс DRY/KISS/YAGNI с примерами на C#, маркерами нарушений и... |
 | [Senior/system-design.md](Architecture/Senior/system-design.md) | Senior | 32,2 | Фреймворк system design интервью (requirements, capacity estimation, tradeoffs) плюс готовые шаблоны: rate ... |
 | [Senior/twelve-factor-app.md](Architecture/Senior/twelve-factor-app.md) | Senior | 36,8 | Manifesto от Heroku (2011), стал industry standard. 12 принципов для apps which можно reliably deploy в clo... |
-| [Senior/webai-csharp-architecture.md](Architecture/Senior/webai-csharp-architecture.md) | Senior | 29,3 | Landing page generator: user fills form -> AI generates texts + images -> site published instantly. |
+| [Senior/webai-csharp-architecture.md](Architecture/Senior/webai-csharp-architecture.md) | Senior | 30 | Landing page generator: user fills form -> AI generates texts + images -> site published instantly. |
 
 ### Quality — 5 файлов / 135 KB
 
@@ -236,6 +236,12 @@
 | [vertical-slice-handler.md](Snippets/vertical-slice-handler.md) | All | 9 | Copy-paste слайс без mediator-библиотеки: feature-класс с Command/Response records и Handler (primary const... |
 | [wpf-viewmodel.md](Snippets/wpf-viewmodel.md) | Middle | 7 | WPF на CommunityToolkit.Mvvm: `ObservableObject` с `[ObservableProperty]`/`[RelayCommand]`, async-safe загр... |
 
+### (root) — 1 файлов / 2 KB
+
+| Файл | Уровень | KB | Описание |
+|---|---|---:|---|
+| [LICENSE.md](LICENSE.md) | — | 2 |  |
+
 ---
 
 ## По уровню (компактно)
@@ -260,7 +266,7 @@
 
 [[agent-safe-architecture]] · [[arch-tests]] · [[architecture-decisions]] · [[architecture-patterns]] · [[choosing-dependencies]] · [[cqrs-mediatr]] · [[ddd]] · [[distributed-systems]] · [[eip-content-based-router]] · [[solid]] · [[system-design]] · [[twelve-factor-app]] · [[webai-csharp-architecture]] · [[api-design]] · [[auth-security]] · [[blazor-server]] · [[blazor-wasm]] · [[caching]] · [[di-configuration]] · [[graphql]] · [[hosting-background]] · [[kestrel-as-raw-host]] · [[logging-observability]] · [[native-aot]] · [[pipeline-middleware]] · [[resilience]] · [[security-practices]] · [[signalr]] · [[async-threading]] · [[cli-tools-scripting]] · [[csharp-language-design]] · [[csharp-vs-other-langs]] · [[design-patterns]] · [[desktop-frameworks]] · [[fenwick-bit]] · [[functional-csharp]] · [[gof-patterns-extended]] · [[memory-pooling]] · [[reflection-expression-trees]] · [[source-generators]] · [[types-and-memory]] · [[unsafe-pointers]] · [[basics-tracking]] · [[concurrency]] · [[ef-patterns]] · [[migrations]] · [[queries-performance]] · [[relationships]] · [[api-gateway]] · [[aspire]] · [[docker]] · [[ipc-named-pipes-grpc]] · [[llm-rag-patterns]] · [[mcp-csharp]] · [[messaging]] · [[nosql-databases]] · [[observability]] · [[project-setup]] · [[semantic-kernel]] · [[wpf-production]] · [[09_senior-tips-cheatsheet]] · [[10_interview-behavioral]] · [[capacity-planning]] · [[hft-low-latency]] · [[memory-profiling]] · [[performance-budgets]] · [[performance]] · [[threadpool-starvation-hill-climbing]] · [[code-quality]] · [[static-analysis]] · [[compilation-jit]] · [[concurrency-atomics]] · [[diagnostics-tools]] · [[gc-memory]] · [[interop-pinvoke]] · [[span-layout]] · [[crud-example]] · [[eav-flexible-store-indexing]] · [[mvcc-and-locking]] · [[optimization]] · [[postgres-functions-triggers]] · [[postgresql-deep]] · [[sql-security]] · [[zero-downtime-migrations]] · [[integration-testing]] · [[mutation-load-testing]] · [[testing]]
 
-### Без уровня / All (7)
+### Без уровня / All (8)
 
-[[00_overview]] · [[01_language-map]] · [[04_interview-prep]] · [[05_topics-by-priority]] · [[99_reading-list]] · [[code-review]] · [[vertical-slice-handler]]
+[[LICENSE]] · [[00_overview]] · [[01_language-map]] · [[04_interview-prep]] · [[05_topics-by-priority]] · [[99_reading-list]] · [[code-review]] · [[vertical-slice-handler]]
 

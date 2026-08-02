@@ -175,7 +175,7 @@ GeneratedEmbeddings<Embedding<float>> batch =
 
 ## OpenAI через typed HttpClient + AddResilienceHandler
 
-**Это паттерн, который применяется в [anonymized]** — когда нужен прямой контроль над HTTP-вызовами к LLM-провайдеру (custom endpoint, кастомный auth, специфичные модели через прокси типа OpenRouter), а абстракция Microsoft.Extensions.AI избыточна.
+**Это паттерн из реального production-проекта автора** — когда нужен прямой контроль над HTTP-вызовами к LLM-провайдеру (custom endpoint, кастомный auth, специфичные модели через прокси типа OpenRouter), а абстракция Microsoft.Extensions.AI избыточна.
 
 ### Options + ValidateOnStart
 
