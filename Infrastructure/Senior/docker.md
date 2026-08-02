@@ -1554,60 +1554,21 @@ spec:
 
 ---
 
-## .NET Aspire — orchestration для разработки
+## Aspire — оркестрация в коде вместо compose-YAML
 
-**.NET Aspire** — фреймворк от Microsoft для **local development** распределённых систем. Не replacement для Kubernetes — это **dev experience**.
+**Aspire** (бывший «.NET Aspire»; с v13, ноябрь 2025, бренд без «.NET», платформа polyglot) — композиция распределённого приложения в коде: AppHost описывает граф ресурсов (проекты, контейнеры, Python/JS-приложения), `WithReference` инжектит connection strings и service discovery, `aspire run` поднимает всё + dashboard с логами/трейсами/метриками. Уже не «только dev»: `aspire publish` генерирует docker-compose/k8s-манифесты/Bicep из той же модели, `aspire deploy` деплоит в ACA/AKS.
 
 ```csharp
-// AppHost/Program.cs
+// AppHost/Program.cs — конспект
 var builder = DistributedApplication.CreateBuilder(args);
-
-var postgres = builder.AddPostgres("db")
-    .WithDataVolume()
-    .AddDatabase("appdb");
-
-var redis = builder.AddRedis("cache");
-
-var rabbit = builder.AddRabbitMQ("rabbit")
-    .WithManagementPlugin();
-
-var api = builder.AddProject<Projects.MyApp_Api>("api")
-    .WithReference(postgres)
-    .WithReference(redis)
-    .WithReference(rabbit);
-
-builder.AddProject<Projects.MyApp_Web>("web")
-    .WithReference(api);
-
-builder.Build().Run();
+var db = builder.AddPostgres("db").WithDataVolume().AddDatabase("appdb");
+builder.AddProject<Projects.MyApp_Api>("api")
+    .WithReference(db)     // connection string сама попадёт в api
+    .WaitFor(db);          // старт после готовности Postgres
+builder.Build().Run();     // aspire run → Postgres в Docker + API + dashboard
 ```
 
-`dotnet run` в AppHost project — запускает:
-- Postgres в Docker
-- Redis в Docker
-- RabbitMQ в Docker
-- API проект (нативно или в Docker)
-- Web проект
-- **Aspire Dashboard** — UI с logs, traces, metrics всех компонентов
-
-### Что Aspire даёт
-
-- Автоматическая discovery (через env vars `services__db__connectionstring`)
-- Автоматический OpenTelemetry — все services emit'ят traces в Aspire dashboard
-- Health checks UI
-- Service composition в C# (typed, refactor-safe)
-
-### Aspire vs Compose
-
-| | Aspire | docker-compose |
-|--|--------|----------------|
-| Конфиг | C# | YAML |
-| Type safety | ✅ | ❌ |
-| Production deployment | Не для prod | Можно для prod |
-| Observability built-in | ✅ Dashboard | Нужен Grafana |
-| Learning curve | Familiar для .NET dev | Шире применимо |
-
-**Когда что:** Aspire — для dev времени .NET solution с 3+ services. Compose — для prod, multi-language, и dev если команда mixed.
+**Aspire vs compose коротко:** typed C#-модель + встроенная observability против универсального YAML. Не взаимоисключающие: Aspire — inner loop (F5, отладка), сгенерированный compose/k8s — CI и прод; источник правды один — AppHost. Полный deep-dive (AppHost, ServiceDefaults, CLI, integrations hosting/client, decision tree) — [[aspire|Aspire]].
 
 ---
 
@@ -2124,7 +2085,7 @@ RUN dotnet publish -c Release -o /app --no-restore
 │
 ├── Local development?
 │   ├── docker-compose с .NET app → standard
-│   ├── .NET Aspire → лучше Compose для .NET stack
+│   ├── Aspire → лучше Compose для .NET stack (см. aspire.md)
 │   └── DevContainers → VS Code + Docker
 │
 ├── Production?
@@ -2145,6 +2106,7 @@ RUN dotnet publish -c Release -o /app --no-restore
 ## См. также
 
 - [[native-aot|Native AOT]] — distroless + AOT для extra-small images
+- [[aspire|Aspire]] — оркестрация в коде, ServiceDefaults, publish в compose/k8s
 - [[kubernetes|Kubernetes]] — orchestration, probes, graceful shutdown под .NET
 - [[observability|Observability]] — health checks, metrics, OpenTelemetry в containerized
 - [[resilience|Resilience]] — что делать когда container перезапустился
@@ -2169,7 +2131,7 @@ RUN dotnet publish -c Release -o /app --no-restore
 - **OCI Image Spec** — github.com/opencontainers/image-spec
 - **CGroups v2 design** — kernel.org/doc/Documentation/cgroup-v2.txt
 - **Maoni Stephens — DATAS deep dive** — devblogs.microsoft.com/dotnet/dynamically-adapting-to-application-sizes/
-- **.NET Aspire** — learn.microsoft.com/dotnet/aspire/
+- **Aspire** — aspire.dev (canonical docs с ноября 2025)
 - **dotnet-monitor** — github.com/dotnet/dotnet-monitor
 - **Devcontainers spec** — containers.dev
 - **CNCF Landscape — Container Runtime** — landscape.cncf.io

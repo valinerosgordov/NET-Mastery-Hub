@@ -2,7 +2,19 @@
 
 > **Comprehensive C# / .NET knowledge base** — from Junior fundamentals to Senior architecture and distributed systems.
 >
-> **162 deep-dive notes / ~6 MB**, organized by topic. Russian primary, English technical terms.
+> **168 deep-dive notes / ~6.1 MB**, organized by topic. Russian primary, English technical terms. Kept current: C# 14 / .NET 10 baseline, ecosystem shifts of 2024–2026 (OSS licensing, xUnit v3 + MTP, Aspire, Agent Framework, MCP) reflected as of Aug 2026.
+
+## What makes this different
+
+Most .NET knowledge bases stop at "yet another LINQ cheat sheet". The deep-dives here go where public write-ups are rare:
+
+- **[[hft-low-latency|HFT / low-latency .NET]]** — latency budgets, allocation-free patterns, DATAS-aware GC tuning
+- **[[threadpool-starvation-hill-climbing|ThreadPool starvation & hill-climbing]]** — production incident mechanics, bulkhead patterns
+- **[[zero-downtime-migrations|Zero-downtime DDL for PostgreSQL]]** — full lock-cost map, `NOT VALID`+`VALIDATE`, retry discipline
+- **[[kestrel-as-raw-host|Kestrel as a raw host]]** — shared-server manager, hop-by-hop filtering
+- **[[agent-safe-architecture|Agent-safe architecture]]** — module boundaries and CI gates that survive AI-generated code
+- **[[eav-flexible-store-indexing|EAV store indexing]]** — type-segregated partial indexes for flexible schemas
+- **[[choosing-dependencies|Choosing dependencies in 2026]]** — an opinionated map of the .NET OSS licensing shift (MediatR, AutoMapper, MassTransit, FluentAssertions…) and a selection framework
 
 ---
 
@@ -51,20 +63,20 @@ NET-Mastery-Hub/
 │
 ├── 🎓 LearningPath/      Roadmaps Junior → Middle → Senior + interview prep (10)
 │
-├── 💎 CSharp/             Сам язык — fundamentals → advanced (41 файл) ⭐
+├── 💎 CSharp/             Сам язык — fundamentals → advanced (42 файла) ⭐
 ├── ⚙️  Runtime/            CLR internals, GC, JIT, threading (9)
 │
 ├── 🌐 AspNetCore/         Web framework — auth, middleware, HttpClient, SignalR (23)
 ├── 💾 EFCore/             ORM — tracking, performance, patterns (13)
 ├── 🗄️  SQL/                SQL fundamentals + indexes + Postgres (9)
 │
-├── 🏛️  Architecture/       SOLID, DDD, CQRS, microservices, decision guides (16)
+├── 🏛️  Architecture/       SOLID, DDD, CQRS, microservices, decision guides (17)
 ├── ✅ Quality/            Clean code, refactoring, code review, static analysis (5)
 ├── 🧪 Testing/            Unit, integration, mocking, mutation, fundamentals (5)
 ├── ⚡ Performance/        Profiling, optimization, caching, HFT (12)
-├── 🚢 Infrastructure/     Docker, k8s, CI/CD, observability, messaging, AI (14)
+├── 🚢 Infrastructure/     Docker, k8s, CI/CD, observability, messaging, AI (17)
 │
-├── 📋 Snippets/           Ready-to-copy code patterns (5)
+├── 📋 Snippets/           Ready-to-copy code patterns (6)
 └── 📑 INDEX.md            Полное оглавление (level + описание каждого файла)
 ```
 
@@ -80,11 +92,11 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 → [[README|Подробнее в LearningPath/README.md]]
 
-### 💎 [CSharp](CSharp/) — язык (41 файл / ~2.4 MB) ⭐ самая большая
+### 💎 [CSharp](CSharp/) — язык (42 файла / ~2.4 MB) ⭐ самая большая
 
 Полное покрытие C# языка от basics до Senior:
 
-- **Junior:** csharp-basics, oop, collections-linq, strings-regex, datetime-timezones, enums-flags, tuples-deconstruction, anonymous-types, extension-methods, iterators-yield, naming-conventions, debugging-basics, dotnet-cli-getting-started
+- **Junior:** csharp-basics, oop, collections-linq, strings-regex, datetime-timezones, enums-flags, tuples-deconstruction, anonymous-types, extension-methods, iterators-yield, naming-conventions, debugging-basics, dotnet-cli-getting-started, async-await-basics
 - **Middle:** modern-features, error-handling, nullable-types, generics-deep, delegates-events, equality-comparison, attributes-metadata, indexers-operators, dispose-pattern, io-streams, serialization-deep, bcl-essentials, numeric-types-math, keywords-reference
 - **Senior:** async-threading, types-and-memory, functional-csharp, design-patterns, gof-patterns-extended, reflection-expression-trees, source-generators, memory-pooling, unsafe-pointers, fenwick-bit, csharp-language-design, csharp-vs-other-langs, cli-tools-scripting, desktop-frameworks
 
@@ -121,11 +133,11 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 → [[README|Подробнее в SQL/README.md]]
 
-### 🏛️ [Architecture](Architecture/) — patterns & systems (16 файлов / ~520 KB)
+### 🏛️ [Architecture](Architecture/) — patterns & systems (17 файлов / ~540 KB)
 
 - **Junior:** architecture-basics
 - **Middle:** **patterns-decision-guide** (какой паттерн под задачу), **real-world-scenarios** (18 case studies), microservices-vs-monolith
-- **Senior:** architecture-patterns (N-Layer/Clean/VSA), agent-safe-architecture, solid, ddd, cqrs-mediatr, distributed-systems, system-design, architecture-decisions, arch-tests, twelve-factor-app, eip-content-based-router, webai-csharp-architecture
+- **Senior:** architecture-patterns (N-Layer/Clean/VSA), agent-safe-architecture, solid, ddd, cqrs-mediatr, **choosing-dependencies** (лицензии OSS 2024-2026), distributed-systems, system-design, architecture-decisions, arch-tests, twelve-factor-app, eip-content-based-router, webai-csharp-architecture
 
 → [[README|Подробнее в Architecture/README.md]]
 
@@ -155,17 +167,17 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 → [[README|Подробнее в Performance/README.md]]
 
-### 🚢 [Infrastructure](Infrastructure/) — DevOps & deploy (14 файлов / ~470 KB)
+### 🚢 [Infrastructure](Infrastructure/) — DevOps & deploy (17 файлов / ~615 KB)
 
 - **Junior:** docker-for-dev, project-setup-basics
-- **Middle:** kubernetes, cicd-github-actions
-- **Senior:** docker, observability, messaging, api-gateway, nosql-databases, ipc-named-pipes-grpc, project-setup, wpf-production, llm-rag-patterns, semantic-kernel
+- **Middle:** kubernetes, cicd-github-actions, ai-coding-tools
+- **Senior:** docker, aspire, observability, messaging, api-gateway, nosql-databases, ipc-named-pipes-grpc, project-setup, wpf-production, llm-rag-patterns, semantic-kernel, mcp-csharp
 
 → [[README|Подробнее в Infrastructure/README.md]]
 
-### 📋 [Snippets](Snippets/) — ready-to-copy (5 файлов)
+### 📋 [Snippets](Snippets/) — ready-to-copy (6 файлов)
 
-`crud-example`, `efcore-queries`, `mediatr-handlers`, `result-pattern`, `wpf-viewmodel`
+`crud-example`, `efcore-queries`, `vertical-slice-handler` (No-MediatR дефолт), `mediatr-handlers`, `result-pattern`, `wpf-viewmodel`
 
 → [[README|Подробнее в Snippets/README.md]]
 
@@ -321,45 +333,45 @@ grep -r "tags:.*async" --include="*.md" -l
 
 | | Value |
 |---|---|
-| **Total files** | 162 content notes (+ 12 section READMEs + INDEX) |
-| **Total size** | ~6.3 MB |
+| **Total files** | 168 content notes (+ 12 section READMEs + INDEX) |
+| **Total size** | ~6.1 MB |
 | **Coverage** | Junior → Senior+ |
-| **Largest folder** | CSharp (41 files / ~2.4 MB) |
+| **Largest folder** | CSharp (42 files / ~2.4 MB) |
 | **Largest file** | `CSharp/Junior/tuples-deconstruction.md` (~120 KB) |
 | **Language** | Russian (primary), English (technical terms) |
-| **Last major update** | 2026-06-28 |
+| **Last major update** | 2026-08-02 |
 
 ### По уровню
 
 ```
-Junior:            25 файлов  (basics, fundamentals, daily work)
+Junior:            26 файлов  (basics, fundamentals, daily work)
 Junior to Middle:   1 файл
-Middle:            29 файлов  (generics, EF, HttpClient, serialization, BCL, testing)
-Middle to Senior:  13 файлов  (паттерны, deep topics)
-Senior:            82 файла   (architecture, runtime, performance, advanced)
-All / без уровня:  12 файлов  (LearningPath, Snippets, code-review)
+Middle:            32 файла   (generics, EF, HttpClient, serialization, BCL, testing)
+Middle to Senior:  15 файлов  (паттерны, deep topics)
+Senior:            83 файла   (architecture, runtime, performance, advanced)
+All / без уровня:  11 файлов  (LearningPath, Snippets, code-review)
 ```
 
 ### По категориям
 
 ```
-Language:        41 file   (CSharp/)
+Language:        42 files  (CSharp/)
 Runtime:          9 files  (Runtime/)
 Web framework:   23 files  (AspNetCore/)
 Data:            22 files  (EFCore/ + SQL/)
-Architecture:    16 files  (Architecture/)
+Architecture:    17 files  (Architecture/)
 Quality:          5 files  (Quality/)
 Testing:          5 files  (Testing/)
 Performance:     12 files  (Performance/)
-Infrastructure:  14 files  (Infrastructure/)
+Infrastructure:  17 files  (Infrastructure/)
 Learning:        10 files  (LearningPath/)
-Snippets:         5 files  (Snippets/)
+Snippets:         6 files  (Snippets/)
 ```
 
 ---
 
 ## License
 
-Personal knowledge base — no formal license. Feel free to learn from it; don't republish wholesale.
+Text and diagrams — [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): learn from it, share with attribution, don't sell it. Code snippets — [MIT](https://opensource.org/licenses/MIT): use freely in any project. See [LICENSE](LICENSE.md).
 
 If you find errors or have suggestions, [open an issue](https://github.com/valinerosgordov/NET-Mastery-Hub/issues).

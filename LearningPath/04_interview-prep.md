@@ -1,7 +1,7 @@
 ---
 tags: [learning-path, interview, prep, checklist]
 level: All
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # 🎤 Interview Prep
@@ -199,7 +199,7 @@ Result — что получилось, что узнал
 ### Day 3: Async / Concurrency
 
 - [[async-threading|async-threading]] — Task, async/await internals, sync context
-- [[concurrency-atomics|concurrency-atomics]] — locks, atomics, Channel<T>
+- [[concurrency-atomics|concurrency-atomics]] — locks, atomics, `Channel<T>`
 
 **Likely questions:**
 - "Как работает async/await под капотом?"
@@ -242,7 +242,7 @@ Result — что получилось, что узнал
 
 - [[solid|solid]] — принципы
 - [[architecture-patterns|Architecture Patterns]] — Clean / Onion / Vertical Slices
-- [[cqrs-mediatr|cqrs-mediatr]] — CQRS pattern
+- [[cqrs-mediatr|cqrs-mediatr]] — CQRS pattern (MediatR 13+ коммерческий — замены см. [[choosing-dependencies|Choosing Dependencies]])
 - [[ddd|ddd]] — DDD concepts
 
 **Likely questions:**
@@ -255,7 +255,7 @@ Result — что получилось, что узнал
 
 ### Day 7: Testing
 
-- [[testing|testing]] — xUnit, integration, Testcontainers
+- [[testing|testing]] — xUnit v3, integration, Testcontainers
 
 **Likely questions:**
 - "Unit vs Integration tests — когда какие"
@@ -292,55 +292,50 @@ Result — что получилось, что узнал
 
 ## 🔥 Hot topics 2026 — обязательно знать
 
-### Topic 1: Cloud-native .NET
+### Topic 1: .NET 10 LTS и миграция с 8/9
 
-- Native AOT — кратко зачем
-- Containerization — Docker best practices
-- Kubernetes basics — Pod / Service / Deployment
-- Health checks — Liveness vs Readiness
-- 12-factor app principles
+- Спросят: «на какой версии production и что с EOL?» .NET 10 — текущий LTS (ноябрь 2025, поддержка до ноября 2028); **.NET 8 и .NET 9 оба EOL 10.11.2026** — миграция в 2026 не опция, а дедлайн.
+- Ответ строишь как процесс: bump TFM → пройтись по breaking changes → обновить пакеты → прогнать тесты; главный риск не в runtime, а в сторонних пакетах (см. Topic 7).
 
-### Topic 2: Modern C#
+### Topic 2: C# 14
 
-- Records (C# 9) — что и зачем
-- Pattern matching evolution (8→13)
-- Primary constructors (C# 12)
-- Collection expressions (C# 12)
-- Nullable reference types
-- Source generators basics
+- Extension members (extension-блоки: свойства и static-члены, не только методы), `field` keyword (логика в accessor без ручного backing field), null-conditional assignment `obj?.Prop = value`.
+- Спросят: «что нового в C# 14 и что из этого реально используешь» — отвечать на своих примерах, не перечислением. См. [[modern-features|modern-features]].
 
-### Topic 3: Modern ASP.NET
+### Topic 3: HybridCache
 
-- Minimal APIs vs MVC
-- Endpoint routing
-- Output Caching (.NET 7+)
-- Rate Limiting middleware (.NET 7+)
-- IExceptionHandler (.NET 8+)
-- Authentication через external IdP
+- Единый API вместо связки `IMemoryCache` + `IDistributedCache`: L1 in-process + L2 (Redis), stampede protection из коробки, инвалидация по тегам.
+- Спросят: «как защитить кэш от cache stampede» — раньше ждали ручной `SemaphoreSlim`-паттерн, теперь правильный ответ — HybridCache. См. [[caching|caching]].
 
-### Topic 4: Distributed systems
+### Topic 4: Встроенный OpenAPI + Scalar
 
-- Eventual consistency
-- Saga vs distributed transactions
-- Outbox pattern
-- Idempotency keys
-- Circuit breaker / Retry / Timeout
-- Service mesh basics (Istio / Linkerd)
+- Swashbuckle убран из шаблонов: генерация документа — `Microsoft.AspNetCore.OpenApi` (`AddOpenApi()` / `MapOpenApi()`), UI из коробки нет — де-факто стандарт Scalar.
+- Спросят: «чем заменили Swagger и почему» — уметь объяснить сам разлом (Swashbuckle стагнировал, Microsoft забрала генерацию документа в platform). См. [[api-design|api-design]].
 
-### Topic 5: Observability
+### Topic 5: Aspire
 
-- OpenTelemetry — основа
-- Distributed tracing (TraceId / SpanId)
-- Structured logging (`logger.LogInfo("{X}", x)`)
-- Metrics: Counter / Gauge / Histogram
-- SLI / SLO / SLA
+- Оркестрация распределённого solution на dev-времени: AppHost на C#, service discovery, OpenTelemetry + dashboard из коробки. Не замена Kubernetes — это dev experience и deploy-генерация.
+- Спросят: «как локально поднимаешь систему из N сервисов» — ответ уровня 2026: Aspire, а не рукописный docker-compose. См. [[aspire|Aspire]] (canonical), [[project-setup|project-setup]] и [[docker|docker]].
 
-### Topic 6: AI Integration
+### Topic 6: xUnit v3 + Microsoft.Testing.Platform
 
-- LLM API patterns (function calling, tool use)
-- RAG (vector DB + embeddings)
-- Semantic Kernel basics
-- ML.NET для inference
+- xUnit v3: тест-проект — самостоятельный executable, работает поверх Microsoft.Testing.Platform (MTP), который вытесняет VSTest; шаблоны .NET 10 генерят уже на MTP.
+- Смежный вопрос: FluentAssertions с v8 тоже стал платным → Shouldly. См. [[testing|testing]].
+
+### Topic 7: Лицензионный разлом OSS
+
+- Частый вопрос 2026: «MediatR / AutoMapper / MassTransit стали коммерческими — что делать?» MediatR 13+ и AutoMapper 15+ — коммерческие (Lucky Penny, июль 2025; Community edition при выручке < $5M, версии ≤12.x / ≤14.x свободны); MassTransit v9 — коммерческий (Q1 2026), v8 — security-only до конца 2026.
+- Ответ: свой in-process dispatcher или Mediator.SourceGenerator, Wolverine (messaging), Mapperly (mapping); главное — показать процесс выбора зависимости, а не заученный список. См. [[choosing-dependencies|Choosing Dependencies]].
+
+### Topic 8: AI-слой в .NET
+
+- Стандарт 2026 — не голый Semantic Kernel: абстракции `Microsoft.Extensions.AI` (`IChatClient`, embeddings) + Agent Framework (наследник SK + AutoGen) + MCP (официальный C# SDK) для инструментов.
+- Спросят: «как подключить LLM в API и не прибить гвоздями к вендору» — DI поверх `IChatClient`, tool calling, structured output. См. [[llm-rag-patterns|llm-rag-patterns]] и [[mcp-csharp|mcp-csharp]].
+
+### Topic 9: Vector search / pgvector
+
+- RAG-вопрос: «где хранить embeddings» — базовый ответ: pgvector в уже имеющемся PostgreSQL (EF Core mapping, HNSW-индекс); отдельная vector DB — только под спец-требования.
+- Уметь объяснить chunking → embedding → похожесть (cosine) → подмешивание в контекст. См. [[llm-rag-patterns|llm-rag-patterns]].
 
 ---
 
@@ -351,7 +346,7 @@ Result — что получилось, что узнал
 ### Must know
 
 - [ ] Все типы GC: generations, regions, DATAS, pinned, frozen
-- [ ] Span<T>, Memory<T>, ArrayPool<T>, stackalloc
+- [ ] `Span<T>`, `Memory<T>`, `ArrayPool<T>`, stackalloc
 - [ ] async/await internals — state machine
 - [ ] EF Core Change Tracker, identity map
 - [ ] PostgreSQL: RLS, MVCC, EXPLAIN ANALYZE, indexes types
@@ -407,7 +402,7 @@ Result — что получилось, что узнал
 
 ### Hard (senior-level)
 
-- Implement Result<T, E> with fluent API
+- Implement `Result<T, E>` with fluent API
 - Write a simple ORM-like LINQ provider
 - Build a Source Generator
 - Optimize hot path с Span (real example)
@@ -526,7 +521,7 @@ Startups часто ценят больше:
 | **EF Core** — AsNoTracking for reads, Include for navigation, ProjectTo for DTO |
 | **DI** — Singleton/Scoped/Transient lifetimes, captive dependency anti-pattern |
 | **Threading** — Thread vs Task, ThreadPool, lock vs Monitor vs Semaphore |
-| **Async pitfall** — `.Result` deadlock в UI/ASP.NET Classic, OK в ASP.NET Core |
+| **Async pitfall** — `.Result` deadlock в UI/ASP.NET Classic; в ASP.NET Core дедлока нет, но sync-over-async всё равно вреден (thread pool starvation) |
 | **Memory** — struct stack alloc (если local), class always heap, boxing cost |
 | **HTTP** — REST verbs idempotency, status codes 4xx vs 5xx, CORS preflight |
 | **SOLID** — SRP, OCP, LSP, ISP, DIP |

@@ -1,6 +1,6 @@
 # CSharp — язык
 
-> 41 файл / ~2.4 MB. Всё про C# как язык: от basics до advanced internals. Самая большая папка vault'а.
+> 42 файла / ~2.4 MB. Всё про C# как язык: от basics до advanced internals. Самая большая папка vault'а.
 
 [[README|← Главный README]] · [[INDEX|Полный INDEX]]
 
@@ -24,7 +24,7 @@
 
 > Гиганты Junior-папки (100+ KB) читаются по диапазонам из roadmap'ов, не подряд — см. [[02_junior-to-middle|`LearningPath/02_junior-to-middle.md`]].
 
-### 🌱 Junior (13)
+### 🌱 Junior (14)
 
 | Файл | Описание |
 |------|----------|
@@ -41,6 +41,7 @@
 | [[anonymous-types|`anonymous-types.md`]] | Anonymous types, when и зачем |
 | [[extension-methods|`extension-methods.md`]] | this-параметр, fluent APIs, LINQ-like |
 | [[iterators-yield|`iterators-yield.md`]] | yield return, IAsyncEnumerable |
+| [[async-await-basics|`async-await-basics.md`]] ⭐ NEW | async/await вход: Task, await, CancellationToken — мост к async-threading |
 
 ### 🌿 Middle (14)
 
@@ -97,6 +98,7 @@
 8. iterators-yield, enums-flags, strings-regex
 9. nullable-types
 10. dispose-pattern (IDisposable, using)
+11. async-await-basics          ← мост к async-threading
 ```
 
 ### Middle path (6-12 мес)

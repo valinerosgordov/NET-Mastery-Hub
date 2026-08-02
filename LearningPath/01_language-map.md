@@ -1,7 +1,7 @@
 ---
 tags: [learning-path, language-map, navigation, csharp]
 level: All
-date: 2026-06-06
+date: 2026-08-02
 ---
 
 # 🗺️ C# Language Map — язык как система, 15 блоков → файлы vault'а
@@ -138,6 +138,7 @@ date: 2026-06-06
 | Подпункты | Файл | Статус |
 |-----------|------|--------|
 | `Thread` / `ThreadPool`, `SynchronizationContext`, `Task` / `ValueTask`, `async`/`await`, `ConfigureAwait`, continuations, `WhenAll` / `WhenAny`, cancellation, `TaskCompletionSource`, PLINQ / `Parallel` | [[async-threading\|async-threading]] | ✅ |
+| async/await вход для Junior: `Task` / `Task<T>` как обещание, `await` без state machine, `CancellationToken`, `WhenAll`, sync-over-async и прочие грехи | [[async-await-basics\|async-await-basics]] | ✅ |
 | async streams `IAsyncEnumerable`, `Channel<T>` | [[iterators-yield\|iterators-yield]], [[async-threading\|async-threading]] | ✅ |
 | Thread / TPL / Parallel basics | [[threading-basics\|threading-basics]] | ✅ |
 
