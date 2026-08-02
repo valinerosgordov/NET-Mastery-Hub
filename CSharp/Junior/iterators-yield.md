@@ -1,12 +1,12 @@
 ---
 tags: [csharp, iterators, yield, junior, ienumerable, lazy-evaluation, async-streams]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # Iterators и yield — итераторы и ленивая генерация
 
-> **Метод, который возвращает по одному элементу за раз, а не материализует всю коллекцию.** `yield return`, `IEnumerable`, `IEnumerator`, state machine, lazy evaluation, `IAsyncEnumerable` (.NET 6+). Закрывает пробел: «знаю про `foreach`, не понимаю, как написать свой собственный source данных».
+> **Метод, который возвращает по одному элементу за раз, а не материализует всю коллекцию.** `yield return`, `IEnumerable`, `IEnumerator`, state machine, lazy evaluation, `IAsyncEnumerable` (.NET Core 3.0+ / C# 8). Закрывает пробел: «знаю про `foreach`, не понимаю, как написать свой собственный source данных».
 
 ---
 
@@ -137,7 +137,7 @@ foreach (var n in Numbers())
   → `IEnumerable<T>` с yield return + caller использует Take
   
 Async source (HTTP stream, DB cursor, file lines)
-  → `IAsyncEnumerable<T>` с async + yield (.NET 6+)
+  → `IAsyncEnumerable<T>` с async + yield (.NET Core 3.0+ / C# 8)
   
 Stream обработка с pipeline
   → `IEnumerable<T>` + LINQ (Where/Select/Aggregate)
@@ -277,7 +277,7 @@ public IEnumerable<int> EvensInRange(int from, int to)
 Это паттерн **eager validation + lazy execution** — внешний метод проверяет аргументы, локальная функция выполняет ленивую часть. Подробнее в разделе 7.
 
 > [!question]- Интервью: что должен возвращать метод с yield?
-> `IEnumerable`, `IEnumerable<T>`, `IEnumerator` или `IEnumerator<T>`. Без одного из них компилятор не позволит использовать `yield`. Идиоматично — `IEnumerable<T>` (generic). `IEnumerator<T>` — реже, для случаев, когда метод сам выступает enumerator'ом. С .NET 6+ для async iterators — `IAsyncEnumerable<T>` или `IAsyncEnumerator<T>`.
+> `IEnumerable`, `IEnumerable<T>`, `IEnumerator` или `IEnumerator<T>`. Без одного из них компилятор не позволит использовать `yield`. Идиоматично — `IEnumerable<T>` (generic). `IEnumerator<T>` — реже, для случаев, когда метод сам выступает enumerator'ом. С .NET Core 3.0 / C# 8 (2019) для async iterators — `IAsyncEnumerable<T>` или `IAsyncEnumerator<T>`.
 
 ---
 
@@ -1492,7 +1492,7 @@ Cancellation встраивается **вручную**. Для structured canc
 
 ---
 
-## 11. IAsyncEnumerable (.NET 6+ / C# 8+)
+## 11. IAsyncEnumerable (.NET Core 3.0+ / C# 8)
 
 ### 11.1. Зачем
 
@@ -1555,7 +1555,7 @@ finally
 ### 11.3. CancellationToken и [EnumeratorCancellation]
 
 ```csharp
-public async `IAsyncEnumerable<T>` Stream<T>(
+public async IAsyncEnumerable<T> Stream<T>(
     [EnumeratorCancellation] CancellationToken ct = default)
 {
     while (HasMore())
@@ -2473,56 +2473,9 @@ foreach (var row in StreamCsv("products.csv").Take(10))   // только пер
 
 ---
 
-## 19. Что читать дальше — порядок и почему
+## 19. Bonus practice — продвинутые упражнения
 
-1. **[[csharp-basics|C# Basics]]** — for/foreach, IEnumerable, generics.
-2. **[[collections-linq|Collections и LINQ]]** — где iterators main use case.
-3. **Async deep dive** — async/await, Task, ValueTask, async streams.
-4. **`Channel<T>` deep** — multi-producer/consumer patterns.
-5. **System.IO Streams** — File, Pipe, NetworkStream — основа streaming.
-6. **EF Core streaming** — `AsAsyncEnumerable()` для больших queries.
-7. **Reactive Extensions (Rx)** — `IObservable<T>` как push-стрим (vs IEnumerable pull).
-8. **Performance & Benchmarking** — оптимизации iterators.
-
----
-
-## 20. См. также
-
-- [[csharp-basics|C# Basics]] — основы IEnumerable
-- [[collections-linq|Collections и LINQ]] — практическое применение
-- [[extension-methods|Extension Methods]] — для custom iterator extensions
-- [[delegates-events|Delegates и Events]] — Func/Action для predicates
-- Async deep dive — async/await + IAsyncEnumerable
-- `Channel<T>` — multi-producer/consumer
-- System.IO Streams — file/network streaming
-- Rx.NET — push-based streams
-- EF Core streaming — AsAsyncEnumerable
-- Performance — struct enumerators, Span
-- Source Generators — компилирующие генерация iterators
-
----
-
-## 21. Reading list
-
-- **Microsoft Docs — yield statement** — learn.microsoft.com/dotnet/csharp/language-reference/statements/yield
-- **Microsoft Docs — `IEnumerable<T>`** — learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
-- **Microsoft Docs — `IAsyncEnumerable<T>`** — learn.microsoft.com/dotnet/api/system.collections.generic.iasyncenumerable-1
-- **Microsoft Docs — System.Threading.Channels** — learn.microsoft.com/dotnet/core/extensions/channels
-- **Eric Lippert — Iterators series** — ericlippert.com (поиск «iterators»)
-- **Jon Skeet — C# in Depth** — chapter «Iterators»
-- **Stephen Toub — async iterators** — devblogs.microsoft.com/dotnet
-- **Andrew Lock — IAsyncEnumerable patterns** — andrewlock.net
-- **Adam Sitnik — performance of iterators** — adamsitnik.com
-- **Marc Gravell — yield optimization** — blog.marcgravell.com
-- **System.Linq.Async** — github.com/dotnet/reactive (NuGet System.Linq.Async)
-- **C# Language Specification — Iterators** — github.com/dotnet/csharplang/blob/main/spec/classes.md
-- **SharpLab** — sharplab.io — посмотреть IL state machine
-- **BenchmarkDotNet** — benchmarkdotnet.org — измерения performance
-- **Reactive Extensions (Rx.NET)** — github.com/dotnet/reactive — push-based streams
-
-## 22. Bonus practice — продвинутые упражнения
-
-### 22.1. Buffered iterator с lookahead
+### 19.1. Buffered iterator с lookahead
 
 **Задача.** Реализовать iterator, который позволяет «заглянуть» на N элементов вперёд (peek) без потребления.
 
@@ -2582,7 +2535,7 @@ while (peek.MoveNext())
 
 **Разбор:** обычный iterator не позволяет `peek` — caller обязан consume. Custom enumerator с buffer queue даёт lookahead. Полезно для парсеров, лексеров, stream-обработки с context. Не yield-based — слишком сложно для state machine.
 
-### 22.2. Producer-consumer через Channel и async iterator
+### 19.2. Producer-consumer через Channel и async iterator
 
 **Задача.** Worker pool: один producer читает file lines, 4 consumer'а обрабатывают параллельно.
 
@@ -2626,7 +2579,7 @@ async Task ProcessLine(int workerId, string line, CancellationToken ct)
 
 ---
 
-### 22.3. Stateful iterator — moving average
+### 19.3. Stateful iterator — moving average
 
 **Задача.** Реализовать iterator, вычисляющий moving average последних N элементов.
 
@@ -2670,7 +2623,7 @@ foreach (var avg in prices.MovingAverage(3))
 
 **Разбор:** state — `Queue<double>` и текущая sum — сохраняются между yield в state machine. Скользящее окно: при добавлении — sum += new, при достижении лимита — sum -= old. Постоянная сложность O(1) на элемент. Это паттерн для streaming analytics, financial indicators, signal processing.
 
-### 22.4. Zip-like iterator для двух последовательностей
+### 19.4. Zip-like iterator для двух последовательностей
 
 **Задача.** Реализовать `Zip3<T1, T2, T3>` для трёх последовательностей.
 
@@ -2715,9 +2668,9 @@ foreach (var (id, name, email) in Zip3(ids, names, emails))
 
 ---
 
-## 23. Cross-language deep — отличия от Python / JavaScript / Rust
+## 20. Cross-language deep — отличия от Python / JavaScript / Rust
 
-### 23.1. Python generators
+### 20.1. Python generators
 
 ```python
 # Python
@@ -2735,7 +2688,7 @@ for x in count_to(5):
 - `send()` метод в Python — двунаправленная коммуникация. В C# нет.
 - Python generators не имеют generic-параметров (динамическая типизация).
 
-### 23.2. JavaScript generators
+### 20.2. JavaScript generators
 
 ```javascript
 function* countTo(n) {
@@ -2753,7 +2706,7 @@ for (const x of countTo(5))
 - `yield expression` возвращает результат `next(arg)` от caller — двунаправленная как в Python.
 - Async generators — `async function*` + `for await` — эквивалент C# `IAsyncEnumerable` + `await foreach`.
 
-### 23.3. Rust — нет yield, есть Iterator trait
+### 20.3. Rust — нет yield, есть Iterator trait
 
 ```rust
 // Rust — реализация трейта вручную
@@ -2782,7 +2735,7 @@ for x in (Counter { count: 0, max: 5 }) {
 
 Rust **не имеет** `yield` keyword (в stable). Generators в pre-design (`gen` blocks). Стандартный путь — реализовать `Iterator` trait вручную. Преимущество: zero-cost abstraction (struct, no heap), composable через iterator combinators.
 
-### 23.4. Kotlin sequence builder
+### 20.4. Kotlin sequence builder
 
 ```kotlin
 fun countTo(n: Int) = sequence {
@@ -2795,7 +2748,7 @@ countTo(5).forEach { println(it) }
 
 `sequence { }` — функциональный builder. `yield()` — function call. Семантически близко к C# yield. Также есть `sequenceOf`, `generateSequence` для других случаев. Coroutines + Flow — для async.
 
-### 23.5. Java — Stream API
+### 20.5. Java — Stream API
 
 ```java
 Stream.iterate(1, i -> i + 1)
@@ -2805,7 +2758,7 @@ Stream.iterate(1, i -> i + 1)
 
 Java не имеет `yield` для iterator (только в `switch` C# 8 эквивалент). Stream API — pipeline, eager или lazy в зависимости от operations. Не позволяет custom iterators так компактно как C# yield. Для генерации — `Stream.iterate`, `Stream.generate`, `Spliterator.iterate`.
 
-### 23.6. Comparison table
+### 20.6. Comparison table
 
 | | C# yield | Python yield | JS function* | Rust | Kotlin sequence | Java Stream |
 |---|----------|--------------|--------------|------|-----------------|-------------|
@@ -2818,5 +2771,54 @@ Java не имеет `yield` для iterator (только в `switch` C# 8 эк
 
 > [!question]- Интервью: чем C# yield отличается от Python generators?
 > Семантически очень близко — оба создают state machine с lazy evaluation. Различия: 1) C# имеет static типизацию, Python динамическую. 2) Python поддерживает `send(value)` для двунаправленной коммуникации (caller передаёт value в generator), C# не имеет. 3) Python `yield from` для делегирования — в C# нужен `foreach` + `yield return`. 4) Async — Python `async def + yield` ↔ C# `async IAsyncEnumerable<T> + yield return`. Концепция одинаковая, синтаксис разный.
+
+---
+
+## 21. Что читать дальше — порядок и почему
+
+1. **[[csharp-basics|C# Basics]]** — for/foreach, IEnumerable, generics.
+2. **[[collections-linq|Collections и LINQ]]** — где iterators main use case.
+3. **Async deep dive** — async/await, Task, ValueTask, async streams.
+4. **`Channel<T>` deep** — multi-producer/consumer patterns.
+5. **System.IO Streams** — File, Pipe, NetworkStream — основа streaming.
+6. **EF Core streaming** — `AsAsyncEnumerable()` для больших queries.
+7. **Reactive Extensions (Rx)** — `IObservable<T>` как push-стрим (vs IEnumerable pull).
+8. **Performance & Benchmarking** — оптимизации iterators.
+
+---
+
+## 22. См. также
+
+- [[csharp-basics|C# Basics]] — основы IEnumerable
+- [[collections-linq|Collections и LINQ]] — практическое применение
+- [[extension-methods|Extension Methods]] — для custom iterator extensions
+- [[delegates-events|Delegates и Events]] — Func/Action для predicates
+- Async deep dive — async/await + IAsyncEnumerable
+- `Channel<T>` — multi-producer/consumer
+- System.IO Streams — file/network streaming
+- Rx.NET — push-based streams
+- EF Core streaming — AsAsyncEnumerable
+- Performance — struct enumerators, Span
+- Source Generators — компилирующие генерация iterators
+
+---
+
+## 23. Reading list
+
+- **Microsoft Docs — yield statement** — learn.microsoft.com/dotnet/csharp/language-reference/statements/yield
+- **Microsoft Docs — `IEnumerable<T>`** — learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1
+- **Microsoft Docs — `IAsyncEnumerable<T>`** — learn.microsoft.com/dotnet/api/system.collections.generic.iasyncenumerable-1
+- **Microsoft Docs — System.Threading.Channels** — learn.microsoft.com/dotnet/core/extensions/channels
+- **Eric Lippert — Iterators series** — ericlippert.com (поиск «iterators»)
+- **Jon Skeet — C# in Depth** — chapter «Iterators»
+- **Stephen Toub — async iterators** — devblogs.microsoft.com/dotnet
+- **Andrew Lock — IAsyncEnumerable patterns** — andrewlock.net
+- **Adam Sitnik — performance of iterators** — adamsitnik.com
+- **Marc Gravell — yield optimization** — blog.marcgravell.com
+- **System.Linq.Async** — github.com/dotnet/reactive (NuGet System.Linq.Async)
+- **C# Language Specification — Iterators** — github.com/dotnet/csharplang/blob/main/spec/classes.md
+- **SharpLab** — sharplab.io — посмотреть IL state machine
+- **BenchmarkDotNet** — benchmarkdotnet.org — измерения performance
+- **Reactive Extensions (Rx.NET)** — github.com/dotnet/reactive — push-based streams
 
 ---

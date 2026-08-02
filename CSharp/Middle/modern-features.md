@@ -1,18 +1,18 @@
 ---
-tags: [csharp, modern-features, middle, records, init, pattern-matching, primary-constructors, raw-strings]
+tags: [csharp, modern-features, middle, records, init, pattern-matching, primary-constructors, raw-strings, extension-members]
 level: Middle
-date: 2026-05-07
+date: 2026-08-02
 ---
 
-# Modern C# Features (8-13) — что нового
+# Modern C# Features (8-14) — что нового
 
-> **Records, `init`, pattern matching, primary constructors, raw string literals, collection expressions, generic math, file-scoped namespaces.** Все ключевые фичи C# 8.0 → 13.0. Закрывает пробел: «знаю про records, не помню что нового в C# 12 vs 13, и зачем `field` keyword».
+> **Records, `init`, pattern matching, primary constructors, raw string literals, collection expressions, generic math, extension members.** Все ключевые фичи C# 8.0 → 14.0. Закрывает пробел: «знаю про records, не помню что нового в C# 13 vs 14, и зачем `field` keyword».
 
 ---
 
 ## 0. Как читать
 
-Этот файл — мост от basic C# к современному. Если уже знаком с большинством — читай раздел 1 для overview, дальше cherry-pick. Если pre-C# 8 codebase — раздел 1→3 для приоритетных upgrades. Production guidance — раздел 13 (best practices), 15 (pitfalls).
+Этот файл — мост от basic C# к современному. Если уже знаком с большинством — читай раздел 1 для overview, дальше cherry-pick. Если pre-C# 8 codebase — раздел 1→3 для приоритетных upgrades. Production guidance — раздел 14 (best practices), 16 (pitfalls).
 
 Cross-language якоря свёрнуты. Interview-вопросы встроены.
 
@@ -20,7 +20,7 @@ Cross-language якоря свёрнуты. Interview-вопросы встро�
 
 ## 1. Что это, зачем и когда
 
-### 1.1. Эволюция C# 8 → 13
+### 1.1. Эволюция C# 8 → 14
 
 | Версия | Год | .NET | Ключевые фичи |
 |--------|-----|------|---------------|
@@ -29,7 +29,8 @@ Cross-language якоря свёрнуты. Interview-вопросы встро�
 | **C# 10.0** | 2021 | .NET 6 | Global usings, file-scoped namespaces, record struct, primary constructor (records), lambda improvements, `with` для structs |
 | **C# 11.0** | 2022 | .NET 7 | Raw string literals, `required` members, list patterns, generic attributes, static abstract в interfaces, `file` keyword |
 | **C# 12.0** | 2023 | .NET 8 | **Primary constructors** (для всех classes/structs), collection expressions `[1,2,3]`, alias any type, default lambda parameters |
-| **C# 13.0** | 2024 | .NET 9 | `params Span<T>`, partial properties, `field` keyword, lock object type, escape sequence `\e` |
+| **C# 13.0** | 2024 | .NET 9 | `params Span<T>`, partial properties, lock object type, escape sequence `\e`, `field` keyword (preview) |
+| **C# 14.0** | 2025 | .NET 10 | **Extension members** (properties/static/operators), `field` (stable), null-conditional assignment `?.=`, `nameof` для unbound generics, first-class span conversions, partial constructors/events |
 
 ### 1.2. Главное правило
 
@@ -53,7 +54,8 @@ Selectively (specific scenarios):
   - default interface methods (C# 8) — non-breaking extension
   - generic math (C# 11 + .NET 7+) — math libraries
   - static abstract в interfaces (C# 11) — generic dispatch
-  - field keyword (C# 13) — auto-property с logic в setter
+  - field keyword (C# 14, preview в C# 13) — auto-property с logic в setter
+  - extension members (C# 14) — properties/operators поверх чужих типов
 ```
 
 > [!info]- Если ты знаешь Java / Kotlin / Swift / TypeScript
@@ -65,8 +67,8 @@ Selectively (specific scenarios):
 >
 > **TypeScript:** interfaces + type guards ↔ pattern matching. Discriminated unions ↔ exhaustive switch.
 
-> [!question]- Интервью: какие самые важные фичи C# 8-12?
-> **C# 8**: Nullable Reference Types (compile-time null safety), `using var`, switch expressions, ranges/indices, async streams (`IAsyncEnumerable<T>`), default interface methods. **C# 9**: **Records** (auto equality + with), `init` properties, top-level statements, target-typed `new()`, pattern enhancements. **C# 10**: file-scoped namespaces, global usings, record struct, lambda improvements. **C# 11**: raw string literals, `required` members, list patterns, generic attributes. **C# 12**: **Primary constructors для всех types**, collection expressions `[1,2,3]`. **C# 13**: `field` keyword, partial properties, `params Span<T>`.
+> [!question]- Интервью: какие самые важные фичи C# 8-14?
+> **C# 8**: Nullable Reference Types (compile-time null safety), `using var`, switch expressions, ranges/indices, async streams (`IAsyncEnumerable<T>`), default interface methods. **C# 9**: **Records** (auto equality + with), `init` properties, top-level statements, target-typed `new()`, pattern enhancements. **C# 10**: file-scoped namespaces, global usings, record struct, lambda improvements. **C# 11**: raw string literals, `required` members, list patterns, generic attributes. **C# 12**: **Primary constructors для всех types**, collection expressions `[1,2,3]`. **C# 13**: partial properties, `params Span<T>`, `System.Threading.Lock`. **C# 14**: **extension members**, `field` keyword (stable), null-conditional assignment `?.=`.
 
 ---
 
@@ -860,7 +862,7 @@ Sum(new[] { 1m, 2m, 3m });      // works для decimal
 
 ---
 
-## 11. C# 13 (.NET 9) — самое новое
+## 11. C# 13 (.NET 9)
 
 ### 11.1. `params Span<T>`
 
@@ -903,7 +905,7 @@ public string Name
     set => _name = value?.Trim() ?? "";
 }
 
-// C# 13+
+// C# 13 (preview) → C# 14 (stable)
 public string Name
 {
     get;
@@ -911,7 +913,7 @@ public string Name
 }
 ```
 
-`field` — contextual keyword referencing **auto-generated backing field**. Без явного declaration.
+`field` — contextual keyword referencing **auto-generated backing field**. Без явного declaration. В C# 13 фича была доступна только с `<LangVersion>preview</LangVersion>`; **стабильна с C# 14** — см. раздел 12.
 
 ### 11.4. Lock object type
 
@@ -935,17 +937,121 @@ string ansiColor = "\e[31m";   // ESC character (0x1B)
 ```
 
 > [!question]- Интервью: что нового в C# 13?
-> 1) **`field` keyword** — auto-generated backing field в auto-property accessors, без явного `_name`. 2) **partial properties** — declare в один файл, implement в другом (для source generators). 3) **`params ReadOnlySpan<T>`** — params без heap allocation для small collections. 4) **`System.Threading.Lock`** — JIT-optimized `lock` object type. 5) **`\e` escape** для ESC character (ANSI codes). 6) Implicit index access в object initializers. C# 13 fокусируется на **performance** и **clean syntax**.
+> 1) **partial properties** — declare в один файл, implement в другом (для source generators). 2) **`params ReadOnlySpan<T>`** — params без heap allocation для small collections. 3) **`System.Threading.Lock`** — оптимизированный `lock` object type. 4) **`allows ref struct`** — `ref struct` как generic type argument. 5) **`\e` escape** для ESC character (ANSI codes), implicit index access в object initializers. 6) **`field` keyword** — в C# 13 только preview, стабилен с C# 14. C# 13 фокусируется на **performance** и **clean syntax**.
 
 ---
 
-## 12. NRT и async streams (C# 8 — review)
+## 12. C# 14 (.NET 10) — самое новое
 
-### 12.1. Nullable reference types
+### 12.1. Extension members
+
+C# 14 расширяет extension methods до **properties, static members и operators**. Новый синтаксис — `extension`-блок внутри static class:
+
+```csharp
+public static class StringExtensions
+{
+    // Instance extension members — receiver с именем
+    extension(string s)
+    {
+        public bool IsBlank => string.IsNullOrWhiteSpace(s);            // extension property
+        public string Truncate(int max) => s.Length <= max ? s : s[..max];
+    }
+
+    // Static extension members — receiver без имени (только тип)
+    extension(string)
+    {
+        public static string Repeat(char c, int count) => new(c, count);
+    }
+}
+
+// Использование:
+// "  ".IsBlank            → true — property «на строке»
+// string.Repeat('-', 3)   → "---" — static member «на типе»
+```
+
+Generic receiver и extension operators:
+
+```csharp
+public static class SequenceExtensions
+{
+    extension<T>(IEnumerable<T> source) where T : INumber<T>
+    {
+        public T Sum() { T acc = T.Zero; foreach (var v in source) acc += v; return acc; }
+
+        public static IEnumerable<T> operator +(IEnumerable<T> left, IEnumerable<T> right) =>
+            left.Zip(right, (a, b) => a + b);   // extension operator
+    }
+}
+```
+
+Механизм: compiler генерирует обычные static методы (property → `get_`/`set_`), поэтому extension members видны из любого C#-кода, но state добавить нельзя — это по-прежнему sugar над static calls. Старый синтаксис `static R Method(this T x)` остаётся валидным и компилируется в то же самое — миграция не нужна.
+
+### 12.2. Null-conditional assignment `?.=`
+
+```csharp
+// До C# 14
+if (customer is not null)
+    customer.Order = GetCurrentOrder();
+
+// C# 14
+customer?.Order = GetCurrentOrder();   // assignment только если customer != null
+customer?.LoyaltyPoints += 10;         // работает и с compound assignment
+```
+
+Важно: RHS **не вычисляется**, если receiver == null — `GetCurrentOrder()` не вызовется.
+
+### 12.3. field стал стабильным
+
+`field` keyword (см. 11.3) в C# 14 доступен без `<LangVersion>preview</LangVersion>` — можно использовать в production.
+
+### 12.4. Мелкие, но полезные
+
+```csharp
+// nameof для unbound generics
+string a = nameof(List<>);          // "List" — до C# 14 требовалось nameof(List<int>)
+string b = nameof(Dictionary<,>);   // "Dictionary"
+```
+
+```csharp
+// Partial constructors и events (дополняет partial properties из C# 13)
+public partial class ViewModel
+{
+    public partial ViewModel(IAppServices services);   // defining declaration
+    public partial event EventHandler? Changed;        // defining declaration
+}
+
+public partial class ViewModel   // вторая часть — например, от source generator
+{
+    private EventHandler? _changed;
+
+    public partial ViewModel(IAppServices services) => Services = services;
+
+    public partial event EventHandler? Changed
+    {
+        add => _changed += value;
+        remove => _changed -= value;
+    }
+
+    public IAppServices Services { get; }
+}
+```
+
+**First-class span conversions** — implicit conversions `T[]` → `Span<T>`/`ReadOnlySpan<T>` и `Span<T>` → `ReadOnlySpan<T>` теперь на уровне языка: меньше ceremony, лучше overload resolution — span-overload выбирается без явного `.AsSpan()` в большем числе случаев.
+
+**User-defined compound assignment** — тип может объявить instance-оператор `public void operator +=(T other)`, мутирующий значение in-place вместо «создать новое + присвоить» (важно для больших structs, tensor/money-типов).
+
+> [!question]- Интервью: что нового в C# 14?
+> 1) **Extension members** — `extension(T receiver) { }` блоки в static class: extension **properties**, **static members** и **operators**, не только методы; компилируются в static методы, старый `this`-синтаксис остаётся валиден. 2) **`field` keyword** стабилен (в C# 13 был preview). 3) **Null-conditional assignment** `?.=` и `?.+=` — RHS не вычисляется при null receiver. 4) **`nameof` для unbound generics** — `nameof(List<>)`. 5) **First-class span conversions** — implicit array/Span/ReadOnlySpan conversions на уровне языка. 6) **Partial constructors/events**. 7) **User-defined compound assignment** — `void operator +=` in-place.
+
+---
+
+## 13. NRT и async streams (C# 8 — review)
+
+### 13.1. Nullable reference types
 
 См. [[nullable-types]].
 
-### 12.2. async streams — `IAsyncEnumerable<T>`
+### 13.2. async streams — `IAsyncEnumerable<T>`
 
 ```csharp
 public async IAsyncEnumerable<int> GenerateAsync([EnumeratorCancellation] CancellationToken ct = default)
@@ -966,7 +1072,7 @@ await foreach (var n in GenerateAsync(ct))
 
 `IAsyncEnumerable<T>` + `await foreach` — async streaming. Лучше чем `Task<List<T>>` для **streaming**.
 
-### 12.3. async streams + cancellation
+### 13.3. async streams + cancellation
 
 ```csharp
 // Producer
@@ -990,7 +1096,7 @@ await foreach (var order in StreamOrdersAsync(cts.Token))
 
 `[EnumeratorCancellation]` — token propagated в `WithCancellation` calls.
 
-### 12.4. ConfigureAwait для streams
+### 13.4. ConfigureAwait для streams
 
 ```csharp
 await foreach (var x in stream.WithCancellation(ct).ConfigureAwait(false))
@@ -1003,9 +1109,9 @@ await foreach (var x in stream.WithCancellation(ct).ConfigureAwait(false))
 
 ---
 
-## 13. Best Practices
+## 14. Best Practices
 
-### 13.1. Adoption priority (high impact)
+### 14.1. Adoption priority (high impact)
 
 - ✅ **Records** для DTO / value objects.
 - ✅ **`init` + `required`** для immutable APIs.
@@ -1016,15 +1122,16 @@ await foreach (var x in stream.WithCancellation(ct).ConfigureAwait(false))
 - ✅ **Raw strings** для JSON/regex/SQL.
 - ✅ **NRT** + `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`.
 
-### 13.2. Selectively (specific scenarios)
+### 14.2. Selectively (specific scenarios)
 
-- ✅ **`field` keyword** (C# 13) для simple validation в setter.
+- ✅ **`field` keyword** (C# 14) для simple validation в setter.
+- ✅ **Extension members** (C# 14) для properties/operators поверх чужих типов.
 - ✅ **Generic math** (.NET 7+) для math libraries.
 - ✅ **Static abstract в interfaces** для generic dispatch.
 - ✅ **List patterns** для array structure check.
 - ✅ **async streams** для streaming data.
 
-### 13.3. Project setup
+### 14.3. Project setup
 
 ```xml
 <PropertyGroup>
@@ -1036,7 +1143,7 @@ await foreach (var x in stream.WithCancellation(ct).ConfigureAwait(false))
 </PropertyGroup>
 ```
 
-### 13.4. Migration old → modern
+### 14.4. Migration old → modern
 
 - Replace `class` DTOs → `record`.
 - Replace constructor-only init → `init`.
@@ -1045,7 +1152,7 @@ await foreach (var x in stream.WithCancellation(ct).ConfigureAwait(false))
 - Replace `Func<T, bool>` chains → property patterns.
 - Replace `IEnumerable<T> + Task` → `IAsyncEnumerable<T>`.
 
-### 13.5. Не делай
+### 14.5. Не делай
 
 - ❌ Переход на новые фичи без team understanding.
 - ❌ Mix старых и новых patterns в одном файле без причины.
@@ -1054,7 +1161,7 @@ await foreach (var x in stream.WithCancellation(ct).ConfigureAwait(false))
 
 ---
 
-## 14. Cheat sheet
+## 15. Cheat sheet
 
 ```csharp
 // === Records ===
@@ -1125,12 +1232,24 @@ await foreach (var x in StreamAsync(ct))
     Process(x);
 }
 
-// === field keyword (C# 13) ===
+// === field keyword (C# 14, preview в C# 13) ===
 public string Name
 {
     get;
     set => field = value?.Trim() ?? "";
 }
+
+// === Extension members (C# 14) ===
+public static class OrderExtensions
+{
+    extension(Order order)
+    {
+        public bool IsLarge => order.Total > 1000;
+    }
+}
+
+// === Null-conditional assignment (C# 14) ===
+customer?.Order = GetCurrentOrder();   // RHS не вычисляется при null
 
 // === Switch expression ===
 var msg = day switch
@@ -1143,9 +1262,9 @@ var msg = day switch
 
 ---
 
-## 15. Common Pitfalls
+## 16. Common Pitfalls
 
-### 15.1. Records mutable properties
+### 16.1. Records mutable properties
 
 ```csharp
 public record User
@@ -1156,7 +1275,7 @@ public record User
 
 **Фикс:** `init` или primary constructor.
 
-### 15.2. Required без attribute в constructor
+### 16.2. Required без attribute в constructor
 
 ```csharp
 public class User
@@ -1168,7 +1287,7 @@ public class User
 
 **Фикс:** `[SetsRequiredMembers]` attribute.
 
-### 15.3. Pattern matching не exhaustive
+### 16.3. Pattern matching не exhaustive
 
 ```csharp
 var x = shape switch
@@ -1181,7 +1300,7 @@ var x = shape switch
 
 **Фикс:** `_ => throw new InvalidOperationException()`.
 
-### 15.4. Primary constructor capture immutable
+### 16.4. Primary constructor capture immutable
 
 ```csharp
 public class Service(IRepo repo)
@@ -1192,7 +1311,7 @@ public class Service(IRepo repo)
 
 **Фикс:** explicit field если нужен mutation.
 
-### 15.5. Collection expression non-supported type
+### 16.5. Collection expression non-supported type
 
 ```csharp
 // Custom type без [CollectionBuilder]
@@ -1202,7 +1321,7 @@ MyList<int> l = [1, 2, 3];   // ❌ compile error
 
 **Фикс:** add `[CollectionBuilder]` attribute.
 
-### 15.6. Raw string indentation mismatch
+### 16.6. Raw string indentation mismatch
 
 ```csharp
 string s = """
@@ -1213,7 +1332,7 @@ string s = """
 
 **Фикс:** consistent indentation.
 
-### 15.7. Records — value equality includes all fields
+### 16.7. Records — value equality includes all fields
 
 ```csharp
 public record User(int Id, string Name)
@@ -1227,7 +1346,7 @@ new User(1, "A") { LastSeen = ... } == new User(1, "A") { LastSeen = ... };
 
 **Фикс:** override Equals или exclude через separate class.
 
-### 15.8. async void в primary constructor body
+### 16.8. async void в primary constructor body
 
 ```csharp
 public class Service(IRepo repo)
@@ -1240,7 +1359,7 @@ public class Service(IRepo repo)
 
 **Фикс:** explicit factory method, не constructor.
 
-### 15.9. Global using — namespace pollution
+### 16.9. Global using — namespace pollution
 
 ```csharp
 // GlobalUsings.cs
@@ -1251,7 +1370,7 @@ global using System.Text.Json;
 
 **Фикс:** alias через `using` per-file.
 
-### 15.10. switch expression без braces
+### 16.10. switch expression без braces
 
 ```csharp
 var x = n switch
@@ -1269,9 +1388,9 @@ var x = n switch
 
 ---
 
-## 16. Practice exercises
+## 17. Practice exercises
 
-### 16.1. DDD-style Money с modern C#
+### 17.1. DDD-style Money с modern C#
 
 ```csharp
 public readonly record struct Money(decimal Amount, string Currency)
@@ -1293,7 +1412,7 @@ var price = new Money(19.99m, "USD");
 var withTax = price.Apply(0.085m);
 ```
 
-### 16.2. Pattern matching state machine
+### 17.2. Pattern matching state machine
 
 ```csharp
 public enum OrderStatus { Pending, Paid, Shipped, Delivered, Cancelled }
@@ -1313,7 +1432,7 @@ public static class OrderTransitions
 }
 ```
 
-### 16.3. Modern service с DI
+### 17.3. Modern service с DI
 
 ```csharp
 public class UserService(
@@ -1351,9 +1470,9 @@ public record RegisterRequest
 
 ---
 
-## 17. Что читать дальше
+## 18. Что читать дальше
 
-1. **Специфика C# 8-13** — [official docs](https://learn.microsoft.com/dotnet/csharp/whats-new/).
+1. **Специфика C# 8-14** — [official docs](https://learn.microsoft.com/dotnet/csharp/whats-new/).
 2. **[[oop|OOP]]** — records deep, primary constructors.
 3. **[[nullable-types|Nullable Types]]** — NRT detail.
 4. **[[generics-deep|Generics deep]]** — generic math, static abstract.
@@ -1361,7 +1480,7 @@ public record RegisterRequest
 
 ---
 
-## 18. См. также
+## 19. См. также
 
 - [[oop|OOP]] — records, init, sealed
 - [[nullable-types|Nullable Types]] — NRT
@@ -1373,11 +1492,12 @@ public record RegisterRequest
 
 ---
 
-## 19. Reading list
+## 20. Reading list
 
 - **Microsoft Docs — What's new in C#** — learn.microsoft.com/dotnet/csharp/whats-new/
 - **Microsoft Docs — C# 12 features** — learn.microsoft.com/dotnet/csharp/whats-new/csharp-12
 - **Microsoft Docs — C# 13 features** — learn.microsoft.com/dotnet/csharp/whats-new/csharp-13
+- **Microsoft Docs — C# 14 features** — learn.microsoft.com/dotnet/csharp/whats-new/csharp-14
 - **Microsoft Docs — Records** — learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/record
 - **Microsoft Docs — Pattern matching** — learn.microsoft.com/dotnet/csharp/fundamentals/functional/pattern-matching
 - **Mads Torgersen** — C# language design lead, Microsoft DevBlogs

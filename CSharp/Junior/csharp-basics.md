@@ -1,7 +1,7 @@
 ---
 tags: [csharp, basics, junior, fundamentals, variables, control-flow, methods, mental-models]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # C# Basics — основы языка
@@ -83,7 +83,7 @@ C# появился как ответ на боли, которые в нача�
 
 ### 1.4. Зачем C# именно сейчас
 
-В 2026 году актуальная версия — C# 14 (.NET 10). Эволюция последних лет: nullable reference types (C# 8), records (C# 9), file-scoped namespaces и global usings (C# 10), raw string literals (C# 11), primary constructors и collection expressions (C# 12), `field` keyword (C# 13). Современный C# **значительно** короче и выразительнее старого. Если в туториалах ты видишь `class Program { static void Main(string[] args) { ... } }` — это устаревший стиль. Так больше не пишут.
+В 2026 году актуальная версия — C# 14 (.NET 10). Эволюция последних лет: nullable reference types (C# 8), records (C# 9), file-scoped namespaces и global usings (C# 10), raw string literals (C# 11), primary constructors и collection expressions (C# 12), `params` для коллекций (C# 13), `field` keyword и extension members (C# 14). Современный C# **значительно** короче и выразительнее старого. Если в туториалах ты видишь `class Program { static void Main(string[] args) { ... } }` — это устаревший стиль. Так больше не пишут.
 
 См. [[csharp-language-design|C# Language Design]] для истории и [[modern-features|Modern Features]] для всех современных конструкций.
 
@@ -1906,7 +1906,7 @@ var (name, age) = ("Alice", 30);
 
 **Книги:**
 - **C# in Depth** (Jon Skeet) — после basics. Глубоко в язык.
-- **Pro C# 10 / .NET 6** (Andrew Troelsen) — большой справочник, особенно хорош как reference.
+- **Pro C# 10 / .NET 6** (Andrew Troelsen) — большой справочник, особенно хорош как reference. Учти: издание отстаёт на две LTS-версии (актуально .NET 10 / C# 14, более свежего издания серии пока нет) — синтаксис и BCL сверяй с Microsoft Learn.
 - **C# Yellow Book** (Rob Miles) — бесплатный PDF, классика для начинающих.
 
 **Документация:**

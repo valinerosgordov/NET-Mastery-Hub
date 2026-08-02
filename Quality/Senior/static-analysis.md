@@ -1,7 +1,7 @@
 ---
 tags: [quality, static-analysis, analyzers, roslyn, sonarqube, linting, code-review]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Static Analysis — анализаторы кода
@@ -248,8 +248,10 @@ Centralized server для quality tracking всей organization.
 ### Setup
 
 ```bash
-# Запустить SonarQube локально
-docker run -d --name sonarqube -p 9000:9000 sonarqube:lts-community
+# Запустить SonarQube Community Build локально
+# (бывшая Community Edition; тега lts-community больше нет — Community Build
+#  выходит rolling-релизами, тег просто `community`)
+docker run -d --name sonarqube -p 9000:9000 sonarqube:community
 
 # Открыть http://localhost:9000 (admin/admin)
 ```
@@ -757,8 +759,8 @@ Phase 4: Eventual
 | SonarAnalyzer.CSharp | Quality + bugs | Free (NuGet) |
 | Meziantou.Analyzer | Async + perf | Free |
 | Roslynator | Style + refactoring | Free |
-| SonarQube Server | Team quality tracking | Free (Community) / Paid |
-| SonarCloud | Hosted SonarQube | Free для open-source |
+| SonarQube Server / Community Build | Team quality tracking, self-hosted | Community Build free / Server paid |
+| SonarQube Cloud (быв. SonarCloud) | Hosted SonarQube | Free для open-source |
 | CodeQL | Security | Free (GitHub native) |
 | Snyk | Security + dependencies | Free / Paid |
 | NDepend | Architecture deep | Paid |
@@ -784,5 +786,5 @@ Phase 4: Eventual
 - **Roslynator Rules** — github.com/dotnet/roslynator/blob/main/src/Analyzers/README.md
 - **Writing Roslyn Analyzers** — Tim Heuer blog posts
 - **Stryker.NET docs** — stryker-mutator.io
-- **SonarQube docs** — docs.sonarqube.org
+- **SonarQube docs** — docs.sonarsource.com (после ренейминга окт 2024: Server / Cloud / Community Build / for IDE)
 - **Code Quality book** — Bertrand Meyer (теория OO design and quality)

@@ -635,7 +635,47 @@ public sealed class MarketDataProcessor
 </PropertyGroup>
 ```
 
-Server GC использует **отдельный heap на каждый CPU** + multi-threaded compaction → пауза в N раз короче чем Workstation GC.
+Server GC использует **несколько heap'ов + multi-threaded compaction** → пауза в N раз короче чем Workstation GC. Классическая формула «heap на каждый CPU» с .NET 9 верна **не всегда**: DATAS (см. ниже) стартует с малого числа heap'ов и меняет его на лету.
+
+### DATAS — отключай для стабильного p99 (.NET 9+)
+
+**DATAS** (Dynamic Adaptation To Application Sizes) включён **по умолчанию с .NET 9** для Server GC. Он динамически адаптирует число heap'ов и бюджеты поколений под фактическую нагрузку: старт с одного heap'а, рост и сжатие по мере надобности. Для контейнеров и bursty-нагрузок это экономия памяти, но для latency-critical систем — источник **вариативности пауз**: каждая адаптация heap count — дополнительная работа GC в непредсказуемый момент, p99/p999 плывёт.
+
+```xml
+<!-- .csproj — фиксируем классическое поведение Server GC -->
+<PropertyGroup>
+  <ServerGarbageCollection>true</ServerGarbageCollection>
+  <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
+</PropertyGroup>
+```
+
+```bash
+# или через environment variable
+DOTNET_GCDynamicAdaptationMode=0
+```
+
+Явное задание числа heap'ов (`DOTNET_GCHeapCount`) тоже отключает DATAS. Правило: latency-критичный сервис на выделенных ресурсах → DATAS off (стабильный p99 важнее памяти); плотная контейнерная упаковка, где память дороже хвоста латентности → DATAS on.
+
+### GC.TryStartNoGCRegion — burst-обработка без GC
+
+Для короткого burst'а известного размера (открытие рынка, пакетный пересчёт) можно зарезервировать бюджет аллокаций заранее и **запретить GC вообще**, пока в него укладываемся:
+
+```csharp
+if (GC.TryStartNoGCRegion(totalSize: 256 * 1024 * 1024))
+{
+    try
+    {
+        ProcessMarketOpenBurst();   // аллокации идут из зарезервированного бюджета
+    }
+    finally
+    {
+        if (GCSettings.LatencyMode == GCLatencyMode.NoGCRegion)
+            GC.EndNoGCRegion();
+    }
+}
+```
+
+Превысил бюджет — runtime сам выйдет из режима и соберёт мусор (поэтому в `finally` проверяем `LatencyMode`, иначе `EndNoGCRegion` бросит `InvalidOperationException`). Это точечный инструмент под burst известного объёма, а не «выключатель GC навсегда». Поколения, сегменты и режимы GC — [[gc-memory|GC, LOH и POH]].
 
 ### LatencyMode
 
@@ -863,7 +903,8 @@ public bool TryParseTwimeHeader(ReadOnlySpan<byte> buffer, out TwimeHeader heade
 
 - [ ] `<ServerGarbageCollection>true</ServerGarbageCollection>` в `.csproj`
 - [ ] `<ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>`
-- [ ] `<TieredCompilation>true</TieredCompilation>` (default in .NET 6+)
+- [ ] DATAS отключён (`DOTNET_GCDynamicAdaptationMode=0`), если цель — стабильный p99: с .NET 9 он включён по умолчанию
+- [ ] `<TieredCompilation>true</TieredCompilation>` (default с .NET Core 3.0)
 - [ ] `ThreadPool.SetMinThreads(N, N)` на старте для cold-start priming (~`ProcessorCount * 4`); помни: обходит hill-climbing, ~1 MB/поток, не лечит starvation — см. [[threadpool-starvation-hill-climbing]]
 - [ ] `GCSettings.LatencyMode = SustainedLowLatency` для критичной фазы
 - [ ] Hot-path методы помечены `[MethodImpl(MethodImplOptions.AggressiveInlining)]` где осмысленно

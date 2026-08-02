@@ -39,7 +39,7 @@
 | [[aspnet-rate-limiting|`aspnet-rate-limiting.md`]] | Rate limiting middleware, алгоритмы, partition keys |
 | [[fluent-validation|`fluent-validation.md`]] | FluentValidation: правила, DI, тестирование |
 | [[http-client-resilience|`http-client-resilience.md`]] ⭐ NEW | HttpClient, IHttpClientFactory, socket exhaustion, stale DNS, retry/breaker |
-| [[object-mapping|`object-mapping.md`]] | AutoMapper vs Mapster vs ручной mapping |
+| [[object-mapping|`object-mapping.md`]] | AutoMapper vs Mapperly vs ручной mapping |
 
 ### 🏆 Senior
 

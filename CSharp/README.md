@@ -68,8 +68,8 @@
 | [[async-threading|`async-threading.md`]] | Task, async/await internals ⭐ |
 | [[types-and-memory|`types-and-memory.md`]] | Value vs reference, boxing, struct ⭐ |
 | [[functional-csharp|`functional-csharp.md`]] | Records, pattern matching, FP в C# |
-| [[design-patterns|`design-patterns.md`]] | 13 GoF patterns в C# |
-| [[gof-patterns-extended|`gof-patterns-extended.md`]] | Ещё 8 GoF: Command, Visitor, Composite, Proxy и др. |
+| [[design-patterns|`design-patterns.md`]] | SOLID, обзор GoF, DI, Repository/CQRS/DDD, modern-замены паттернов |
+| [[gof-patterns-extended|`gof-patterns-extended.md`]] | Все 23 GoF pattern'а подробно + anti-patterns |
 | [[reflection-expression-trees|`reflection-expression-trees.md`]] | Reflection, expression trees, dynamic |
 | [[source-generators|`source-generators.md`]] | Source generators (.NET 5+) |
 | [[memory-pooling|`memory-pooling.md`]] | ArrayPool, ObjectPool, MemoryPool |
@@ -110,7 +110,7 @@
 6. extension-methods, indexers-operators
 7. io-streams + serialization-deep + bcl-essentials
 8. generics-deep
-9. design-patterns (top 13 GoF)
+9. design-patterns (SOLID + обзор GoF)
 10. functional-csharp
 ```
 
@@ -120,7 +120,7 @@
 1. reflection-expression-trees
 2. source-generators
 3. memory-pooling, unsafe-pointers
-4. gof-patterns-extended (8 advanced GoF)
+4. gof-patterns-extended (все 23 GoF)
 5. numeric-types-math (SIMD, generic math)
 6. csharp-language-design (понять design decisions)
 7. cli-tools-scripting, desktop-frameworks (specific domains)

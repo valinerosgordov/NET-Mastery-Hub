@@ -1,12 +1,12 @@
 ---
 tags: [efcore, value-converters, owned-types, json, middle, configuration]
 level: Middle
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # EF Core Value Converters & Owned Types — типы и schema
 
-> **ValueConverter, ValueComparer, owned types, JSON columns (.NET 7+), backing fields, computed columns.** Всё что нужно для нестандартного mapping между C# и DB schema.
+> **ValueConverter, ValueComparer, owned types, JSON columns (EF Core 7+), backing fields, computed columns.** Всё что нужно для нестандартного mapping между C# и DB schema.
 
 ---
 
@@ -221,7 +221,12 @@ modelBuilder.Entity<Order>(entity =>
 
 ---
 
-## 4. JSON Columns (.NET 7+)
+## 4. JSON Columns (EF Core 7+)
+
+Версионная история — чтобы не путаться:
+- **EF Core 7** — `ToJson()` для owned types (сначала только SQL Server).
+- **EF Core 8** — `ToJson()` в Npgsql-провайдере (jsonb) и SQLite.
+- **EF Core 10** — рекомендуемый способ JSON-маппинга — **complex types** (см. 4.5), owned `ToJson()` — legacy-путь.
 
 ### 4.1. Native support
 
@@ -280,6 +285,39 @@ var samsungProducts = await _db.Products
 CREATE INDEX idx_products_brand ON Products ((Metadata->>'Brand'));
 CREATE INDEX idx_products_metadata_gin ON Products USING GIN (Metadata);
 ```
+
+### 4.5. Complex types и JSON (EF Core 8 → 10)
+
+Механизм: owned types — это «entity без identity», EF тащит для них change tracking, ключи-тени и ограничения (nullability, sharing). **Complex types** (EF Core 8) — честные value-типы в модели: без identity, без tracker-оверхеда, с value-семантикой — то, чем owned types всегда притворялись.
+
+- **EF Core 8** — complex types появились (`ComplexProperty()`), но только column-per-property mapping.
+- **EF Core 9** — complex types работают в `GroupBy` и `ExecuteUpdate` (инстанс целиком в `SetProperty`).
+- **EF Core 10** — `ToJson()` для complex types: **рекомендуемый способ JSON-маппинга**. Полная LINQ-трансляция по вложенным путям, вложенные коллекции, `ExecuteUpdate` по JSON-свойствам (см. [[ef-bulk-operations]], раздел 2.8). Owned `ToJson()` остаётся как legacy-путь.
+
+```csharp
+// EF Core 10 — complex type как JSON-колонка
+public class Product
+{
+    public int Id { get; set; }
+    public required ProductMetadata Metadata { get; set; }  // complex type
+}
+
+modelBuilder.Entity<Product>()
+    .ComplexProperty(p => p.Metadata, b => b.ToJson());
+// PostgreSQL: jsonb; SQL Server 2025: нативный тип json
+
+// LINQ по вложенному JSON-пути — транслируется в SQL
+var samsung = await _db.Products
+    .Where(p => p.Metadata.Brand == "Samsung")
+    .ToListAsync();
+
+// Bulk update JSON-свойства — один UPDATE, без загрузки entities
+await _db.Products
+    .Where(p => p.Metadata.Brand == "Samsung")
+    .ExecuteUpdateAsync(s => s.SetProperty(p => p.Metadata.Brand, "Samsung Electronics"));
+```
+
+Почему рекомендуется: value-семантика без сюрпризов sharing'а (см. 7.2 — owned копируются), нет теневого PK, конфигурация проще, и это направление развития EF (новые JSON-фичи выходят для complex types, не для owned).
 
 ---
 
@@ -372,7 +410,7 @@ CREATE TABLE Orders (
 
 ### 7.1. ValueComparer пропущен
 
-List<string> mutated → не сохранятся изменения. Fix: ValueComparer + Snapshot.
+`List<string>` mutated → не сохранятся изменения. Fix: ValueComparer + Snapshot.
 
 ### 7.2. Owned types sharing
 
@@ -446,7 +484,7 @@ modelBuilder.Entity<Order>()
         line.HasKey("Id");
     });
 
-// === JSON column (.NET 7+) ===
+// === JSON column (EF Core 7+) ===
 modelBuilder.Entity<Product>()
     .OwnsOne(p => p.Metadata, b => b.ToJson());
 

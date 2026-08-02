@@ -1,7 +1,7 @@
 ---
 tags: [infrastructure, project-setup, junior, solutions, git, dotnet-cli]
 level: Junior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Project Setup Basics — solution structure, git, daily workflow
@@ -34,7 +34,7 @@ dotnet CLI — cross-platform, IDE-independent, scriptable.
 ### 1.2. Verify install
 
 ```bash
-dotnet --version           # версия SDK (8.0.xxx, 9.0.xxx)
+dotnet --version           # версия SDK (10.0.xxx)
 dotnet --list-sdks         # все установленные SDKs
 dotnet --list-runtimes     # все runtimes
 dotnet --info              # detailed info про OS, SDKs
@@ -114,7 +114,7 @@ dotnet format
 ```bash
 # Добавить package
 dotnet add package Newtonsoft.Json
-dotnet add package Microsoft.EntityFrameworkCore --version 8.0.0
+dotnet add package Microsoft.EntityFrameworkCore --version 10.0.0
 
 # Удалить package
 dotnet remove package Newtonsoft.Json
@@ -667,10 +667,12 @@ export ASPNETCORE_ENVIRONMENT=Production
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();   // встроенный OpenAPI: builder.Services.AddOpenApi() + /openapi/v1.json
 }
 ```
+
+> [!info] Swashbuckle больше не в шаблонах
+> С .NET 9 шаблон `webapi` не включает Swashbuckle (`UseSwagger`/`UseSwaggerUI`) — вместо него пакет `Microsoft.AspNetCore.OpenApi`: `AddOpenApi()` + `MapOpenApi()` отдаёт спецификацию `/openapi/v1.json` без UI. Нужен интерактивный UI — поставь `Scalar.AspNetCore` и добавь `app.MapScalarApiReference()`.
 
 > [!question]- Интервью: где хранить secrets в .NET проекте?
 > **Local dev**: User Secrets (`dotnet user-secrets set`) — хранится вне проекта, не в git. **Staging/Production**: cloud-specific (Azure Key Vault / AWS Secrets Manager / HashiCorp Vault) или environment variables через runtime (Docker / Kubernetes Secrets). **Никогда**: plain text в appsettings.json (commit'нется). **Workflow**: 1) Local — User Secrets. 2) CI/CD — env vars из secrets manager. 3) Production — Key Vault references в config. **Bonus**: `IConfiguration` API одинаков — кода не отличается между env'ами, только source меняется.
@@ -804,13 +806,13 @@ MyApp/
 
 ```xml
 <TargetFramework>netcoreapp3.1</TargetFramework>   <!-- old, EOL -->
-<TargetFramework>net5.0</TargetFramework>          <!-- old, EOL -->
-<TargetFramework>net6.0</TargetFramework>          <!-- LTS до Nov 2024 -->
-<TargetFramework>net8.0</TargetFramework>          <!-- LTS, current -->
-<TargetFramework>net9.0</TargetFramework>          <!-- STS -->
+<TargetFramework>net6.0</TargetFramework>          <!-- old, EOL -->
+<TargetFramework>net8.0</TargetFramework>          <!-- LTS, EOL 10.11.2026 -->
+<TargetFramework>net9.0</TargetFramework>          <!-- STS, EOL 10.11.2026 -->
+<TargetFramework>net10.0</TargetFramework>         <!-- LTS, current -->
 ```
 
-LTS (Long-term support) — 3 года поддержки. STS (Short-term) — 18 месяцев. Для production выбирай LTS (.NET 8 в 2024-2026).
+LTS (Long-term support) — 3 года поддержки. STS (Short-term) — 24 месяца. Для production выбирай LTS — сейчас это .NET 10 (вышел в ноябре 2025). .NET 8 и .NET 9 доживают: оба EOL 10.11.2026.
 
 > [!question]- Интервью: топ-3 ошибки в project setup?
 > 1) **Secrets в git** — passwords / API keys в appsettings.json. Fix: User Secrets (local) + Key Vault (prod). Если уже committed — сменить secret. 2) **bin/obj в git** — 100MB мусора. Fix: `dotnet new gitignore` + `git rm -r --cached`. 3) **Circular project references** — Domain ↔ Infrastructure. Fix: Clean Architecture — Domain независим, Interfaces в Domain, implementations в Infrastructure. **Bonus**: `git push --force` на shared branches — никогда. **Bonus 2**: hardcoded absolute paths — `Path.Combine` + relative paths.
@@ -875,14 +877,14 @@ dotnet user-secrets remove "ApiKey"
 <!-- Common .csproj structure -->
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>my-secrets-id</UserSecretsId>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
   </ItemGroup>
   
   <ItemGroup>

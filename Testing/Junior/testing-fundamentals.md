@@ -1,7 +1,7 @@
 ---
 tags: [testing, fundamentals, junior, types-of-tests, tdd, pyramid]
 level: Junior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Testing Fundamentals — что такое тестирование
@@ -237,7 +237,7 @@ Feature: Order placement
 ```
 
 ```csharp
-// SpecFlow связывает Gherkin с C# steps
+// Reqnroll связывает Gherkin с C# steps
 [Given(@"I am logged in as customer ""(.*)""")]
 public async Task GivenLoggedIn(string name) { /* ... */ }
 
@@ -252,6 +252,8 @@ public async Task ThenOrderCreated() { /* ... */ }
 - Сложная бизнес логика, которую важно зафиксировать с бизнесом
 - Требования меняются часто — спецификации в коде
 - QA / PM хотят писать тесты сами
+
+**Tool 2026 — Reqnroll**, drop-in форк SpecFlow от его же создателя (Gáspár Nagy). Сам SpecFlow мёртв: EOL 31.12.2024, репозитории удалены — в новых проектах не использовать.
 
 > [!info] BDD — сложно правильно
 > Без правильной культуры — превращается в "Gherkin по приколу", всё равно тесты пишут разработчики, бизнес не читает. Используй когда правда нужно.
@@ -850,7 +852,7 @@ Feature: User registration
     And my account should be created in database
 ```
 
-См. секцию **Acceptance Tests / BDD** выше. Tools: SpecFlow (для C#).
+См. секцию **Acceptance Tests / BDD** выше. Tools: Reqnroll (для C#; заменил SpecFlow — тот EOL с 31.12.2024).
 
 ---
 
@@ -1061,7 +1063,7 @@ public void Divide_works() => Divide(10, 2).Should().Be(5);
 
 | Tool | Purpose |
 |------|---------|
-| **xUnit** | Test framework (default 2026) |
+| **xUnit** | Test framework (default 2026; пакет `xunit.v3`) |
 | **NUnit** | Test framework (mature alternative) |
 | **MSTest** | Microsoft framework (least popular) |
 | **Shouldly** | Assertions library (clear messages) |
@@ -1077,7 +1079,7 @@ public void Divide_works() => Divide(10, 2).Should().Be(5);
 | **Stryker.NET** | Mutation testing |
 | **NBomber** | Load testing in C# |
 | **Playwright** | E2E browser automation |
-| **SpecFlow** | BDD / Gherkin |
+| **Reqnroll** | BDD / Gherkin (drop-in форк мёртвого SpecFlow) |
 | **Respawn** | DB cleanup between tests |
 | **NetArchTest** | Architecture rules |
 
@@ -1086,10 +1088,12 @@ public void Divide_works() => Divide(10, 2).Should().Be(5);
 ## 13. Recommended setup для нового проекта
 
 ```xml
-<!-- Test project csproj -->
+<!-- Test project csproj: xunit.v3 = актуальное поколение xUnit,
+     тест-проект — исполняемый: в PropertyGroup нужен <OutputType>Exe</OutputType>.
+     Пакеты xunit + Microsoft.NET.Test.Sdk — старый v2/VSTest-стек;
+     детали и MTP-runner — Testing/Senior/testing.md -->
 <ItemGroup>
-  <PackageReference Include="Microsoft.NET.Test.Sdk" />
-  <PackageReference Include="xunit" />
+  <PackageReference Include="xunit.v3" />
   <PackageReference Include="xunit.runner.visualstudio" />
   <PackageReference Include="Shouldly" />
   <PackageReference Include="NSubstitute" />
@@ -1259,7 +1263,7 @@ MyApp/
 | Contract tests | PactNet, Pact.NET |
 | Code review | PR + GitHub Copilot review |
 | Pre-commit hooks | Husky.NET + lint-staged |
-| CI quality gate | SonarCloud / Codacy |
+| CI quality gate | SonarQube Cloud / Codacy |
 
 | Refactoring smell | Action |
 |-------------------|--------|

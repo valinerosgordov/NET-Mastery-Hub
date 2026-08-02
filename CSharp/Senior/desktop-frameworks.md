@@ -1,12 +1,12 @@
 ---
 tags: [csharp, desktop, senior, wpf, winui, winforms, maui, avalonia, xaml]
 level: Senior
-date: 2026-05-09
+date: 2026-08-02
 ---
 
 # Desktop Frameworks — WPF, WinUI, MAUI, Avalonia
 
-> **WPF (mature Windows), WinUI 3 (modern Windows), WinForms (legacy), MAUI (cross-platform Microsoft), Avalonia (cross-platform community).** Какой фреймворк выбрать в 2024+, MVVM patterns, XAML basics, ecosystem comparison. Закрывает пробел: «знаю про WPF, не понимаю когда WinUI 3, чем MAUI отличается от Avalonia, и стоит ли мигрировать с WinForms».
+> **WPF (mature Windows), WinUI 3 (modern Windows), WinForms (legacy), MAUI (cross-platform Microsoft), Avalonia (cross-platform community).** Какой фреймворк выбрать в 2026, MVVM patterns, XAML basics, ecosystem comparison. Закрывает пробел: «знаю про WPF, не понимаю когда WinUI 3, чем MAUI отличается от Avalonia, и стоит ли мигрировать с WinForms».
 
 ---
 
@@ -20,7 +20,7 @@ Cross-language якоря свёрнуты. Interview-вопросы встро�
 
 ## 1. Что это, зачем и когда
 
-### 1.1. Landscape 2024+
+### 1.1. Landscape 2026
 
 ```
 Microsoft official:
@@ -52,11 +52,11 @@ Community:
 ### 1.3. Главное правило выбора
 
 ```
-Windows-only + 2024+ → WinUI 3 (modern) или WPF (mature)
+Windows-only + 2026 → WinUI 3 (modern) или WPF (mature, теперь с Fluent-темой)
 Cross-platform desktop → Avalonia (best)
 Cross-platform desktop + mobile → MAUI
 Legacy Windows app → WPF (если LOB) или WinForms (simple)
-Brand new project в 2024+ → Avalonia или WinUI 3
+Brand new project в 2026 → Avalonia или WinUI 3
 ```
 
 ### 1.4. Эволюция
@@ -72,6 +72,9 @@ Brand new project в 2024+ → Avalonia или WinUI 3
 | **2022** | MAUI | First stable, .NET 6 |
 | **2024** | Avalonia 11 | Production-ready, многие adopt |
 | **2024** | MAUI 8 | Stable, production scale |
+| **2024** | WinUI 3 Native AOT | Windows App SDK 1.6 (сентябрь 2024) |
+| **2024** | WPF Fluent-тема | .NET 9: `ThemeMode` Light/Dark/System; .NET 10 расширил |
+| **2024** | MAUI NativeAOT | .NET 9: iOS / Mac Catalyst (opt-in) |
 
 > [!info]- Если ты знаешь Swift/SwiftUI / Kotlin/Compose / React Native / Flutter / Electron
 > **SwiftUI:** declarative, Apple-only. C# Avalonia/MAUI — cross-platform alternative.
@@ -84,7 +87,7 @@ Brand new project в 2024+ → Avalonia или WinUI 3
 >
 > **Electron:** Web tech + Chromium. Heavyweight. C# Blazor Hybrid alternative — lighter.
 
-> [!question]- Интервью: какой desktop framework выбрать для нового проекта в 2024?
+> [!question]- Интервью: какой desktop framework выбрать для нового проекта в 2026?
 > Зависит от target: 1) **Windows only enterprise** → WPF (mature, ecosystem) или WinUI 3 (modern Win 10/11). 2) **Cross-platform desktop** → Avalonia (best community, WPF-like). 3) **Cross-platform desktop + mobile** → MAUI (Microsoft official). 4) **Legacy migration** → WinForms only если simple LOB. 5) **Web tech preferred** → Blazor Hybrid в MAUI/WinUI. **Avoid for new**: WinForms (legacy), UWP (replaced by WinUI 3), Xamarin.Forms (replaced by MAUI). Best practice: Avalonia для cross-platform open-source, MAUI если deep Microsoft integration, WinUI 3 для modern Windows-only.
 
 ---
@@ -105,7 +108,7 @@ Brand new project в 2024+ → Avalonia или WinUI 3
   - Touch / responsive
   - Animations / rich graphics
   - Cross-platform
-  - New projects (2024+)
+  - New projects
 ```
 
 ### 2.2. Базовый WinForms
@@ -492,13 +495,23 @@ Built-in modern UI:
 | | WPF | WinUI 3 |
 |---|-----|---------|
 | Windows version | All (XP+) | Windows 10 1809+ / Windows 11 |
-| Look | Customizable, default ~Vista era | Fluent Design (modern) |
+| Look | Customizable; с .NET 9 — built-in Fluent-тема (`ThemeMode`) | Fluent Design (modern) |
 | .NET Framework | Yes | No (.NET 5+) |
 | Touch / pen | Limited | First-class |
 | Modern controls | Manual / 3rd party | Built-in |
-| Maturity | 18 years | 3 years |
+| Maturity | ~20 years | ~5 years |
 | Ecosystem | Massive | Growing |
 | MVVM | Standard | Same (CommunityToolkit) |
+
+Важное обновление: «WPF выглядит как Vista» больше не аргумент. **.NET 9 добавил WPF Fluent-тему** — `ThemeMode` (`Light` / `Dark` / `System`) на уровне Application/Window, Windows 11 look без third-party библиотек; **.NET 10 расширил** поддержку (стабилизация API, доработка контролов). Для modern look на WPF теперь достаточно:
+
+```xml
+<Application x:Class="MyApp.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ThemeMode="System">
+</Application>
+```
 
 ### 4.6. Strengths/weaknesses
 
@@ -536,7 +549,7 @@ WPF если:
 ```
 
 > [!question]- Интервью: чем WinUI 3 отличается от WPF?
-> 1) **Target**: WinUI 3 — Windows 10 1809+ / Win 11 only; WPF — все Windows since XP. 2) **Look**: WinUI 3 — Fluent Design (Mica, Acrylic, Reveal) built-in; WPF — Vista-era default, требует customization. 3) **Touch / pen**: WinUI 3 first-class, WPF retrofitted. 4) **.NET Framework**: WPF supports, WinUI 3 — only .NET 5+. 5) **Maturity**: WPF 18 years, WinUI 3 3 years. 6) **Ecosystem**: WPF massive (DevExpress, Telerik), WinUI 3 growing. 7) **Migration**: XAML similar но different namespace + APIs. **When WinUI 3**: modern Windows-only apps, Fluent Design required. **When WPF**: legacy support, mature ecosystem dependence. Microsoft direction — WinUI 3 для new Windows-only apps.
+> 1) **Target**: WinUI 3 — Windows 10 1809+ / Win 11 only; WPF — все Windows since XP. 2) **Look**: WinUI 3 — Fluent Design (Mica, Acrylic, Reveal) built-in; WPF — с .NET 9 тоже имеет built-in Fluent-тему (`ThemeMode` Light/Dark/System, расширено в .NET 10), до этого default был ~Vista era. 3) **Touch / pen**: WinUI 3 first-class, WPF retrofitted. 4) **.NET Framework**: WPF supports, WinUI 3 — only .NET 5+. 5) **Maturity**: WPF ~20 years, WinUI 3 ~5 years. 6) **Ecosystem**: WPF massive (DevExpress, Telerik), WinUI 3 growing. 7) **Migration**: XAML similar но different namespace + APIs. **When WinUI 3**: modern Windows-only apps, Fluent Design required. **When WPF**: legacy support, mature ecosystem dependence. Microsoft direction — WinUI 3 для new Windows-only apps.
 
 ---
 
@@ -686,7 +699,7 @@ React Native:
 ```
 
 > [!question]- Интервью: когда MAUI vs Avalonia для cross-platform desktop?
-> 1) **MAUI** — Microsoft official, includes mobile (iOS/Android). Native controls (each platform looks native). Hot reload, VS integration. **But**: desktop second-class, mobile-first design. 3 years stable. 2) **Avalonia** — community-driven, desktop-first (mobile experimental). Custom rendering (consistent across platforms — Linux/Mac/Windows look identical). WPF-like API (easier migration). Mature 2024+. **Choose MAUI**: need iOS + Android + desktop. **Choose Avalonia**: desktop-only cross-platform, WPF migration, prefer consistent look. Bottom line: MAUI для multi-platform inc. mobile, Avalonia для desktop-only с fewer surprises.
+> 1) **MAUI** — Microsoft official, includes mobile (iOS/Android). Native controls (each platform looks native). Hot reload, VS integration. **But**: desktop second-class, mobile-first design. Stable с 2022. 2) **Avalonia** — community-driven, desktop-first (mobile experimental). Custom rendering (consistent across platforms — Linux/Mac/Windows look identical). WPF-like API (easier migration). Mature (v11+). **Choose MAUI**: need iOS + Android + desktop. **Choose Avalonia**: desktop-only cross-platform, WPF migration, prefer consistent look. Bottom line: MAUI для multi-platform inc. mobile, Avalonia для desktop-only с fewer surprises.
 
 ---
 
@@ -700,7 +713,7 @@ Avalonia UI — open-source XAML framework.
 - Cross-platform: Windows, macOS, Linux, iOS (preview), Android (preview)
 - Custom rendering (Skia)
 - .NET 6+
-- Mature 2024+ (v11)
+- Mature (v11+, 2023)
 - WebAssembly support (Avalonia Browser)
 ```
 
@@ -820,11 +833,11 @@ Notable Avalonia apps:
 - Kotor Tool, ButterUp
 - Multiple internal Microsoft tools
 
-Growing adoption — 2024 серьёзный outsider.
+Growing adoption — к 2026 это уже не outsider, а дефолтный выбор для cross-platform desktop на .NET.
 ```
 
 > [!question]- Интервью: что такое Avalonia и почему её используют?
-> Open-source XAML framework cross-platform desktop (+ mobile preview). **WPF-like API** — easy migration для existing teams. **Custom rendering** через Skia (same as Chrome/Flutter) — consistent look на Windows/Mac/Linux/iOS/Android/WebAssembly. **Mature** 2024+ (v11). **Strengths**: cross-platform desktop первый class, single codebase, Native AOT, modern features (animations, themes, hot reload). **Trade-offs**: smaller ecosystem чем WPF, mobile experimental, не native look (vs MAUI). **Adoption**: JetBrains Rider rewrote UI to Avalonia 2023. **Choose Avalonia**: cross-platform desktop, prefer consistent look over native, WPF migration. **Choose alternative**: MAUI (mobile required), WinUI 3 (Windows-only modern).
+> Open-source XAML framework cross-platform desktop (+ mobile preview). **WPF-like API** — easy migration для existing teams. **Custom rendering** через Skia (same as Chrome/Flutter) — consistent look на Windows/Mac/Linux/iOS/Android/WebAssembly. **Mature** (v11+). **Strengths**: cross-platform desktop первый class, single codebase, Native AOT, modern features (animations, themes, hot reload). **Trade-offs**: smaller ecosystem чем WPF, mobile experimental, не native look (vs MAUI). **Adoption**: JetBrains Rider rewrote UI to Avalonia 2023. **Choose Avalonia**: cross-platform desktop, prefer consistent look over native, WPF migration. **Choose alternative**: MAUI (mobile required), WinUI 3 (Windows-only modern).
 
 ---
 
@@ -1010,7 +1023,7 @@ public record ItemUpdatedMessage(Item Item);
 Decouples ViewModels — no direct references between them.
 
 > [!question]- Интервью: зачем MVVM и тестируется ли он?
-> 1) **Separation of concerns** — UI (View) от business logic (ViewModel) от domain (Model). 2) **Testability** — ViewModel не имеет UI references, can unit test directly. 3) **Designer / developer collaboration** — designer работает с XAML, developer с ViewModel. 4) **Reusability** — same ViewModel работает на разных Views. **Testing**: создаешь ViewModel в test, mock dependencies (IDataService через DI), exercise commands, assert state changes (PropertyChanged events). Critical: ViewModel **не должен иметь** UI references (Window/Page). Если нужно показать dialog — через service interface (IDialogService). Best practice 2024+: CommunityToolkit.Mvvm источников генератор убирает 80% boilerplate.
+> 1) **Separation of concerns** — UI (View) от business logic (ViewModel) от domain (Model). 2) **Testability** — ViewModel не имеет UI references, can unit test directly. 3) **Designer / developer collaboration** — designer работает с XAML, developer с ViewModel. 4) **Reusability** — same ViewModel работает на разных Views. **Testing**: создаешь ViewModel в test, mock dependencies (IDataService через DI), exercise commands, assert state changes (PropertyChanged events). Critical: ViewModel **не должен иметь** UI references (Window/Page). Если нужно показать dialog — через service interface (IDialogService). Best practice 2026: CommunityToolkit.Mvvm источников генератор убирает 80% boilerplate.
 
 ---
 
@@ -1029,7 +1042,7 @@ Decouples ViewModels — no direct references between them.
 | Avalonia Native AOT | ~50-100ms |
 ```
 
-Native AOT dramatically improves Avalonia startup. WinUI 3 / MAUI not yet AOT-ready (2024).
+Native AOT dramatically improves Avalonia startup. **WinUI 3 — Native AOT c Windows App SDK 1.6** (сентябрь 2024): по замерам Microsoft (Contoso Camera sample) — до **~50% быстрее startup** и **~8x меньше размер пакета** (framework-dependent; в self-contained режиме ~2x меньше). **MAUI — NativeAOT для iOS / Mac Catalyst с .NET 9** (opt-in); MAUI Windows/Android остаются на JIT/R2R.
 
 ### 8.2. Memory footprint
 
@@ -1133,7 +1146,7 @@ Benefits: better perf, modern .NET, single project, Hot Reload.
 ```
 
 > [!question]- Интервью: миграция WPF → cross-platform?
-> Variants: 1) **WPF → Avalonia** — самый простой путь, ~10-30% rewrite (XAML и API similar). Best для desktop-only cross-platform. 2) **WPF → MAUI** — 50-80% rewrite. Different layouts (mobile-first), platform-specific code. Use если нужен mobile. 3) **WPF → WinUI 3** — Windows-only modernization, 20-40% rewrite. Loses Win 7/8 support. **Strategy**: 1) Identify XAML/Code-behind — migrate XAML easier. 2) ViewModels mostly portable. 3) Native APIs need replacement (Windows specifics). 4) Test на target platforms early. 5) Per-window migration возможна. **Best path 2024+**: Avalonia если cross-platform desktop важен; иначе stay в WPF.
+> Variants: 1) **WPF → Avalonia** — самый простой путь, ~10-30% rewrite (XAML и API similar). Best для desktop-only cross-platform. 2) **WPF → MAUI** — 50-80% rewrite. Different layouts (mobile-first), platform-specific code. Use если нужен mobile. 3) **WPF → WinUI 3** — Windows-only modernization, 20-40% rewrite. Loses Win 7/8 support. **Strategy**: 1) Identify XAML/Code-behind — migrate XAML easier. 2) ViewModels mostly portable. 3) Native APIs need replacement (Windows specifics). 4) Test на target platforms early. 5) Per-window migration возможна. **Best path 2026**: Avalonia если cross-platform desktop важен; иначе stay в WPF.
 
 ---
 
@@ -1164,7 +1177,7 @@ Benefits: better perf, modern .NET, single project, Hot Reload.
 - ✅ **Avalonia / MAUI** для cross-platform.
 - ✅ **Platform-specific code** через `#if` или DI.
 - ✅ **Test на каждой platform** early.
-- ✅ **Native AOT** где supported (Avalonia).
+- ✅ **Native AOT** где supported (Avalonia; WinUI 3 c Windows App SDK 1.6; MAUI iOS/Mac Catalyst с .NET 9).
 - ❌ Don't assume same behavior на всех platforms.
 
 ### 10.4. Не делай

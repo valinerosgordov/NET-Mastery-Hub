@@ -113,7 +113,8 @@ public partial class ViewModel : INotifyPropertyChanged
 | **.NET 7+** | `RegexGenerator`, `LibraryImportGenerator` (replaces DllImport SG) |
 | **.NET 8** | Source-generated configuration binding |
 | **.NET 8** | Native AOT — source generators essential |
-| **.NET 9** | Improved incremental pipeline tooling |
+| **.NET 8 / C# 12** | Interceptors (experimental) |
+| **.NET 9** | Improved incremental pipeline tooling; interceptors стабильны (SDK 9.0.2xx) |
 
 > [!info]- Если ты знаешь Java / Kotlin / Rust / Scala
 > **Java:** annotation processors (since Java 6) + Lombok — основной SG ecosystem. Похоже concept: process annotations на compile-time, generate code.
@@ -284,7 +285,55 @@ public sealed class AppConfig
 // Вызов Configuration.Get<AppConfig>() / Bind() перехватывается interceptor'ом
 ```
 
-В отличие от классических SG, которые дописывают partial-часть типа, binder-генератор работает через **C# interceptors** (C# 12): перехватывает call sites `Get<T>()` / `Bind()` / `Configure<T>()` и подставляет generated-код вместо reflection-based binding. Изменения в user-коде не нужны — включается MSBuild-property (в Native AOT web-шаблонах включён по умолчанию). AOT-essential.
+В отличие от классических SG, которые дописывают partial-часть типа, binder-генератор работает через **C# interceptors** (см. 2.8): перехватывает call sites `Get<T>()` / `Bind()` / `Configure<T>()` и подставляет generated-код вместо reflection-based binding. Изменения в user-коде не нужны — включается MSBuild-property (в Native AOT web-шаблонах включён по умолчанию). AOT-essential.
+
+### 2.8. Interceptors — подмена call sites (стабильны с .NET 9 SDK)
+
+**Interceptor** — метод, который compiler подставляет **вместо конкретного вызова в другом файле**. Появились как experimental в C# 12 (.NET 8, под `<Features>InterceptorsPreview</Features>`); с **.NET 9 SDK (9.0.2xx) — стабильная фича**: `[Experimental]` снят, opt-in через MSBuild-property:
+
+```xml
+<PropertyGroup>
+  <InterceptorsNamespaces>$(InterceptorsNamespaces);MyApp.Generated</InterceptorsNamespaces>
+</PropertyGroup>
+```
+
+Механизм: атрибут `System.Runtime.CompilerServices.InterceptsLocationAttribute` привязывает static-метод к точному call site. Стабильный API — **checksum-based локация** (генератор получает её через `SemanticModel.GetInterceptableLocation()`); старый конструктор `(path, line, column)` — deprecated, хрупок к любому сдвигу строк:
+
+```csharp
+// User code — Program.cs (не меняется!)
+var config = builder.Configuration.Get<AppConfig>();
+
+// Generated code — от source generator
+namespace MyApp.Generated
+{
+    using System.Runtime.CompilerServices;
+
+    file static class BindingInterceptors
+    {
+        // version + data — checksum-локация call site, выдаёт GetInterceptableLocation()
+        [InterceptsLocation(version: 1, data: "vN3Sd9...base64...")]
+        public static AppConfig? GetIntercepted(this IConfiguration configuration)
+        {
+            // строго типизированный binding вместо reflection
+            return new AppConfig
+            {
+                ConnectionString = configuration["ConnectionString"] ?? "",
+                MaxRetries = int.TryParse(configuration["MaxRetries"], out var r) ? r : 3
+            };
+        }
+    }
+}
+```
+
+Interceptor для instance-метода — static метод, первый параметр которого получает receiver (`this IConfiguration ...`, как extension method). Сигнатура должна совпадать с перехватываемым методом.
+
+**Кто на этом работает в проде:**
+- **Config binder** (`EnableConfigurationBindingGenerator`, .NET 8+) — `Get<T>` / `Bind` / `Configure<T>` (см. 2.7).
+- **Minimal API Request Delegate Generator** (RDG) — перехватывает `app.MapGet(...)` / `MapPost(...)` и генерирует typed request delegate на compile-time вместо runtime expression-tree compilation.
+
+**Связь с AOT:** Native AOT не умеет runtime reflection-emit / expression compilation — interceptors переносят эту работу в compile-time, поэтому RDG и binding-генератор обязательны для AOT-публикации ASP.NET Core.
+
+**Зачем, если есть обычные SG:** классический generator может только **добавлять** код (partial-типы, новые файлы) — он не может изменить уже написанный вызов. Interceptors закрывают ровно этот пробел: подмена существующих call sites без правки user-кода. Свои interceptors пишут редко — фича спроектирована прежде всего для framework-генераторов.
 
 > [!question]- Интервью: чем `[GeneratedRegex]` лучше `new Regex()`?
 > 1) **No runtime parsing** — pattern компилируется на compile-time, generated method возвращает уже built Regex. 2) **Faster** — specialized code для exact pattern (vs general regex engine). 3) **AOT-compatible** — Native AOT не позволяет dynamic regex compilation. 4) **Static analyzer warnings** — compile-time validation pattern syntax. 5) **Cached static instance** автоматически. Best practice 2024+: `partial Regex EmailRegex()` через `[GeneratedRegex]` вместо `private static readonly Regex _email = new(...)`.

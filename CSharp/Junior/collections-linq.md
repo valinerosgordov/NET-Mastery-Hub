@@ -1,7 +1,7 @@
 ---
 tags: [csharp, collections, linq, junior, list, dictionary, hashset, lazy-evaluation, performance]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # Collections и LINQ — коллекции и язык запросов
@@ -77,7 +77,7 @@ LINQ — declarative, composable, lazy. Один pipeline на любой `IEnum
   - Когда LINQ скрывает intent
 ```
 
-### 1.4. Эволюция: .NET 1.0 → C# 13
+### 1.4. Эволюция: .NET 1.0 → .NET 10 / C# 14
 
 | Версия | Год | Что появилось |
 |--------|-----|---------------|
@@ -90,6 +90,8 @@ LINQ — declarative, composable, lazy. Один pipeline на любой `IEnum
 | **.NET 8** | 2023 | `FrozenDictionary`, `FrozenSet` (immutable optimized) |
 | **C# 12** | 2023 | **Collection expressions** `[1, 2, 3]` |
 | **C# 13** | 2024 | `params ReadOnlySpan<T>` |
+| **.NET 9** | 2024 | LINQ `CountBy`, `AggregateBy`, `Index` |
+| **.NET 10 / C# 14** | 2025 LTS | LINQ `LeftJoin` / `RightJoin`; first-class `Span<T>` conversions |
 
 ### 1.5. Quick reference
 
@@ -929,10 +931,12 @@ var grouped = users.GroupJoin(
     (u, userOrders) => new { u.Name, Orders = userOrders.ToList() }
 );
 
-// Left join эмулируется через GroupJoin + SelectMany
+// Left join до .NET 10 эмулируется через GroupJoin + SelectMany
 var leftJoin = users
     .GroupJoin(orders, u => u.Id, o => o.UserId, (u, os) => new { u, os })
     .SelectMany(x => x.os.DefaultIfEmpty(), (x, o) => new { x.u.Name, Total = o?.Total ?? 0 });
+
+// .NET 10+: LeftJoin делает это одним оператором — см. 7.13
 ```
 
 ### 7.11. Conversion
@@ -953,6 +957,43 @@ Enumerable.Range(1, 5);                            // 1, 2, 3, 4, 5
 Enumerable.Repeat("x", 3);                          // "x", "x", "x"
 Enumerable.Empty<int>();                            // empty
 ```
+
+### 7.13. Новые операторы в .NET 9/10
+
+**.NET 9** добавил три оператора, убирающих типовой boilerplate вокруг `GroupBy` и `Select` с индексом:
+
+```csharp
+var words = new[] { "apple", "banana", "avocado", "cherry" };
+
+// CountBy — счётчик по ключу, вместо GroupBy(...).Select(g => (g.Key, g.Count()))
+var byLetter = words.CountBy(w => w[0]);
+// KeyValuePair<char,int>: ('a', 2), ('b', 1), ('c', 1)
+
+// AggregateBy — агрегация по ключу, вместо GroupBy(...).Select(g => (g.Key, g.Sum(...)))
+var lengthByLetter = words.AggregateBy(w => w[0], seed: 0, (acc, w) => acc + w.Length);
+// ('a', 12), ('b', 6), ('c', 6)
+
+// Index — пары (индекс, элемент), вместо Select((x, i) => (i, x))
+foreach (var (index, word) in words.Index())
+    Console.WriteLine($"{index}: {word}");
+```
+
+**Механизм:** `GroupBy` материализует каждую группу (объект `IGrouping` + внутренний буфер элементов), даже если из группы нужен только счётчик или сумма. `CountBy`/`AggregateBy` делают один проход с одним внутренним словарём аккумуляторов — без промежуточных групп, заметно меньше аллокаций на больших коллекциях.
+
+**.NET 10** добавил `LeftJoin` / `RightJoin` — first-class операторы вместо трёхступенчатой эмуляции из 7.10:
+
+```csharp
+var usersWithOrders = users.LeftJoin(
+    orders,
+    u => u.Id,
+    o => o.UserId,
+    (u, o) => new { u.Name, Total = o?.Total ?? 0 }   // o == null, если пары нет
+);
+
+// RightJoin — зеркально: все элементы правой последовательности + null слева
+```
+
+`GroupJoin + SelectMany + DefaultIfEmpty` остаётся в legacy-коде, но в новом писать его не нужно. EF Core 10 транслирует `LeftJoin` напрямую в SQL `LEFT JOIN`.
 
 > [!question]- Интервью: чем `Single` отличается от `First`?
 > **`First`** — возвращает первый элемент (matching predicate), throws если empty. Не проверяет на other matches. **`Single`** — возвращает **единственный** элемент (matching predicate), throws если 0 или > 1 match. Используй `Single` когда логически ожидаешь exactly one (например, GetById), `First` когда just need any matching (or first sorted). `OrDefault` вариант возвращает default(T) вместо throw для empty case (но `SingleOrDefault` всё равно throws при > 1 match).

@@ -1,7 +1,7 @@
 ---
 tags: [csharp, async, threading, senior, task, parallelism, concurrency, synchronization, channels]
 level: Senior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Async и Threading — concurrency в C#
@@ -92,7 +92,9 @@ Avoid:
 | **C# 8.0** | `IAsyncEnumerable<T>`, `await foreach`, `await using` |
 | **.NET Core 3.0** | `Channel<T>`, async-friendly primitives |
 | **.NET 6+** | `[AsyncMethodBuilder]` improvements, `ParallelLoopState` |
-| **.NET 8+** | Better thread pool, AOT improvements |
+| **.NET 8** | Better thread pool, AOT improvements, `ConfigureAwait(ConfigureAwaitOptions)` |
+| **.NET 9** | `System.Threading.Lock`, `Task.WhenEach` |
+| **.NET 10** | runtime-handled async (experimental, за preview-флагами) |
 
 > [!info]- Если ты знаешь Java / Kotlin / Go / Rust / Python
 > **Java:** `CompletableFuture` chain composition, virtual threads (Java 21+, similar to goroutines).
@@ -261,6 +263,8 @@ async method execution:
 
 **Key insight**: `async` method doesn't necessarily run on different thread. Runs synchronously until first incomplete await.
 
+**Куда движется**: в .NET 10 появился **runtime-handled async** (experimental) — state machine не генерируется компилятором, `await` исполняет сам runtime (JIT), что убирает overhead сгенерированных классов. Включается только явно (`EnablePreviewFeatures` + `Features=runtime-async=on` + env `DOTNET_RuntimeAsync=1`), Native AOT и Mono не поддерживаются — в production пока не использовать. В .NET 11 previews поддержка в CoreCLR уже включена по умолчанию; цель — быстрее и дешевле async без изменения C#-кода.
+
 ### 3.3. SynchronizationContext
 
 ```csharp
@@ -299,6 +303,17 @@ var data = await client.GetAsync(url).ConfigureAwait(false);
 - ✅ Library code (no UI access needed) — recommended.
 - ❌ ASP.NET Core — irrelevant (null SyncContext anyway).
 - ❌ UI app (need to access UI после await) — would break.
+
+**.NET 8+: `ConfigureAwait(ConfigureAwaitOptions)`** — flags-перегрузка:
+
+```csharp
+await task.ConfigureAwait(ConfigureAwaitOptions.None);                      // = ConfigureAwait(false)
+await task.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext); // = ConfigureAwait(true)
+await task.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);          // не re-throw исключение (только non-generic Task!)
+await task.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);             // всегда yield, даже если task уже завершён
+```
+
+`SuppressThrowing` заменяет паттерн `try { await t; } catch { }` (например, при ожидании отменённой задачи); с `Task<T>` запрещён — результат был бы undefined (analyzer CA2261). `ForceYielding` полезен в тестах и чтобы гарантированно уйти с текущего стека (аналог `Task.Yield`, но с контролем контекста).
 
 ### 3.5. Task vs ValueTask
 
@@ -393,11 +408,19 @@ string[] results = await Task.WhenAll(t1, t2, t3);
 Task<string> winner = await Task.WhenAny(t1, t2, t3);
 string result = await winner;
 
+// WhenEach (.NET 9+) — итерация по мере завершения
+await foreach (var completed in Task.WhenEach(t1, t2, t3))
+{
+    Console.WriteLine(await completed);   // task гарантированно завершён
+}
+
 // Cancellation после timeout
 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 try { await SomeOperation(cts.Token); }
 catch (OperationCanceledException) { /* timed out */ }
 ```
+
+`Task.WhenEach` (.NET 9) убирает старый анти-паттерн «`WhenAny` в цикле + удаление из списка» — тот был O(n²) по подпискам; `WhenEach` отдаёт задачи через `IAsyncEnumerable<Task<T>>` в порядке завершения.
 
 ### 4.3. Cancellation
 
@@ -674,7 +697,7 @@ public async Task<string> GetAsync(string url)
 
 ## 6. Synchronization primitives
 
-### 6.1. lock keyword
+### 6.1. lock keyword и System.Threading.Lock (.NET 9+)
 
 ```csharp
 private readonly object _lock = new();
@@ -695,6 +718,29 @@ public void Increment()
 ```
 
 `lock` — Monitor-based, **synchronous**. Cannot await inside!
+
+**.NET 9+ / C# 13: `System.Threading.Lock`** — первый типизированный lock-объект. `lock`-statement распознаёт его и вместо Monitor генерирует вызов `EnterScope()`:
+
+```csharp
+private readonly Lock _lock = new();   // вместо object
+private int _counter;
+
+public void Increment()
+{
+    lock (_lock)   // компилятор генерирует:
+    {              // using (_lock.EnterScope()) { _counter++; }
+        _counter++;
+    }
+}
+```
+
+Почему лучше `object`-lock:
+- **Семантика в типе** — нельзя случайно залочиться на произвольном объекте (`lock (this)`, `lock (typeof(X))`, строки).
+- **Быстрее** — dedicated-реализация без object header / sync-block Monitor'а.
+- **`await` внутри — ошибка компиляции**, как и с обычным `lock`; причём даже ручной `using (_lock.EnterScope()) { await ...; }` не скомпилируется — `Lock.Scope` это `ref struct` и не может пересекать `await`.
+- **Защита от деградации**: неявная конвертация `Lock` → `object` даёт warning CS9216 — иначе залочились бы Monitor'ом мимо оптимизированного пути.
+
+Миграция с object-lock тривиальна: поменять тип поля `object` → `Lock`, сам `lock (_lock)` не трогать. Важно лишь не смешивать: все точки входа должны лочиться на одном и том же `Lock`-поле.
 
 ### 6.2. lock в async — anti-pattern
 
@@ -896,7 +942,7 @@ foreach (var item in bc.GetConsumingEnumerable())
 
 Ключевое: `Take` / `Add` **блокируют поток** (не `await`). В async-коде это ведёт к thread-pool starvation — там предпочитай `Channel<T>` (см. [[#9. Channels и IAsyncEnumerable|раздел 9]]), у которого `WriteAsync` / `ReadAllAsync` освобождают поток. `BlockingCollection<T>` оправдан в чисто синхронном пайплайне (старый код, dedicated worker-потоки).
 
-### 6.8. ReadyToRun / AsyncLocal
+### 6.8. AsyncLocal / ExecutionContext
 
 ```csharp
 // AsyncLocal — context flows через async calls
@@ -914,10 +960,10 @@ public async Task DoSubWork()
 }
 ```
 
-`AsyncLocal<T>` — like ThreadLocal но flows через `await`. Used для request context (correlation IDs, current user).
+`AsyncLocal<T>` — like ThreadLocal но flows через `await`. Used для request context (correlation IDs, current user). Механизм: значение живёт в **`ExecutionContext`**, который runtime захватывает при `await` и восстанавливает в continuation — на каком бы потоке она ни выполнилась.
 
 > [!question]- Интервью: чем `lock` отличается от `SemaphoreSlim`?
-> **`lock`** — Monitor-based, **synchronous only**. Cannot await inside. Fast (~10ns). Single-threaded entry. **`SemaphoreSlim`** — async-aware (`WaitAsync()` releases thread). Counter-based (allow N concurrent). Slower (~50-100ns) but works в async. **`SemaphoreSlim(1, 1)`** — async-friendly mutex (initial 1, max 1). **`SemaphoreSlim(N, N)`** — throttle для N concurrent operations. **Use cases lock**: synchronous critical sections (counters, dictionaries). **Use cases SemaphoreSlim**: async critical sections, throttling concurrent operations (HTTP requests, DB connections). **Cannot mix**: `lock(obj) { await ...; }` compile error. **Best practice 2024+**: lock для sync hot paths, SemaphoreSlim для async / throttling, `Interlocked` для simple atomic operations.
+> **`lock`** — Monitor-based, **synchronous only**. Cannot await inside. Fast (~10ns). Single-threaded entry. **`SemaphoreSlim`** — async-aware (`WaitAsync()` releases thread). Counter-based (allow N concurrent). Slower (~50-100ns) but works в async. **`SemaphoreSlim(1, 1)`** — async-friendly mutex (initial 1, max 1). **`SemaphoreSlim(N, N)`** — throttle для N concurrent operations. **Use cases lock**: synchronous critical sections (counters, dictionaries). **Use cases SemaphoreSlim**: async critical sections, throttling concurrent operations (HTTP requests, DB connections). **Cannot mix**: `lock(obj) { await ...; }` compile error. **Best practice (.NET 9+)**: `lock` на `System.Threading.Lock` для sync hot paths, SemaphoreSlim для async / throttling, `Interlocked` для simple atomic operations.
 
 ---
 

@@ -19,7 +19,7 @@ date: 2026-08-02
 |----------|------------|-------------|
 | Объём кода | Мало boilerplate | Больше boilerplate |
 | Производительность | Быстрее | Чуть медленнее |
-| Когда | Новые проекты, простые API | Legacy, сложные фильтры |
+| Когда | Новые проекты (любой сложности) | Legacy, MVC views, custom model binders |
 | DI | Явный (в параметрах) | Через конструктор |
 | Группировка | MapGroup() | [Route] атрибут |
 | AOT/Trimming | Поддерживает | Ограниченно |
@@ -29,7 +29,7 @@ date: 2026-08-02
 ---
 
 > [!question]- **Интервью: Minimal API vs Controllers — trade-offs?**
-> **Minimal API** — легковесные, меньше boilerplate, хорошо для простых CRUD и прототипов. **Controllers** — полная модель MVC, фильтры, model binding, Swagger из коробки. Для сложных API с валидацией, авторизацией на уровне action — Controllers.
+> С .NET 8-10 функциональный паритет почти полный: у Minimal API есть endpoint-фильтры, per-endpoint auth (`RequireAuthorization`), встроенный OpenAPI — «сложный API → Controllers» больше не аргумент. **Minimal API** — меньше boilerplate, быстрее, дружит с Native AOT; организация через MapGroup + IEndpoint pattern. **Controllers** оправданы в legacy-кодовой базе, при MVC views и при кастомном model binding (`IModelBinder`), которого в Minimal API нет.
 
 ## Model Binding
 
@@ -483,6 +483,25 @@ if (app.Environment.IsDevelopment())
 }
 ```
 
+### OpenAPI в .NET 10
+
+- **OpenAPI 3.1 по умолчанию** (откат: `options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0`).
+- **YAML-вывод** — суффикс маршрута: `app.MapOpenApi("/openapi/{documentName}.yaml")`.
+- **XML doc comments** попадают в документ через source generator: `<summary>` / `<param>` / `<response>` из кода становятся summaries/descriptions в OpenAPI без атрибутов. Достаточно `<GenerateDocumentationFile>true</GenerateDocumentationFile>` в .csproj — генератор подключается автоматически с пакетом `Microsoft.AspNetCore.OpenApi`.
+
+### Scalar — популярная замена Swagger UI
+
+```csharp
+// NuGet: Scalar.AspNetCore
+app.MapOpenApi();
+if (app.Environment.IsDevelopment())
+{
+    app.MapScalarApiReference(); // → /scalar/v1
+}
+```
+
+Современный UI поверх встроенного OpenAPI-документа: тёмная тема, поиск, генерация примеров запросов (curl, HttpClient, fetch). Частый дефолт для новых .NET 9/10 проектов вместо Swagger UI.
+
 ### Кастомизация OpenAPI документа
 
 ```csharp
@@ -538,10 +557,12 @@ app.MapGet("/orders/{id}", async (Guid id, GetOrderHandler handler, Cancellation
 // OpenAPI: 200 → OrderDto, 404 → empty, 400 → ProblemDetails
 ```
 
-### Swashbuckle (legacy, до .NET 9)
+### Swashbuckle — проект возрождён
+
+После паузы 2023-2024 у Swashbuckle новая core-команда: v8 вышла в марте 2025, актуальная v10.x поддерживает ASP.NET Core 10 и OpenAPI 3.1 (opt-in). Валидный выбор, если нужен полный Swagger UI-стек из коробки или проект ещё на .NET 8.
 
 ```csharp
-// NuGet: Swashbuckle.AspNetCore (для .NET 8 и старше)
+// NuGet: Swashbuckle.AspNetCore
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {
@@ -565,9 +586,24 @@ builder.Services.AddSwaggerGen(opts =>
 
 | Подход | Версия | Плюсы | Минусы |
 |--------|--------|-------|--------|
-| **Встроенный OpenAPI** | .NET 9+ | Нет сторонних зависимостей, Document Transformers | Swagger UI нужен отдельно |
-| **Swashbuckle** | .NET 6-8 | Swagger UI из коробки, зрелый | Стороння зависимость, не обновляется |
+| **Встроенный OpenAPI** | .NET 9+ | Нет сторонних зависимостей, Document Transformers; в .NET 10 — OpenAPI 3.1 + YAML + XML comments | UI нужен отдельно (Scalar / Swagger UI) |
+| **Swashbuckle** | .NET 6+ | Swagger UI из коробки, зрелый; активно поддерживается (v10.x, OpenAPI 3.1) | Сторонняя зависимость |
 | **NSwag** | Любая | Генерация клиентов (C#, TS) | Сложнее в настройке |
+
+---
+
+## Server-Sent Events (.NET 10)
+
+.NET 10 добавил нативный SSE: `TypedResults.ServerSentEvents` принимает `IAsyncEnumerable<SseItem<T>>` и берёт на себя wire-формат `text/event-stream` (data-строки, event id, retry, cancellation). Раньше SSE собирали руками через `Response.WriteAsync` с ручным контролем buffering.
+
+```csharp
+app.MapGet("/stocks", (StockService service, CancellationToken ct) =>
+    TypedResults.ServerSentEvents(
+        service.StreamPricesAsync(ct),   // IAsyncEnumerable<SseItem<StockPrice>>
+        eventType: "priceUpdate"));
+```
+
+Это меняет decision tree «SignalR vs SSE vs WebSocket»: для **one-way** стриминга (AI-токены из LLM, live-цены, прогресс long-running задач) SSE теперь first-class в фреймворке — обычный HTTP, проходит через прокси/CDN без апгрейда соединения, авто-reconnect у браузерного `EventSource`. SignalR оправдан, когда нужен **двусторонний** обмен, группы/broadcast или fallback-транспорты. См. [[signalr|SignalR]].
 
 ---
 

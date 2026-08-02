@@ -1,7 +1,7 @@
 ---
 tags: [testing, mocking, nsubstitute, moq, fakes, stubs, test-doubles]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Mocking Strategies — стратегии моков
@@ -137,8 +137,8 @@ public void Test()
     
     service.NotifyUser(1);
     
-    spy.SentEmails.Should().ContainSingle()
-        .Which.To.Should().Be("user1@example.com");
+    spy.SentEmails.ShouldHaveSingleItem()
+        .To.ShouldBe("user1@example.com");
 }
 ```
 
@@ -293,13 +293,13 @@ public class OrderService(TimeProvider time)
         time.GetUtcNow() > order.ExpiresAt;
 }
 
-// Test
+// Test — FakeTimeProvider из пакета Microsoft.Extensions.TimeProvider.Testing
 var time = new FakeTimeProvider();
 time.SetUtcNow(DateTimeOffset.Parse("2024-06-01"));
 var service = new OrderService(time);
 ```
 
-См. [[csharp-language-design|C# Language Design]] — TimeProvider.
+См. [[bcl-essentials|BCL Essentials]] — TimeProvider (canonical deep-dive).
 
 ---
 
@@ -449,8 +449,8 @@ public void Logs_warning()
     
     service.DoSomething();
     
-    loggerFactory.Sink.LogEntries.Should()
-        .Contain(e => e.LogLevel == LogLevel.Warning);
+    loggerFactory.Sink.LogEntries
+        .ShouldContain(e => e.LogLevel == LogLevel.Warning);
 }
 ```
 
@@ -459,6 +459,8 @@ public void Logs_warning()
 ## 7. Mocking time
 
 ### TimeProvider (.NET 8+) — preferred
+
+`FakeTimeProvider` живёт в пакете `Microsoft.Extensions.TimeProvider.Testing`.
 
 ```csharp
 public class OrderService(TimeProvider time)
@@ -471,7 +473,7 @@ var fakeTime = new FakeTimeProvider();
 fakeTime.SetUtcNow(DateTimeOffset.Parse("2024-06-01"));
 
 var service = new OrderService(fakeTime);
-service.IsExpired(order).Should().BeTrue();
+service.IsExpired(order).ShouldBeTrue();
 
 // Advance
 fakeTime.Advance(TimeSpan.FromMinutes(5));
@@ -536,8 +538,8 @@ public async Task Service_saves_entity_to_database()
     await service.Do(entity);
     
     var saved = await repo.GetByIdAsync(entity.Id);
-    saved.Should().NotBeNull();
-    saved.Status.Should().Be("processed");
+    saved.ShouldNotBeNull();
+    saved.Status.ShouldBe("processed");
 }
 ```
 
@@ -638,7 +640,7 @@ public void Test()
     
     var result = mock.Process(1);  // ⚠️ Тестируем мок, не реальный код!
     
-    result.Should().Be(42);
+    result.ShouldBe(42);
 }
 ```
 
@@ -657,7 +659,7 @@ calc.Add(2, 3).Returns(5);
 
 // ✅ Реальный
 var calc = new Calculator();
-calc.Add(2, 3).Should().Be(5);
+calc.Add(2, 3).ShouldBe(5);
 ```
 
 ### Value objects / records
@@ -712,7 +714,7 @@ API endpoints, EF queries, message handlers — лучше integration tests с 
 | `DbContext` | НЕ мокать — repository pattern |
 | `HttpClient` | WireMock.NET или HttpMessageHandler |
 | `ILogger<T>` | NullLogger\<T\>.Instance |
-| `TimeProvider` | FakeTimeProvider (.NET 8+) |
+| `TimeProvider` | `FakeTimeProvider` (пакет Microsoft.Extensions.TimeProvider.Testing) |
 | `IConfiguration` | Real `ConfigurationBuilder` с in-memory |
 | `IMediator` | NSubstitute mock |
 | Pure function class | Реальный |
@@ -813,7 +815,7 @@ public class OrderRepositoryTests : IAsyncLifetime
         await repo.SaveAsync(new Order { /* ... */ });
         
         var saved = await repo.GetByIdAsync(1);
-        saved.Should().NotBeNull();
+        saved.ShouldNotBeNull();
     }
 }
 ```
@@ -845,8 +847,8 @@ public class OrderRepositoryTests : IAsyncLifetime
 │   └── Real API contract testing → WireMock.Net
 │
 ├── Time / DateTime?
-│   ├── ITimeProvider abstraction (.NET 8+)
-│   └── Mock через interface
+│   ├── TimeProvider (.NET 8+) + FakeTimeProvider
+│   └── Mock через interface (legacy)
 │
 └── Файловая система?
     └── System.IO.Abstractions + MockFileSystem

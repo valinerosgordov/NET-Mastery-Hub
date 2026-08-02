@@ -199,7 +199,8 @@ RUN --mount=type=cache,target=/root/.nuget/packages \
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-chiseled AS runtime
 WORKDIR /app
 
-# Non-root user (chiseled images имеют app user 64198 по умолчанию)
+# Non-root user: во всех .NET 8+ images есть user `app` (UID 1654, env $APP_UID);
+# chiseled-образы запускаются под ним по умолчанию
 USER app
 
 COPY --from=build --chown=app:app /app/publish .
@@ -361,7 +362,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-chiseled AS runtime
 - Меньше CVEs (нет vulnerable packages)
 - Меньше attack surface (нет shell для exploitation)
 - Smaller image (~110 MB vs ~220 MB)
-- Pre-configured non-root user `app` (UID 64198)
+- Pre-configured non-root user `app` (UID **1654**, задан env-переменной `$APP_UID`; ранние .NET 8 preview использовали 64198 — в GA число сменили). UID практически значим: его же прописывают в k8s `securityContext.runAsUser: 1654`
 
 **Недостатки:**
 - Нельзя `docker exec -it container sh` для debugging
@@ -1228,6 +1229,47 @@ RUN dotnet publish -r linux-${TARGETARCH} ...
 
 ---
 
+## SDK container builds — dotnet publish без Dockerfile
+
+.NET SDK умеет собирать OCI-image сам — таргет `PublishContainer` (встроен в SDK с .NET 8, для web-проектов — с .NET 7). Механизм: SDK уже знает всё, что руками пишут в Dockerfile — TFM, RID, entry point, порты; он берёт правильный базовый образ (`aspnet` / `runtime` / `runtime-deps` для AOT), кладёт publish-выход слоем поверх и пишет image прямо в локальный Docker daemon или registry. Docker при push в registry вообще не нужен.
+
+```bash
+# Локальный image в Docker daemon
+dotnet publish /t:PublishContainer -p ContainerRepository=my-app -p ContainerImageTags=1.2.0
+
+# Сразу push в registry (без Docker daemon)
+dotnet publish /t:PublishContainer \
+    -p ContainerRepository=myteam/my-app \
+    -p ContainerImageTags='"1.2.0;latest"' \
+    -p ContainerRegistry=ghcr.io
+```
+
+Настройки — обычные MSBuild-свойства в csproj:
+
+```xml
+<PropertyGroup>
+  <ContainerRepository>my-app</ContainerRepository>
+  <ContainerImageTags>1.2.0;latest</ContainerImageTags>
+  <!-- базовый образ подменяется при необходимости -->
+  <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:10.0-chiseled</ContainerBaseImage>
+</PropertyGroup>
+```
+
+Ключевое про security: **rootless по умолчанию** — сгенерированный образ запускается под `USER $APP_UID` (1654), не под root; порт — 8080. То, что в Dockerfile настраивают руками, здесь дефолт.
+
+### Когда достаточно vs когда Dockerfile
+
+| SDK container build достаточно | Нужен Dockerfile |
+|-------------------------------|------------------|
+| Стандартное ASP.NET Core / worker приложение | `apt-get install` нативных зависимостей (ffmpeg, ICU-кастом) |
+| CI-конвейер «build → push → deploy» | Кастомные слои, файлы вне publish-выхода |
+| Не хочется поддерживать Dockerfile-копипасту | Множественные custom stages (тесты внутри build, генерация клиентов) |
+| Быстрый переход на chiseled (`ContainerBaseImage`) | Нестандартный ENTRYPOINT / init-скрипты |
+
+Правило: начинай с `PublishContainer`; Dockerfile — когда понадобился шаг, которого нет среди `Container*`-свойств. Junior-версия — [[docker-for-dev|Docker для разработчика]] §6.1.
+
+---
+
 ## Security best practices
 
 ### 1. Non-root user
@@ -1239,7 +1281,7 @@ USER app
 
 Если container compromised → attacker не имеет root access. Defense-in-depth.
 
-В chiseled images уже есть user `app` (UID 64198) — просто `USER app`.
+Во всех .NET 8+ images уже есть user `app` (UID 1654) — просто `USER app` или переносимый вариант `USER $APP_UID` (env-переменная задана в образе; то же число идёт в k8s `runAsUser: 1654`). Chiseled-образы под ним запускаются по умолчанию.
 
 ### 2. Read-only filesystem
 

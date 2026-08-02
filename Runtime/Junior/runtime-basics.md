@@ -1,7 +1,7 @@
 ---
 tags: [runtime, basics, junior, clr, jit, gc, managed-code]
 level: Junior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Runtime Basics — CLR, JIT, GC, managed code overview
@@ -122,26 +122,28 @@ CLR = Common Language Runtime — engine, который выполняет .NET
 - Open-source
 - Прародитель .NET 5+
 
-.NET 5 / 6 / 7 / 8 / 9:
+.NET 5 / 6 / 7 / 8 / 9 / 10:
 - Cross-platform, единая платформа
 - LTS releases (6, 8, 10) — 3 года поддержки
-- STS releases (5, 7, 9) — 18 месяцев
+- STS releases (5, 7, 9, 11) — 24 месяца (политика обновлена в 2025; раньше было 18)
 
-В 2024-2026: .NET 8 (LTS) и .NET 9 (STS) — current.
+В 2026: current — .NET 10 (LTS, ноябрь 2025, поддержка до ноября 2028).
+⚠️ .NET 8 (LTS) и .NET 9 (STS) — ОБА EOL 10.11.2026.
+.NET 11 (STS) — в превью, GA ~ноябрь 2026.
 ```
 
 ### 2.3. Что выбрать для нового проекта
 
 ```
-✅ Новый проект → .NET 8 (LTS до Nov 2026) или .NET 9
-✅ Library → multi-target (net8.0;net9.0)
+✅ Новый проект → .NET 10 (LTS до Nov 2028)
+✅ Library → multi-target (net8.0;net10.0)
 ❌ .NET Framework только для legacy maintenance
 
-Migration .NET Framework → .NET 8:
+Migration .NET Framework → .NET 10:
 - ~Большинство кода работает
 - WCF: переходи на gRPC / ASP.NET Core
 - WebForms: переписывать (нет direct замены)
-- WPF / WinForms: работают на .NET 8 (Windows only)
+- WPF / WinForms: работают на .NET 10 (Windows only)
 ```
 
 ### 2.4. Versions runtime в системе
@@ -152,10 +154,10 @@ dotnet --list-runtimes
 
 # Output (примерно):
 # Microsoft.AspNetCore.App 8.0.0 [...]
-# Microsoft.AspNetCore.App 9.0.0 [...]
+# Microsoft.AspNetCore.App 10.0.0 [...]
 # Microsoft.NETCore.App 8.0.0 [...]
-# Microsoft.NETCore.App 9.0.0 [...]
-# Microsoft.WindowsDesktop.App 8.0.0 [...]   (только Windows)
+# Microsoft.NETCore.App 10.0.0 [...]
+# Microsoft.WindowsDesktop.App 10.0.0 [...]   (только Windows)
 ```
 
 ### 2.5. Side-by-side runtimes
@@ -163,7 +165,7 @@ dotnet --list-runtimes
 Можно иметь несколько versions installed одновременно. App выбирает требуемую через `<TargetFramework>` в csproj.
 
 ```xml
-<TargetFramework>net8.0</TargetFramework>
+<TargetFramework>net10.0</TargetFramework>
 ```
 
 > [!question]- Интервью: что такое CLR?
@@ -244,7 +246,7 @@ dotnet publish -c Release -r linux-x64 \
 
 ### 3.5. Tiered compilation
 
-`.NET 6+` использует **tiered JIT**:
+**Tiered JIT** включён по умолчанию начиная с .NET Core 3.0:
 
 ```
 Tier 0: Quick JIT (no optimization)
@@ -264,7 +266,7 @@ Result:
 ```
 
 > [!question]- Интервью: что такое JIT compilation?
-> **Just-In-Time** compilation — преобразование IL (intermediate language) в native machine code **во время выполнения**, а не во время build. **Workflow**: 1) C# → IL при build (saved в DLL). 2) При запуске CLR loads DLL. 3) Когда method called first time — JIT compiles в machine code. 4) Результат cached. 5) Subsequent calls — direct execution. **Pros**: optimized для current CPU (SSE/AVX availability), platform-independent IL. **Cons**: slow cold start (compilation). **Tiered JIT** (.NET 6+): Tier 0 (quick) + Tier 1 (optimized) — балансирует startup speed и runtime performance. **Альтернатива**: Native AOT — compiles ahead of time, no JIT, instant startup.
+> **Just-In-Time** compilation — преобразование IL (intermediate language) в native machine code **во время выполнения**, а не во время build. **Workflow**: 1) C# → IL при build (saved в DLL). 2) При запуске CLR loads DLL. 3) Когда method called first time — JIT compiles в machine code. 4) Результат cached. 5) Subsequent calls — direct execution. **Pros**: optimized для current CPU (SSE/AVX availability), platform-independent IL. **Cons**: slow cold start (compilation). **Tiered JIT** (по умолчанию с .NET Core 3.0): Tier 0 (quick) + Tier 1 (optimized) — балансирует startup speed и runtime performance. **Альтернатива**: Native AOT — compiles ahead of time, no JIT, instant startup.
 
 ---
 
@@ -682,7 +684,7 @@ public async Task<User> GetUserAsync(int id) =>
 <TargetFramework>net48</TargetFramework>   <!-- ❌ Legacy -->
 ```
 
-**Фикс**: `<TargetFramework>net8.0</TargetFramework>` для нового кода.
+**Фикс**: `<TargetFramework>net10.0</TargetFramework>` для нового кода.
 
 ### 7.10. Старые JIT assumptions
 
@@ -691,7 +693,7 @@ public async Task<User> GetUserAsync(int id) =>
 **Фикс**: measure (BenchmarkDotNet) — не предполагай.
 
 > [!question]- Интервью: топ-3 ошибки начинающих с runtime?
-> 1) **GC.Collect() вручную** — бесполезно почти всегда, делает только хуже. GC сам знает когда. 2) **Boxing в hot path** — `List<object>` для int values, миллион allocations. Fix: `List<int>` (generic). 3) **Sync I/O в ASP.NET Core** — blocks thread pool worker, starves сервер. Fix: async/await everywhere. **Bonus**: не using для IDisposable — connection leaks. **Bonus 2**: .NET Framework для нового проекта — выбирай .NET 8+.
+> 1) **GC.Collect() вручную** — бесполезно почти всегда, делает только хуже. GC сам знает когда. 2) **Boxing в hot path** — `List<object>` для int values, миллион allocations. Fix: `List<int>` (generic). 3) **Sync I/O в ASP.NET Core** — blocks thread pool worker, starves сервер. Fix: async/await everywhere. **Bonus**: не using для IDisposable — connection leaks. **Bonus 2**: .NET Framework для нового проекта — выбирай текущий .NET (10 LTS).
 
 ---
 
@@ -700,7 +702,7 @@ public async Task<User> GetUserAsync(int id) =>
 ```csharp
 // === Runtime check ===
 Console.WriteLine(Environment.Version);            // CLR version
-Console.WriteLine(RuntimeInformation.FrameworkDescription);   // .NET 8.0.0
+Console.WriteLine(RuntimeInformation.FrameworkDescription);   // .NET 10.0.0
 Console.WriteLine(RuntimeInformation.OSDescription);          // OS info
 Console.WriteLine(Environment.ProcessorCount);     // CPU cores
 Console.WriteLine(GC.GetTotalMemory(false));        // current heap usage

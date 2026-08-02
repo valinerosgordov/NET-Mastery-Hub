@@ -1,7 +1,7 @@
 ---
 tags: [infrastructure, cicd, github-actions, ci-cd, pipeline, dotnet, middle]
 level: Middle
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # CI/CD с GitHub Actions
@@ -67,10 +67,10 @@ jobs:                              # параллельные jobs
   build:
     runs-on: ubuntu-latest         # или windows-latest, macos-latest
     steps:                         # последовательные steps
-    - uses: actions/checkout@v4    # action из marketplace
+    - uses: actions/checkout@v6    # action из marketplace
     
     - name: Setup .NET             # custom step
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '10.0.x'
     
@@ -87,7 +87,7 @@ jobs:                              # параллельные jobs
 | **Event** | Триггер (push, pull_request, schedule, workflow_dispatch) |
 | **Job** | Группа steps на одном runner |
 | **Step** | Individual command или action |
-| **Action** | Переиспользуемый block (`uses: actions/checkout@v4`) |
+| **Action** | Переиспользуемый block (`uses: actions/checkout@v6`) |
 | **Runner** | VM где job выполняется (Ubuntu / Windows / macOS / self-hosted) |
 
 ---
@@ -115,17 +115,17 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0  # для git history (если нужно)
     
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Cache NuGet packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.nuget/packages
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
@@ -142,13 +142,13 @@ jobs:
       run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults
     
     - name: Upload coverage
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         directory: ./TestResults
         token: ${{ secrets.CODECOV_TOKEN }}
     
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: test-results
@@ -168,8 +168,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '10.0.x'
     - run: dotnet format --verify-no-changes
@@ -178,8 +178,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint                    # сначала lint, потом build
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '10.0.x'
     - run: dotnet build --configuration Release
@@ -192,8 +192,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '10.0.x'
     - run: dotnet test
@@ -201,26 +201,26 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Run CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: csharp
     - run: dotnet build
-    - uses: github/codeql-action/analyze@v3
+    - uses: github/codeql-action/analyze@v4
 
   docker-build:
     runs-on: ubuntu-latest
     needs: [test, security-scan]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: docker/setup-buildx-action@v3
     - uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - uses: docker/build-push-action@v5
+    - uses: docker/build-push-action@v6
       with:
         push: true
         tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
@@ -344,7 +344,7 @@ jobs:
   run: dotnet publish -c Release -o ./publish
 
 - name: Upload publish
-  uses: actions/upload-artifact@v4
+  uses: actions/upload-artifact@v5
   with:
     name: publish
     path: ./publish
@@ -358,7 +358,7 @@ deploy:
   needs: build
   runs-on: ubuntu-latest
   steps:
-  - uses: actions/download-artifact@v4
+  - uses: actions/download-artifact@v6
     with:
       name: publish
       path: ./publish
@@ -374,7 +374,7 @@ NuGet cache **обязательно** — без него каждый build з
 
 ```yaml
 - name: Cache NuGet
-  uses: actions/cache@v4
+  uses: actions/cache@v5
   with:
     path: ~/.nuget/packages
     key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
@@ -390,7 +390,7 @@ NuGet cache **обязательно** — без него каждый build з
 
 ```yaml
 - name: Cache build
-  uses: actions/cache@v4
+  uses: actions/cache@v5
   with:
     path: |
       ~/.nuget/packages
@@ -418,7 +418,7 @@ NuGet cache **обязательно** — без него каждый build з
 
 ```yaml
 - name: Upload to Codecov
-  uses: codecov/codecov-action@v4
+  uses: codecov/codecov-action@v5
   with:
     directory: ./TestResults
     token: ${{ secrets.CODECOV_TOKEN }}  # для public repo не нужен
@@ -453,7 +453,7 @@ docker-build-push:
   permissions:
     packages: write              # для GHCR
   steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
   
   - name: Set up Docker Buildx
     uses: docker/setup-buildx-action@v3
@@ -476,7 +476,7 @@ docker-build-push:
         type=semver,pattern={{version}}
   
   - name: Build and push
-    uses: docker/build-push-action@v5
+    uses: docker/build-push-action@v6
     with:
       context: .
       file: ./Dockerfile
@@ -500,9 +500,9 @@ deploy-azure:
   runs-on: ubuntu-latest
   environment: production
   steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
   
-  - uses: actions/setup-dotnet@v4
+  - uses: actions/setup-dotnet@v6
     with:
       dotnet-version: '10.0.x'
   
@@ -525,7 +525,7 @@ deploy-k8s:
   runs-on: ubuntu-latest
   environment: production
   steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
   
   - uses: azure/setup-kubectl@v3
     with:
@@ -567,9 +567,9 @@ nuget-publish:
   runs-on: ubuntu-latest
   if: startsWith(github.ref, 'refs/tags/v')   # только при tag
   steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
   
-  - uses: actions/setup-dotnet@v4
+  - uses: actions/setup-dotnet@v6
     with:
       dotnet-version: '10.0.x'
   
@@ -596,8 +596,8 @@ test:
       dotnet: ['8.0.x', '10.0.x']
   runs-on: ${{ matrix.os }}
   steps:
-  - uses: actions/checkout@v4
-  - uses: actions/setup-dotnet@v4
+  - uses: actions/checkout@v6
+  - uses: actions/setup-dotnet@v6
     with:
       dotnet-version: ${{ matrix.dotnet }}
   - run: dotnet test
@@ -626,8 +626,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ inputs.dotnet-version }}
     - run: dotnet build
@@ -664,20 +664,20 @@ jobs:
     DB_PASSWORD: ${{ secrets.PASSWORD }}
 ```
 
-### 3. `actions/checkout@v3` outdated
+### 3. Устаревшие мажорки actions (`checkout@v4`, `cache@v4`)
 
-Используй последнюю версию (v4). Регулярно обновляй.
+Официальные actions регулярно поднимают мажорку — в основном из-за смены Node-runtime на runner'е (август 2025: волна node24 → checkout v5, setup-dotnet v5; конец 2025 — начало 2026: checkout v6, setup-dotnet v6, cache v5, upload-artifact v5). Старые мажорки продолжают работать до отключения их Node-версии на runner'ах, потом workflow ломается разом. Механизм защиты: Dependabot с `package-ecosystem: github-actions` — обновляет пины автоматически. Актуальные на 2026: `checkout@v6`, `setup-dotnet@v6`, `cache@v5`, `upload-artifact@v5`, `download-artifact@v6`, `codeql-action@v4`.
 
 ### 4. Hardcoded versions
 
 ```yaml
 # ❌
-- uses: actions/setup-dotnet@v4
+- uses: actions/setup-dotnet@v6
   with:
     dotnet-version: '10.0.0'        # specific patch — может не быть на runner
 
 # ✅ wildcard
-- uses: actions/setup-dotnet@v4
+- uses: actions/setup-dotnet@v6
   with:
     dotnet-version: '10.0.x'
 ```
@@ -750,7 +750,7 @@ jobs:
 
 - **Маленькие jobs** — easier to debug, parallel
 - **Cache NuGet packages** — must
-- **Pin action versions** — `@v4` минимум, `@sha` лучше
+- **Pin action versions** — актуальная мажорка (`@v6`) минимум, `@sha` лучше (см. Supply-chain hardening ниже)
 - **`needs:`** для dependencies — не запускай deploy если test failed
 - **Environments** для staging/production
 - **Approvals** для production
@@ -767,6 +767,52 @@ concurrency:
   cancel-in-progress: true
 ```
 
+### Supply-chain hardening CI
+
+CI — это машина с твоими секретами, которая исполняет чужой код (actions). Три уровня защиты:
+
+**1. Pin actions по SHA, не по тегу.** Тег (`@v45`) — mutable: владелец (или взломщик) может переставить его на другой коммит, и твой workflow молча начнёт исполнять новый код. Урок — атака на `tj-actions/changed-files` (март 2025, CVE-2025-30066): злоумышленник переписал существующие version-теги на вредоносный коммит, который дампил память runner'а и печатал секреты (`GITHUB_TOKEN`, cloud-ключи) в публичные build-логи. Пострадали тысячи репозиториев с тег-пинами; SHA-пины атаку не подхватили.
+
+```yaml
+# ❌ mutable — тег могут переставить
+- uses: some-org/some-action@v45
+
+# ✅ immutable — полный 40-символьный commit SHA (+ комментарий с версией для читаемости)
+- uses: some-org/some-action@0123456789abcdef0123456789abcdef01234567 # v45.0.3
+```
+
+Dependabot умеет обновлять SHA-пины (`package-ecosystem: github-actions`) — безопасность без ручного труда. Official `actions/*` — минимум мажорный тег, для third-party — только SHA.
+
+**2. Минимальный `GITHUB_TOKEN`.** По умолчанию токен может иметь широкие права на репо. Объявляй на уровне workflow read-only и расширяй точечно per-job:
+
+```yaml
+permissions:
+  contents: read          # default для всего workflow
+
+jobs:
+  docker-push:
+    permissions:
+      contents: read
+      packages: write     # только этому job нужен GHCR push
+```
+
+Скомпрометированная action получает ровно те права, что ты выдал, а не «всё».
+
+**3. Artifact attestations (SLSA provenance).** GitHub подписывает метаданные сборки — какой workflow, из какого коммита, на каком runner'е собрал артефакт. Потребитель проверяет `gh attestation verify` — защита от подмены артефакта после сборки:
+
+```yaml
+jobs:
+  build:
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - run: dotnet publish -c Release -o ./publish
+      - uses: actions/attest-build-provenance@v4   # с v4 — обёртка над actions/attest
+        with:
+          subject-path: ./publish/MyApp.dll
+```
+
 ---
 
 ## 17. Cheat sheet
@@ -777,15 +823,15 @@ concurrency:
 | Запустить на PR | `on: pull_request` |
 | Manual trigger | `workflow_dispatch` |
 | Schedule | `on: schedule: cron: '0 0 * * *'` |
-| Setup .NET | `actions/setup-dotnet@v4` |
-| Cache NuGet | `actions/cache@v4` + `~/.nuget/packages` |
+| Setup .NET | `actions/setup-dotnet@v6` |
+| Cache NuGet | `actions/cache@v5` + `~/.nuget/packages` |
 | Secret | `${{ secrets.NAME }}` |
 | Если файлы | `paths: ['**.cs']` |
 | Многоплатформенно | `strategy.matrix.os` |
 | Job dependency | `needs: [build]` |
 | Conditional step | `if: github.event_name == 'push'` |
 | Output между steps | `id: step1` + `${{ steps.step1.outputs.x }}` |
-| Artifact | `actions/upload-artifact@v4` |
+| Artifact | `actions/upload-artifact@v5` |
 | Approval gate | `environment: production` |
 | Cancel duplicate | `concurrency` |
 
@@ -837,8 +883,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v6
         with: { dotnet-version: '10.0.x' }
       
       - name: Restore
@@ -853,7 +899,7 @@ jobs:
       - name: Publish artifacts
         run: dotnet publish src/MyApp.Api -c Release -o ./publish --no-build
       
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: app-package
           path: ./publish
@@ -863,7 +909,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with: { name: app-package }
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
@@ -876,7 +922,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production  # требует manual approval в GitHub
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with: { name: app-package }
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
@@ -898,7 +944,7 @@ jobs:
     password: GITHUB_TOKEN_REF
 
 - name: Build and push
-  uses: docker/build-push-action@v5
+  uses: docker/build-push-action@v6
   with:
     context: .
     push: true

@@ -1,12 +1,12 @@
 ---
 tags: [efcore, bulk, executeupdate, executedelete, performance, middle, batch]
 level: Middle
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # EF Core Bulk Operations — ExecuteUpdate, ExecuteDelete, batch operations
 
-> **Bulk INSERT/UPDATE/DELETE без change tracking. ExecuteUpdate/ExecuteDelete .NET 7+, EFCore.BulkExtensions, raw SQL bulk patterns.** Critical для production migrations, mass updates, ETL processes.
+> **Bulk INSERT/UPDATE/DELETE без change tracking. ExecuteUpdate/ExecuteDelete (EF Core 7+), EFCore.BulkExtensions, raw SQL bulk patterns.** Critical для production migrations, mass updates, ETL processes.
 
 ---
 
@@ -50,11 +50,11 @@ WHERE IsActive = 0 AND LastLogin < '2025-01-01';
 
 Один statement, БД делает работу, никаких C# objects.
 
-EF Core .NET 7+ имеет это **встроенно**.
+EF Core 7+ имеет это **встроенно**.
 
 ---
 
-## 2. ExecuteUpdate (.NET 7+)
+## 2. ExecuteUpdate (EF Core 7+)
 
 ### 2.1. Простой UPDATE
 
@@ -138,11 +138,39 @@ _logger.LogInformation("Marked {Count} users for purge", rowsUpdated);
 ```
 
 > [!question]- **Интервью: ExecuteUpdate vs traditional update?**
-> **ExecuteUpdate** (.NET 7+) — генерирует **один UPDATE SQL** для всех matching rows. **Traditional**: load entities → modify → SaveChanges → N UPDATEs. **ExecuteUpdate plus**: 1) **Performance** — миллионы rows в один statement. 2) **Memory** — не загружает в C#. 3) **Atomicity** — один SQL transaction. **Minus**: 1) **Не triggers Domain Events / Interceptors / Auditing** через DbContext. 2) **Не optimistic concurrency check**. 3) **Сложно для multi-table updates**. **Use cases**: data cleanup, mass status changes, ETL, cache warming. **Когда не use**: critical business operations с auditing, complex graph updates.
+> **ExecuteUpdate** (EF Core 7+) — генерирует **один UPDATE SQL** для всех matching rows. **Traditional**: load entities → modify → SaveChanges → N UPDATEs. **ExecuteUpdate plus**: 1) **Performance** — миллионы rows в один statement. 2) **Memory** — не загружает в C#. 3) **Atomicity** — один SQL transaction. **Minus**: 1) **Не triggers Domain Events / Interceptors / Auditing** через DbContext. 2) **Не optimistic concurrency check**. 3) **Сложно для multi-table updates**. **Use cases**: data cleanup, mass status changes, ETL, cache warming. **Когда не use**: critical business operations с auditing, complex graph updates.
+
+### 2.8. Эволюция ExecuteUpdate (EF Core 9 → 10)
+
+API не стоит на месте — каждая версия снимает часть кейсов, ради которых раньше брали EFCore.BulkExtensions или raw SQL:
+
+- **EF Core 9** — `SetProperty` принимает **complex type целиком**: EF сам разворачивает его в UPDATE всех замапленных колонок (раньше каждый член перечислялся вручную).
+- **EF Core 10** — сеттеры принимаются как **обычная лямбда, а не expression tree**: сеттеры можно строить динамически (условный `if` внутри), без ручной сборки `Expression`. Плюс ExecuteUpdate работает по **JSON-колонкам через complex types** — bulk update отдельного свойства внутри JSON одним SQL.
+
+```csharp
+// EF Core 9 — complex type одним SetProperty
+var newAddress = new Address("Line 1", null, "Beetley", "Norfolk", "NR20 4DR");
+await _db.Stores
+    .Where(s => s.Region == "Germany")
+    .ExecuteUpdateAsync(s => s.SetProperty(x => x.StoreAddress, newAddress));
+// SQL: UPDATE ... SET StoreAddress_Line1 = ..., StoreAddress_City = ..., ...
+
+// EF Core 10 — обычная лямбда: сеттеры добавляются условно
+await _db.Blogs.ExecuteUpdateAsync(s =>
+{
+    s.SetProperty(b => b.Views, 0);
+    if (resetName)
+    {
+        s.SetProperty(b => b.Name, "Unnamed");   // добавляется только по условию
+    }
+});
+```
+
+До EF Core 10 условные сеттеры требовали ручной композиции expression tree — error-prone boilerplate. Каждый `SetProperty` по-прежнему должен транслироваться в SQL.
 
 ---
 
-## 3. ExecuteDelete (.NET 7+)
+## 3. ExecuteDelete (EF Core 7+)
 
 ### 3.1. Простой DELETE
 
@@ -685,14 +713,14 @@ int affected = await _db.Users
 ## 7. Cheat sheet
 
 ```csharp
-// === ExecuteUpdate (.NET 7+) ===
+// === ExecuteUpdate (EF Core 7+) ===
 await _db.Users
     .Where(u => u.IsActive)
     .ExecuteUpdateAsync(u => u
         .SetProperty(x => x.LastSeen, DateTime.UtcNow)
         .SetProperty(x => x.LoginCount, x => x.LoginCount + 1));
 
-// === ExecuteDelete (.NET 7+) ===
+// === ExecuteDelete (EF Core 7+) ===
 await _db.Users
     .Where(u => !u.IsActive)
     .ExecuteDeleteAsync();

@@ -1,7 +1,7 @@
 ---
 tags: [csharp, design-patterns, senior, solid, dependency-injection, repository, factory, observer]
 level: Senior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Design Patterns в C# — практический обзор
@@ -725,7 +725,7 @@ public static double Perimeter(Shape shape) => shape switch
 };
 ```
 
-Pattern matching switch — Visitor для Closed hierarchy. Discriminated unions (когда выйдут — C# 14+) сделают ещё cleaner.
+Pattern matching switch — Visitor для Closed hierarchy. Discriminated unions (preview в C# 15 / .NET 11, GA ~ноябрь 2026) сделают ещё cleaner.
 
 ### 6.9. Chain of Responsibility — middleware
 
@@ -947,18 +947,19 @@ public abstract record Result<T>;
 public record Success<T>(T Value) : Result<T>;
 public record Failure<T>(string Error) : Result<T>;
 
-Result<int> divide = (a, b) =>
+Func<int, int, Result<int>> divide = (a, b) =>
     b == 0 ? new Failure<int>("Div by zero") : new Success<int>(a / b);
 
 var result = divide(10, 2);
 var msg = result switch
 {
     Success<int> s => $"Got {s.Value}",
-    Failure<int> f => $"Error: {f.Error}"
+    Failure<int> f => $"Error: {f.Error}",
+    _ => throw new InvalidOperationException()   // compiler не знает, что hierarchy закрыта
 };
 ```
 
-Discriminated unions (proposed C# 14+) сделают ещё cleaner.
+Discriminated unions (preview в C# 15 / .NET 11) сделают ещё cleaner — native `union` с compiler-enforced exhaustiveness, без `_`-ветки.
 
 ### 8.2. Functional pipeline через LINQ
 

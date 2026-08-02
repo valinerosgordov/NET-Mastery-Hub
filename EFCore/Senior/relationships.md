@@ -1,12 +1,12 @@
 ---
 tags: [efcore, relationships, navigation, owned-types, json-columns, value-converters, computed-columns]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Relationships, типы данных и продвинутый mapping
 
-> Полный гайд по связям и типам в EF Core. Закрывает: все relationships (1:1/1:N/N:N), TPH/TPT/TPC inheritance, Owned types, Shadow properties, Value Converters (включая Strongly-Typed IDs), JSON columns (.NET 8+), computed columns, generated values, backing fields, indexes deep, schema separation.
+> Полный гайд по связям и типам в EF Core. Закрывает: все relationships (1:1/1:N/N:N), TPH/TPT/TPC inheritance, Owned types, Shadow properties, Value Converters (включая Strongly-Typed IDs), JSON columns (EF Core 7+), computed columns, generated values, backing fields, indexes deep, schema separation.
 
 ---
 
@@ -287,7 +287,7 @@ modelBuilder.Entity<Payment>()
     .HasValue<BankTransferPayment>("BankTransfer")
     .HasValue<CryptoPayment>("Crypto");
 
-// Auto-discriminator (.NET 7+) — если не указано вручную
+// Auto-discriminator — если не указано вручную
 // EF использует имя класса как discriminator value автоматически
 ```
 
@@ -697,11 +697,11 @@ modelBuilder.Entity<User>()
 
 ---
 
-## JSON Columns (.NET 8+) — natively supported
+## JSON Columns — конспект
 
-EF Core 8 добавил поддержку JSON columns для Postgres (jsonb), SQL Server (json), SQLite, MySQL.
+Полный deep-dive (запросы, JSON-массивы, индексация, complex types) — [[ef-value-converters|EF Core Value Converters — JSON Columns]]. Здесь только суть для контекста mapping'а.
 
-### OwnsOne как JSON
+Версии: `ToJson()` для owned types появился в **EF Core 7** (SQL Server); **EF Core 8** — Npgsql (jsonb) и SQLite; **EF Core 10** — рекомендуемый путь через **complex types** (`ComplexProperty().ToJson()`), owned `ToJson()` — legacy.
 
 ```csharp
 public class Customer
@@ -710,21 +710,10 @@ public class Customer
     public Address Address { get; set; } = null!;  // как JSON
 }
 
-public class Address
-{
-    public string Street { get; init; } = "";
-    public string City { get; init; } = "";
-    public string ZipCode { get; init; } = "";
-}
-
 modelBuilder.Entity<Customer>()
-    .OwnsOne(c => c.Address, addr =>
-    {
-        addr.ToJson();  // ← вся Address в одной JSON колонке
-    });
+    .OwnsOne(c => c.Address, addr => addr.ToJson());  // вся Address в одной JSON-колонке
 ```
 
-В БД:
 ```sql
 CREATE TABLE "Customers" (
     "Id" UUID PRIMARY KEY,
@@ -732,59 +721,12 @@ CREATE TABLE "Customers" (
 );
 ```
 
-### OwnsMany как JSON array
+Запросы по JSON-свойствам (`.Where(c => c.Address.City == "Moscow")`) транслируются в `->>` / `JSON_VALUE`.
 
-```csharp
-public class User
-{
-    public Guid Id { get; set; }
-    public List<Phone> Phones { get; set; } = [];  // как JSON array
-}
+✅ **Хорошо когда:** schema-flexible части (settings, metadata), owned type не нужен в JOIN'ах, реже изменяемые данные.
+❌ **Плохо когда:** частые фильтры/JOIN по полям, нужны индексы на individual fields (в Postgres спасает GIN), большие JSON (KB+).
 
-modelBuilder.Entity<User>()
-    .OwnsMany(u => u.Phones, p => p.ToJson());
-```
-
-```sql
-CREATE TABLE "Users" (
-    "Phones" JSONB  -- [{"Number": "+1234"}, {"Number": "+5678"}]
-);
-```
-
-### Запросы по JSON properties
-
-```csharp
-// Filter по JSON property
-var moscowCustomers = await context.Customers
-    .Where(c => c.Address.City == "Moscow")
-    .ToListAsync();
-
-// Postgres JSONB:
-// WHERE "Address"->>'City' = 'Moscow'
-
-// SQL Server:
-// WHERE JSON_VALUE([Address], '$.City') = 'Moscow'
-
-// Filter по элементу JSON array
-var usersWithPhone = await context.Users
-    .Where(u => u.Phones.Any(p => p.Number == "+1234"))
-    .ToListAsync();
-```
-
-### Когда JSON columns
-
-✅ **JSON columns хорошо когда:**
-- Owned type не нужен в JOIN'ах с другими таблицами
-- Schema-flexible части модели (settings, metadata)
-- Меньше колонок, проще схема
-- Реже изменяемые данные
-
-❌ **Плохо когда:**
-- Нужно индексировать individual fields (хотя в Postgres GIN на jsonb работает)
-- Часто фильтруется/JOIN'ится по этим полям
-- Большие JSON (KB+) — затрудняет index-only scan
-
-См. [[postgresql-deep|PostgreSQL Deep — JSONB]].
+См. также [[postgresql-deep|PostgreSQL Deep — JSONB]].
 
 ---
 
@@ -805,8 +747,11 @@ modelBuilder.Entity<Order>()
 
 | Stored / Persisted | Поведение |
 |-------|-----------|
-| `stored: true` (PERSISTED) | Значение вычислено при INSERT/UPDATE и хранится | 
-| `stored: false` (default) | Вычисляется при каждом SELECT |
+| `stored: true` (PERSISTED / STORED) | Значение вычислено при INSERT/UPDATE и хранится | 
+| `stored: false` (default в EF API) | Вычисляется при каждом SELECT (virtual) |
+
+> [!warning] Postgres до 18 — только STORED
+> Virtual generated columns в PostgreSQL появились лишь в **PG 18** (и там VIRTUAL — дефолт для `GENERATED ALWAYS AS`). До PG 18 Npgsql поддерживал только `stored: true` — `stored: false` на старых версиях не сработает. В SQL Server наоборот: non-persisted computed — исторический дефолт.
 
 **Когда какой:** stored — для индексирования и частых reads. Non-stored — для редких запросов и экономии storage.
 
@@ -866,10 +811,13 @@ migrationBuilder.Sql(@"
 `Guid.NewGuid()` — random — плохо для clustered index (page splits).
 
 ```csharp
-// Sequential GUID via UUIDv7 (PG 18+) или NEWSEQUENTIALID() (SQL Server)
+// PG 18+ — нативная uuidv7(), без расширений
 modelBuilder.Entity<Order>()
     .Property(o => o.Id)
-    .HasDefaultValueSql("uuid_generate_v7()");  // если расширение установлено
+    .HasDefaultValueSql("uuidv7()");
+
+// PG < 18 — стороннее расширение pg_uuidv7 (функция uuid_generate_v7())
+// .HasDefaultValueSql("uuid_generate_v7()");  // требует CREATE EXTENSION pg_uuidv7
 
 // Или генерируем в C# — нативный API, без NuGet (.NET 9+)
 public static Guid NewSequentialGuid() => Guid.CreateVersion7();
@@ -1147,7 +1095,7 @@ modelBuilder.Entity<Employee>()
 - **Объявляй FK явно** — никаких shadow FK
 - **TPH default**, TPT/TPC только при явных причинах
 - **OwnsOne для Value Objects** — Address, Money, DateRange
-- **JSON columns** для schema-flexible частей (.NET 8+)
+- **JSON columns** для schema-flexible частей (EF Core 7+)
 - **Strongly-typed IDs** для критичных сущностей (защита от перепутывания)
 - **Backing fields для DDD** aggregates — `private readonly List<>`
 - **Restrict default** для DeleteBehavior, Cascade только осознанно

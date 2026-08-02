@@ -1,7 +1,7 @@
 ---
 tags: [csharp, debugging, junior, visual-studio, breakpoints, debugger, tools, diagnostics]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # Отладка — debugging для Junior
@@ -127,7 +127,7 @@ Debugger обходит всё это: state видно без модифика�
 
 ### 2.1. Visual Studio (Windows)
 
-Самый мощный .NET debugger. Включает:
+Самый мощный .NET debugger. Актуальная версия — **Visual Studio 2026** (GA ноябрь 2025, вышла вместе с .NET 10); Visual Studio 2022 — предыдущая, всё описанное ниже работает в обеих. Включает:
 
 - Все типы breakpoints (line, conditional, hit count, function, logpoint, dependent).
 - Visual debugger UI — Locals, Watch, Autos, Call Stack, Threads, Tasks, Modules.
@@ -358,7 +358,7 @@ Right-click breakpoint → **Actions** → ставишь Log Message и не о
 
 В VS Code logpoint: правый клик breakpoint → **Add Logpoint**.
 
-### 3.7. Dependent breakpoint (Visual Studio 2022)
+### 3.7. Dependent breakpoint (Visual Studio 2022+)
 
 Срабатывает, **только если другой breakpoint уже сработал**. Полезно когда bug — это последовательность событий:
 
@@ -463,7 +463,7 @@ F11 на этой строке зайдёт в `LoadX()` (первый аргу�
 
 ### 4.8. Continue Execution to specific scope
 
-VS 2022: **Force Run To Cursor** — пропускает все breakpoints на пути. Полезно когда между текущей точкой и целью много отвлекающих breakpoint'ов.
+VS 2022+: **Force Run To Cursor** — пропускает все breakpoints на пути. Полезно когда между текущей точкой и целью много отвлекающих breakpoint'ов.
 
 ### 4.9. Step Over Properties / Operators
 
@@ -812,7 +812,7 @@ public void DoWork()
 Compiler в момент компиляции подставляет константы. Ноль рантайм-затрат, в отличие от `StackTrace`.
 
 > [!question]- Интервью: чем async stack trace отличается от sync в .NET 6+?
-> До .NET 6 async stack trace обрывался на `await` — нельзя было увидеть, кто запустил `Task`. С .NET 6 JIT записывает «логического caller» в metadata Task, и debugger / `Exception.StackTrace` показывает полную цепочку как для sync-кода. Это решило одну из главных болей async-debugging. Visual Studio 2022 + .NET 6+ отображает async stack как обычный, без специальных Tasks window (хотя Tasks window остаётся полезным для visualization активных задач).
+> До .NET 6 async stack trace обрывался на `await` — нельзя было увидеть, кто запустил `Task`. С .NET 6 JIT записывает «логического caller» в metadata Task, и debugger / `Exception.StackTrace` показывает полную цепочку как для sync-кода. Это решило одну из главных болей async-debugging. Visual Studio (2022 и новее, актуальная — VS 2026) + .NET 6+ отображает async stack как обычный, без специальных Tasks window (хотя Tasks window остаётся полезным для visualization активных задач).
 
 ---
 

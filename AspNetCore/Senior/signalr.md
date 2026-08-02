@@ -1,7 +1,7 @@
 ---
-tags: [aspnet, signalr, websocket, real-time, hubs, scale-out, redis-backplane, azure-signalr]
+tags: [aspnet, signalr, websocket, sse, real-time, hubs, scale-out, redis-backplane, azure-signalr]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # SignalR — real-time коммуникация
@@ -57,6 +57,19 @@ date: 2026-04-30
 | Browser support | Excellent | Excellent | Limited | Excellent |
 | Mobile / desktop | ✅ .NET / MAUI | ✅ | ✅ | ✅ |
 | Когда | Default real-time | Custom protocol | Microservice streaming | Server push only |
+
+### Нативный SSE в .NET 10 — когда SignalR не нужен
+
+.NET 10 добавил first-class SSE в Minimal API: `TypedResults.ServerSentEvents` принимает `IAsyncEnumerable<SseItem<T>>` и сам пишет `text/event-stream` (data-строки, event id, retry, cancellation). Это сдвигает decision tree: раньше SignalR брали «по умолчанию» даже для one-way пуша, потому что руками SSE собирать было муторно — теперь для **однонаправленного** стриминга (AI-токены из LLM, live-цены, прогресс long-running задач) достаточно фреймворка.
+
+```csharp
+app.MapGet("/notifications", (NotificationService svc, CancellationToken ct) =>
+    TypedResults.ServerSentEvents(
+        svc.StreamAsync(ct),          // IAsyncEnumerable<SseItem<Notification>>
+        eventType: "notification"));
+```
+
+Почему это часто лучше SignalR для server push: обычный HTTP (без upgrade — проходит через любые прокси/CDN), авто-reconnect с `Last-Event-Id` у браузерного `EventSource`, ноль клиентских библиотек. SignalR остаётся выбором, когда нужны **двусторонний** обмен, RPC-абстракция Hub'ов, groups/user-targeting или scale-out через backplane.
 
 ---
 
@@ -1128,7 +1141,7 @@ Real-time нужен?
 │   └── 100K+ connections → Azure SignalR Service
 │
 ├── Альтернативы?
-│   ├── Server-Sent Events (SSE) — one-way, проще
+│   ├── Server-Sent Events (SSE) — one-way, проще; в .NET 10 нативно (TypedResults.ServerSentEvents)
 │   ├── WebSockets raw — больше control, less abstraction
 │   ├── Long polling — fallback для проблемных networks
 │   └── gRPC streaming — service-to-service, не browser

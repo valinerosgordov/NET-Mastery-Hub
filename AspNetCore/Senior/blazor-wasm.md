@@ -1,7 +1,7 @@
 ---
 tags: [csharp, blazor, webassembly, wasm, spa, frontend, jsinterop]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Blazor WebAssembly
@@ -20,7 +20,7 @@ date: 2026-04-30
 
 ### Архитектурные модели Blazor
 
-| | Blazor Server | Blazor WASM | Blazor United (.NET 8+) |
+| | Blazor Server | Blazor WASM | InteractiveAuto (.NET 8+) |
 |--|---------------|-------------|--------------------------|
 | Где работает | Сервер (SignalR) | Браузер (WASM) | Гибрид |
 | Initial download | ~5 KB JS | **~2-5 MB** WASM + DLLs | Server first, потом WASM |
@@ -691,7 +691,7 @@ await dotNetRef.invokeMethodAsync('OnEvent', data);
 ### FluentValidation
 
 ```bash
-dotnet add package FluentValidation.AspNetCore
+dotnet add package FluentValidation
 ```
 
 ```csharp
@@ -1168,7 +1168,7 @@ Blazor WASM сам уже WebAssembly, но это **interpreted IL** (не nati
 
 ---
 
-## 14. Когда WASM vs Server vs United
+## 14. Когда WASM vs Server vs render modes
 
 ```
 Внутренний tool, low scale, real-time updates критично:
@@ -1178,11 +1178,13 @@ Public app, must scale, mobile-friendly:
 → Blazor WASM (CDN, no server load)
 
 Best of both — modern default:
-→ Blazor United (.NET 8+)
+→ Render modes (.NET 8+): static SSR + InteractiveAuto
    - Server-side rendering для initial load (SEO!)
    - WebAssembly для interactivity после
    - Mix per-page render mode
 ```
+
+> Термин «Blazor United» был рабочим названием этой модели и отброшен Microsoft до релиза .NET 8 — официально это **render modes**.
 
 ### Per-page render modes (.NET 8+)
 
@@ -1202,6 +1204,8 @@ Best of both — modern default:
 @* Static — никакой interactivity *@
 @page "/about"
 ```
+
+**.NET 10 — WASM preloading:** framework-ассеты (dotnet.wasm, DLL) подгружаются заранее: в Blazor Web App — автоматически через `Link`-headers / компонент `<LinkPreload />`, в standalone WASM — через `<link rel="preload" id="webassembly" />` в `index.html` + MSBuild-свойство `OverrideHtmlAssetPlaceholders`. Браузер качает runtime параллельно с первым рендером → меньше time-to-interactive.
 
 См. [[blazor-server|Blazor Server]].
 

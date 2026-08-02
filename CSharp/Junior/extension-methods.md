@@ -2380,57 +2380,9 @@ var response = await httpClient.SendAsync(request);
 
 ---
 
-## 19. Что читать дальше — порядок и почему
+## 19. Bonus practice — расширенные упражнения
 
-1. **[[csharp-basics|C# Basics]]** — generics, static, lambdas — основа для extensions.
-2. **[[collections-linq|Collections и LINQ]]** — extensions в production-ситуациях.
-3. **[[generics-deep|Generics deep]]** — constraints, variance, type inference подробно.
-4. **[[modern-features|Modern Features]]** — pattern matching, records, primary constructors.
-5. **[[anonymous-types|Anonymous Types]]** — близкий компонент для LINQ-проекций.
-6. **[[delegates-events|Delegates и Events]]** — extensions часто принимают `Func`/`Action`.
-7. **Async deep dive** — async extensions, IAsyncEnumerable, CancellationToken.
-8. **Roslyn analyzers** — как написать analyzer для своих extensions (детектить misuse).
-
----
-
-## 20. См. также
-
-- [[csharp-basics|C# Basics]] — основы языка
-- [[collections-linq|Collections и LINQ]] — где extensions main use case
-- [[generics-deep|Generics deep]] — constraints, type inference
-- [[anonymous-types|Anonymous Types]] — LINQ projections
-- [[modern-features|Modern Features]] — pattern matching, records
-- [[tuples-deconstruction|Tuples]] — связан с extension Deconstruct
-- [[delegates-events|Delegates и Events]] — Func/Action для extensions
-- [[error-handling|Error Handling]] — `Result<T>` и exception extensions
-- Roslyn Analyzers — статический анализ extensions
-- Source Generators — генерация extension methods
-
----
-
-## 21. Reading list
-
-- **Microsoft Docs — Extension methods** — learn.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/extension-methods
-- **Microsoft Docs — Standard Query Operators (LINQ)** — learn.microsoft.com/dotnet/csharp/linq
-- **Microsoft Docs — System.Linq.Enumerable** — learn.microsoft.com/dotnet/api/system.linq.enumerable
-- **C# Language Specification — Extension Methods** — github.com/dotnet/csharplang/blob/main/spec/classes.md
-- **Microsoft Docs — What's new in C# 14 (extension members)** — learn.microsoft.com/dotnet/csharp/whats-new/csharp-14
-- **.NET Blog — C# 14: Exploring extension members** — devblogs.microsoft.com/dotnet/csharp-exploring-extension-members
-- **Eric Lippert — Extension methods design notes** — ericlippert.com (поиск «extension methods»)
-- **Stephen Toub — Performance of extension methods** — devblogs.microsoft.com/dotnet
-- **Mark Seemann — Builder pattern в .NET** — blog.ploeh.dk
-- **Vladimir Khorikov — DSL with extensions** — enterprisecraftsmanship.com
-- **Andrew Lock — DI extensions patterns** — andrewlock.net
-- **Jon Skeet — C# in Depth (4th ed.)** — chapter «Extension methods»
-- **Bill Wagner — Effective C# (3rd ed.)** — items по extensions
-- **Kotlin Extensions Documentation** — kotlinlang.org/docs/extensions.html (для сравнения design)
-- **SharpLab** — sharplab.io — посмотреть IL для extension methods
-
----
-
-## 22. Bonus practice — расширенные упражнения
-
-### 22.1. Composable validation
+### 19.1. Composable validation
 
 **Задача.** Сделать chain-style валидатор: `value.NotNull(name).NotEmpty(name).MaxLength(50, name)`.
 
@@ -2486,7 +2438,7 @@ public class CreateOrderCommand
 
 **Разбор:** каждый extension возвращает значение для chain. Imperative style, но читается как декларация требований. Альтернатива — FluentValidation library (более мощный, но лишняя зависимость).
 
-### 22.2. AsyncEnumerable batch processor
+### 19.2. AsyncEnumerable batch processor
 
 **Задача.** Обрабатывать `IAsyncEnumerable<T>` батчами по N с параллельной обработкой каждого батча.
 
@@ -2533,9 +2485,9 @@ await foreach (var result in stream.BatchProcess(
 
 ---
 
-## 23. Связь с Source Generators и анализаторами
+## 20. Связь с Source Generators и анализаторами
 
-### 23.1. Source Generators как альтернатива extensions
+### 20.1. Source Generators как альтернатива extensions
 
 С .NET 5+ есть **Source Generators** — компилятор-плагины, которые генерируют код во время компиляции. Иногда они решают те же задачи, что extensions, но мощнее.
 
@@ -2557,7 +2509,7 @@ string json = JsonSerializer.Serialize(user, UserJsonContext.Default.User);
 - **Extensions** — runtime-логика, полиморфизм через generics, DI-friendly.
 - **Source Generators** — статическая генерация кода, perf-critical, AOT-friendly.
 
-### 23.2. Roslyn Analyzers для extensions
+### 20.2. Roslyn Analyzers для extensions
 
 Можно написать **analyzer**, который проверяет правильное использование твоих extensions:
 
@@ -2594,7 +2546,7 @@ Analyzers пакетируются в NuGet (с типом `analyzers/dotnet/cs/
 
 Это часто используется библиотечными авторами для guide consumers по правильному использованию API.
 
-### 23.3. Extensions + analyzers — DSL с проверкой
+### 20.3. Extensions + analyzers — DSL с проверкой
 
 Связка особенно мощна в DSL-сценариях. Пример: FluentAssertions.
 
@@ -2605,7 +2557,7 @@ result.Should().BeGreaterThan(0).And.BeLessThan(100);
 
 Если consumer пишет `result.Should().Be(42, because: "...")` без `because: "..."` — analyzer может предупредить, что лучше указать reason для отладки.
 
-### 23.4. Extensions для analyzers самих
+### 20.4. Extensions для analyzers самих
 
 Roslyn API сам обильно использует extensions:
 
@@ -2623,5 +2575,53 @@ symbol.GetMembers().OfType<IMethodSymbol>();
 
 > [!question]- Интервью: что использовать для расширения функциональности — extensions, source generators или analyzers?
 > Все три решают разные задачи: 1) **Extensions** — runtime-логика, синтаксический сахар, fluent API, DSL, LINQ-style операции. Гибко, но всё в runtime. 2) **Source Generators** — статически сгенерированный код во время компиляции, без reflection, AOT-friendly, performance-критичный (System.Text.Json, Mapster, MediatR). 3) **Analyzers** — статический анализ кода и emit warnings/errors. Не генерирует код, направляет consumer'а к правильному использованию API. Часто комбинируется: extensions API + analyzer для проверки правильного использования + source generator для AOT-friendly реализации.
+
+---
+
+## 21. Что читать дальше — порядок и почему
+
+1. **[[csharp-basics|C# Basics]]** — generics, static, lambdas — основа для extensions.
+2. **[[collections-linq|Collections и LINQ]]** — extensions в production-ситуациях.
+3. **[[generics-deep|Generics deep]]** — constraints, variance, type inference подробно.
+4. **[[modern-features|Modern Features]]** — pattern matching, records, primary constructors.
+5. **[[anonymous-types|Anonymous Types]]** — близкий компонент для LINQ-проекций.
+6. **[[delegates-events|Delegates и Events]]** — extensions часто принимают `Func`/`Action`.
+7. **Async deep dive** — async extensions, IAsyncEnumerable, CancellationToken.
+8. **Roslyn analyzers** — как написать analyzer для своих extensions (детектить misuse).
+
+---
+
+## 22. См. также
+
+- [[csharp-basics|C# Basics]] — основы языка
+- [[collections-linq|Collections и LINQ]] — где extensions main use case
+- [[generics-deep|Generics deep]] — constraints, type inference
+- [[anonymous-types|Anonymous Types]] — LINQ projections
+- [[modern-features|Modern Features]] — pattern matching, records
+- [[tuples-deconstruction|Tuples]] — связан с extension Deconstruct
+- [[delegates-events|Delegates и Events]] — Func/Action для extensions
+- [[error-handling|Error Handling]] — `Result<T>` и exception extensions
+- Roslyn Analyzers — статический анализ extensions
+- Source Generators — генерация extension methods
+
+---
+
+## 23. Reading list
+
+- **Microsoft Docs — Extension methods** — learn.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/extension-methods
+- **Microsoft Docs — Standard Query Operators (LINQ)** — learn.microsoft.com/dotnet/csharp/linq
+- **Microsoft Docs — System.Linq.Enumerable** — learn.microsoft.com/dotnet/api/system.linq.enumerable
+- **C# Language Specification — Extension Methods** — github.com/dotnet/csharplang/blob/main/spec/classes.md
+- **Microsoft Docs — What's new in C# 14 (extension members)** — learn.microsoft.com/dotnet/csharp/whats-new/csharp-14
+- **.NET Blog — C# 14: Exploring extension members** — devblogs.microsoft.com/dotnet/csharp-exploring-extension-members
+- **Eric Lippert — Extension methods design notes** — ericlippert.com (поиск «extension methods»)
+- **Stephen Toub — Performance of extension methods** — devblogs.microsoft.com/dotnet
+- **Mark Seemann — Builder pattern в .NET** — blog.ploeh.dk
+- **Vladimir Khorikov — DSL with extensions** — enterprisecraftsmanship.com
+- **Andrew Lock — DI extensions patterns** — andrewlock.net
+- **Jon Skeet — C# in Depth (4th ed.)** — chapter «Extension methods»
+- **Bill Wagner — Effective C# (3rd ed.)** — items по extensions
+- **Kotlin Extensions Documentation** — kotlinlang.org/docs/extensions.html (для сравнения design)
+- **SharpLab** — sharplab.io — посмотреть IL для extension methods
 
 ---

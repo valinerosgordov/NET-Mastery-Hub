@@ -1,7 +1,7 @@
 ---
 tags: [aspnet, logging, observability, opentelemetry, structured-logging]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Logging, Observability и диагностика
@@ -298,119 +298,13 @@ builder.Services.AddRedaction(opts =>
 
 ---
 
-## Глобальная обработка исключений
+## Глобальная обработка исключений — кратко
 
-### UseExceptionHandler
+Canonical-разбор — в [[aspnet-error-handling|ASP.NET Error Handling]]: `UseExceptionHandler` + `AddProblemDetails`, типизированные `IExceptionHandler` (.NET 8+), Result pattern vs исключения, `Response.HasStarted`. Для логирования важно одно правило: **логируй исключение в exception handler, а не в каждом catch-блоке** — иначе одно исключение размножается по логам, а `traceId` из ProblemDetails (`ctx.HttpContext.TraceIdentifier`) должен совпадать с полем трейса в логах, чтобы по ответу клиента находить полный контекст.
 
-```csharp
-// Минимальный вариант
-app.UseExceptionHandler("/error");
+---
 
-// С ProblemDetails (.NET 7+)
-app.UseExceptionHandler();
+## См. также
 
-builder.Services.AddProblemDetails(opts =>
-{
-    opts.CustomizeProblemDetails = ctx =>
-    {
-        ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier;
-
-        // В Development — добавить stack trace
-        if (ctx.HttpContext.RequestServices.GetRequiredService<IHostEnvironment>().IsDevelopment())
-        {
-            var exception = ctx.HttpContext.Features.Get<IExceptionHandlerFeature>()?.Error;
-            ctx.ProblemDetails.Extensions["exception"] = exception?.ToString();
-        }
-    };
-});
-```
-
-### Кастомный Exception Handling Middleware
-
-```csharp
-public class GlobalExceptionMiddleware
-{
-    private readonly RequestDelegate _next;
-    private readonly ILogger<GlobalExceptionMiddleware> _logger;
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
-        {
-            await _next(context);
-        }
-        catch (ValidationException ex)
-        {
-            _logger.LogWarning(ex, "Validation error");
-            context.Response.StatusCode = 400;
-            await context.Response.WriteAsJsonAsync(new ProblemDetails
-            {
-                Status = 400,
-                Title = "Validation Error",
-                Detail = ex.Message
-            });
-        }
-        catch (NotFoundException ex)
-        {
-            _logger.LogWarning("Resource not found: {Message}", ex.Message);
-            context.Response.StatusCode = 404;
-            await context.Response.WriteAsJsonAsync(new ProblemDetails
-            {
-                Status = 404,
-                Title = "Not Found",
-                Detail = ex.Message
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unhandled exception");
-            context.Response.StatusCode = 500;
-            await context.Response.WriteAsJsonAsync(new ProblemDetails
-            {
-                Status = 500,
-                Title = "Internal Server Error"
-                // НЕ включаем detail в production — утечка информации
-            });
-        }
-    }
-}
-```
-
-### IExceptionHandler (.NET 8)
-
-Новый интерфейс для типизированной обработки исключений:
-
-```csharp
-public class ValidationExceptionHandler : IExceptionHandler
-{
-    public async ValueTask<bool> TryHandleAsync(
-        HttpContext context, Exception exception, CancellationToken ct)
-    {
-        if (exception is not ValidationException validationEx)
-            return false; // Не обработали — передаём следующему handler'у
-
-        context.Response.StatusCode = 400;
-        await context.Response.WriteAsJsonAsync(new ProblemDetails
-        {
-            Status = 400,
-            Title = "Validation Error",
-            Detail = validationEx.Message
-        }, ct);
-
-        return true; // Обработали
-    }
-}
-
-builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>(); // Fallback
-builder.Services.AddProblemDetails();
-app.UseExceptionHandler();
-```
-
-### Тонкости обработки исключений
-
-- **Не используйте исключения для control flow** — это дорого по производительности. Используйте Result pattern
-- Exception Filter (`IExceptionFilter`) работает только для MVC, не для middleware или Minimal API
-- В `UseExceptionHandler` response уже может быть **частично отправлен** — нельзя изменить status code. Проверяйте `context.Response.HasStarted`
-- Логируйте исключение в exception handler, а не в каждом catch-блоке — избежите дублирования
-- **Не показывайте** stack trace и внутренние детали в production — это уязвимость
+- [[observability|Observability]] — canonical: OpenTelemetry (traces/metrics/logs), Jaeger/Prometheus/Grafana, sampling, alerting
+- [[aspnet-error-handling|ASP.NET Error Handling]] — canonical: глобальная обработка исключений, ProblemDetails, `IExceptionHandler`

@@ -1,7 +1,7 @@
 ---
 tags: [csharp, exceptions, error-handling, middle, try-catch, throw, result-pattern]
 level: Middle
-date: 2026-05-07
+date: 2026-08-02
 ---
 
 # Error Handling — обработка ошибок
@@ -1354,6 +1354,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 
 ## 16. См. также
 
+- [[functional-csharp|Functional C#]] — углублённая Result/Bind/Map-реализация (railway-oriented programming) — canonical deep-dive по Result pattern
 - [[dispose-pattern|Dispose Pattern]] — try/finally
 - [[nullable-types|Nullable Types]] — null exceptions
 - [[debugging-basics|Debugging]] — exception breakpoints

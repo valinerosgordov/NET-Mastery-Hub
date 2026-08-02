@@ -1,7 +1,7 @@
 ---
 tags: [csharp, comparison, senior, java, kotlin, typescript, go, rust, python, fsharp]
 level: Senior
-date: 2026-05-09
+date: 2026-08-02
 ---
 
 # C# vs Other Languages — детальная сравнения
@@ -181,12 +181,14 @@ C# 9 (2020) — Records, init, top-level
 C# 10 (2021) — File-scoped, global usings, record struct
 C# 11 (2022) — Raw strings, required, list patterns
 C# 12 (2023) — Primary constructors all types, collection expr
-C# 13 (2024) — field keyword, partial properties
+C# 13 (2024) — partial properties, params Span<T>, Lock type
+C# 14 (2025) — extension members, field keyword, ?.= assignment
 
 Java 14 (2020) — Records (preview)
 Java 16 (2021) — Records final
 Java 17 (2021) — Sealed classes (LTS)
 Java 21 (2023) — Pattern matching for switch, virtual threads (LTS)
+Java 25 (2025) — актуальный LTS (сентябрь 2025)
 ```
 
 C# adds features faster, more comprehensive. Java more conservative — focused on JVM compatibility.
@@ -248,7 +250,7 @@ Designed как "lingua franca" для JVM ecosystem — fix Java's pain points.
 | Variance | `in`/`out` declaration-site | `in`/`out` declaration-site |
 | Coroutines/async | async/await | Coroutines (different model) |
 | Data classes | `record` (C# 9+) | `data class` (since 1.0) |
-| Extension funs | Extension methods | Extension functions (more flexible) |
+| Extension funs | Extension members (C# 14: methods/properties/operators) | Extension functions |
 | Operator overload | Full | Restricted set |
 | Companion | `static` class | `companion object` |
 
@@ -318,16 +320,19 @@ operator fun String.times(n: Int): String = this.repeat(n)
 ```
 
 ```csharp
-// C# — extension methods (no extension properties or operators)
+// C# 14 — extension members: properties и operators, не только методы
 public static class StringExtensions
 {
-    public static char LastChar(this string s) => s[s.Length - 1];
-    // Cannot make extension property
-    // Cannot make extension operator
+    public static char LastChar(this string s) => s[^1];   // классический синтаксис — валиден
+
+    extension(string s)
+    {
+        public char LastCharProp => s[^1];   // extension property (C# 14)
+    }
 }
 ```
 
-Kotlin more flexible — extension properties + extension operators. C# планирует "extension members" в C# 14+.
+Паритет достигнут: **extension members вышли в C# 14** (.NET 10) — extension properties, static members и operators через `extension`-блоки. У Kotlin остаётся чуть более лаконичный синтаксис (`fun String.lastChar()` без обёртки в static class), но функционально C# больше не отстаёт. Детали — [[modern-features|Modern C# Features]] раздел 12.
 
 ### 3.5. Data classes vs records
 
@@ -493,7 +498,7 @@ double Area(Shape s) => s switch
 };
 ```
 
-TS — discriminated unions native. C# — workaround через abstract record + pattern matching. Discriminated unions roadmapped C# 14+.
+TS — discriminated unions native. C# — workaround через abstract record + pattern matching; native union types вышли в **C# 15 preview** (.NET 11 Preview 2, апрель 2026), GA ~ноябрь 2026.
 
 ### 4.5. Async — Promises vs Tasks
 
@@ -553,7 +558,7 @@ C# wins:
 ```
 
 > [!question]- Интервью: чем TypeScript и C# различаются?
-> Anders Hejlsberg designed obа languages. Similar в syntax, разница в фундамент: 1) **Runtime**: TS compiles to JS (no native runtime), C# native CLR/AOT. 2) **Types**: TS structural (duck typing), C# nominal (named types). 3) **Generics**: TS erased, C# reified — С# может typeof(T), TS не может. 4) **Discriminated unions**: TS native (`type X = A | B`), C# workaround через abstract record. 5) **Performance**: C# compiled native, TS runs as JS (JIT'd by V8). 6) **Async**: similar syntax, TS Promise/C# Task. 7) **Ecosystem**: TS frontend/Node.js (npm), C# server/desktop/games (NuGet). Verdict: TS — frontend King, C# — backend/desktop King.
+> Anders Hejlsberg designed obа languages. Similar в syntax, разница в фундамент: 1) **Runtime**: TS compiles to JS (no native runtime), C# native CLR/AOT. 2) **Types**: TS structural (duck typing), C# nominal (named types). 3) **Generics**: TS erased, C# reified — С# может typeof(T), TS не может. 4) **Discriminated unions**: TS native (`type X = A | B`), C# workaround через abstract record (native unions — preview в C# 15). 5) **Performance**: C# compiled native, TS runs as JS (JIT'd by V8). 6) **Async**: similar syntax, TS Promise/C# Task. 7) **Ecosystem**: TS frontend/Node.js (npm), C# server/desktop/games (NuGet). Verdict: TS — frontend King, C# — backend/desktop King.
 
 ---
 
@@ -1029,7 +1034,7 @@ F# — functional-first .NET language. Designed by Don Syme. Same runtime as C# 
 |--------|-----|-----|
 | Paradigm | OO + functional | **Functional first**, OO available |
 | Type inference | Limited (var, target-typed new) | **Hindley-Milner** (full) |
-| Discriminated unions | No (planned) | **Yes** |
+| Discriminated unions | Preview (C# 15) | **Yes** |
 | Records | Yes (C# 9+) | **Yes (1.0)** |
 | Immutability | Opt-in | **Default** |
 | Pattern matching | Yes (8+) | **Yes**, more comprehensive |
@@ -1086,7 +1091,7 @@ double Area(Shape s) => s switch
 };
 ```
 
-F# native union types — cleaner, exhaustive. C# workaround works но verbose, exhaustiveness не enforced.
+F# native union types — cleaner, exhaustive. C# workaround works но verbose, exhaustiveness не enforced. C# догоняет: union types в **C# 15 preview** (.NET 11) — с compiler-enforced exhaustiveness.
 
 ### 8.4. Immutability
 
@@ -1174,7 +1179,7 @@ Same CLR — F# uses NuGet packages, ASP.NET Core, EF Core. F# не isolated —
 ```
 
 > [!question]- Интервью: чем F# лучше C# для domain modeling?
-> 1) **Discriminated unions native** — `type Shape = Circle | Square | Rectangle`. C# workaround через abstract record + sealed. F# compiler enforces exhaustiveness. 2) **Type inference Hindley-Milner** — almost no annotations needed. C# limited (var, target-typed). 3) **Immutability default** — F# values immutable, mutation requires `mutable` keyword. C# mutable default, immutability opt-in. 4) **Records mature** — F# 1.0 (2005), C# only 2020+. 5) **Computation expressions** — generic monadic syntax. C# only specific keywords (async, LINQ). 6) **Pattern matching deeper** — guards, active patterns. **C# wins**: bigger ecosystem, more popular, easier hiring, better tooling. F# specialized для FP-heavy domains.
+> 1) **Discriminated unions native** — `type Shape = Circle | Square | Rectangle`. C# workaround через abstract record + sealed (native unions только в C# 15 preview). F# compiler enforces exhaustiveness. 2) **Type inference Hindley-Milner** — almost no annotations needed. C# limited (var, target-typed). 3) **Immutability default** — F# values immutable, mutation requires `mutable` keyword. C# mutable default, immutability opt-in. 4) **Records mature** — F# 1.0 (2005), C# only 2020+. 5) **Computation expressions** — generic monadic syntax. C# only specific keywords (async, LINQ). 6) **Pattern matching deeper** — guards, active patterns. **C# wins**: bigger ecosystem, more popular, easier hiring, better tooling. F# specialized для FP-heavy domains.
 
 ---
 

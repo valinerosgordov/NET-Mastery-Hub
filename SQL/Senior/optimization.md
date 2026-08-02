@@ -1141,7 +1141,12 @@ session     — connection assigned для всей session client
 transaction — connection released после COMMIT/ROLLBACK
               1000 clients могут share 25 backends если transactions короткие
               Default рекомендация
-              ⚠️ Не работает с prepared statements, advisory locks held cross-transaction
+              ⚠️ Session-фичи ломаются: advisory locks cross-transaction, LISTEN/NOTIFY,
+              SET (не SET LOCAL), temp tables
+              Prepared statements: с PgBouncer 1.21+ (окт 2023) protocol-level prepared
+              statements РАБОТАЮТ — включи max_prepared_statements > 0 (PgBouncer сам
+              транслирует их на backend-соединения). Не работает только текстовый
+              PREPARE ... AS в SQL. Npgsql Max Auto Prepare — protocol-level, совместим
               
 statement   — connection released после каждого statement
               Maximum throughput но multi-statement transactions broken

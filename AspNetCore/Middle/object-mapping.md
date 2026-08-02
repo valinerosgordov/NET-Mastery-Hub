@@ -1,7 +1,7 @@
 ---
 tags: [aspnetcore, mapping, automapper, mapperly, dto, source-generators, middle]
 level: Middle
-date: 2026-05-01
+date: 2026-08-02
 ---
 
 # Object Mapping — AutoMapper, Mapperly, Manual
@@ -121,7 +121,8 @@ public static UserExportDto ToExportDto(this User user) =>
 
 ```bash
 dotnet add package AutoMapper
-dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
+# AddAutoMapper входит в core-пакет начиная с AutoMapper 13.
+# Отдельный AutoMapper.Extensions.Microsoft.DependencyInjection — deprecated (репозиторий в архиве), не добавлять.
 ```
 
 ```csharp

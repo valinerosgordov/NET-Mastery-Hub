@@ -1,7 +1,7 @@
 ---
 tags: [csharp, strings, regex, junior, encoding, stringbuilder, span, source-generators]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # Strings и Regex — строки и регулярные выражения
@@ -92,6 +92,7 @@ Console.WriteLine(s2);   // hello — без изменений
 | **C# 8.0** | 2019 | Nullable reference types — `string?` |
 | **C# 11** | 2022 | Raw string literals `"""..."""`, UTF-8 string literals `"..."u8` |
 | **.NET 7** | 2022 | `[GeneratedRegex]` source generator |
+| **.NET 8-9** | 2023-2024 | `SearchValues<char>` / `SearchValues<string>` (см. 9.9), `CompositeFormat` |
 | **C# 12-13** | 2023-2024 | `params ReadOnlySpan<char>`, performance improvements |
 
 ### 1.6. string vs char vs StringBuilder
@@ -1182,6 +1183,41 @@ ReadOnlySpan<char> span = mem.Span;
 ```
 
 `Memory` хранит в heap, `Span` — реальный view на каждом access. Используй Memory для long-lived, Span — для immediate processing.
+
+### 9.9. `SearchValues<T>` — быстрый multi-value поиск (.NET 8+)
+
+`IndexOfAny(char[])` при каждом вызове заново анализирует набор искомых символов. `SearchValues<T>` (namespace `System.Buffers`) — **предвычисленная** структура поиска: создаёшь один раз в `static readonly`, а BCL при создании выбирает оптимальную стратегию под конкретный набор (для ASCII — битовая карта на 128 бит, проверка символа за O(1), плюс SIMD-векторизация — сравнение сразу пачки символов за такт).
+
+```csharp
+using System.Buffers;
+
+public static class Sanitizer
+{
+    // Создаётся один раз — вся оптимизация происходит здесь
+    private static readonly SearchValues<char> Forbidden =
+        SearchValues.Create("<>&\"'");
+
+    public static bool NeedsEncoding(ReadOnlySpan<char> input) =>
+        input.ContainsAny(Forbidden);          // работает поверх Span из 9.1-9.4
+
+    public static int FirstForbidden(ReadOnlySpan<char> input) =>
+        input.IndexOfAny(Forbidden);
+}
+```
+
+.NET 9 добавил `SearchValues<string>` — поиск первого вхождения любой из **подстрок** (внутри — векторизованный multi-substring алгоритм, ручной цикл с `Contains` по списку так не сможет):
+
+```csharp
+private static readonly SearchValues<string> SuspiciousTags = SearchValues.Create(
+    ["<script", "<iframe", "<object"],
+    StringComparison.OrdinalIgnoreCase);
+
+bool suspicious = html.AsSpan().IndexOfAny(SuspiciousTags) >= 0;
+```
+
+**Roslyn сам подскажет:** анализатор **CA1870** (Use a cached `SearchValues` instance) срабатывает, когда ты передаёшь в `IndexOfAny` / `ContainsAny` константный набор значений, и code-fix автоматически выносит его в `static readonly SearchValues<char>`. Если видишь это предупреждение — соглашайся: выигрыш на hot path кратный, аллокаций ноль.
+
+Ключевое правило: `SearchValues` окупается **при переиспользовании** — кэшируй в `static readonly`, не создавай в цикле (создание дороже одного поиска).
 
 > [!question]- Интервью: чем `Span<char>` отличается от `string.Substring`?
 > `Substring` создаёт **новую** string на heap (O(n) копия). `Span<char>` / `ReadOnlySpan<char>` — это **view** над существующей памятью, **без allocation** (O(1)). Span хорош для парсеров и hot path. Ограничения Span: `ref struct`, нельзя в полях класса, нельзя в async методах (через await), нельзя в generic параметрах, живёт только в stack frame. Для long-lived storage — `ReadOnlyMemory<char>` (heap-friendly альтернатива). С .NET 6+ большинство BCL парсеров (int.Parse, decimal.Parse, DateTime.Parse) поддерживают Span — true zero-allocation парсинг.

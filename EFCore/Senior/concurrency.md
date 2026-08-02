@@ -1,7 +1,7 @@
 ---
 tags: [efcore, concurrency, transactions, optimistic-locking, pessimistic-locking, deadlocks, isolation, advisory-locks]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Concurrency, Transactions и Locks
@@ -214,9 +214,9 @@ await context.SaveChangesAsync(ct);  // здесь проверка работа
 
 Для критичных операций — заблокировать строку прямо в БД, чтобы никто не читал/писал её одновременно.
 
-### EF Core 8+ — `SELECT ... FOR UPDATE`
+### `FOR UPDATE` — только raw SQL, нативной поддержки нет
 
-EF Core нативно не поддерживает FOR UPDATE — только через raw SQL:
+EF Core нативно не поддерживает `FOR UPDATE` (включая EF Core 10) — только через raw SQL:
 
 ```csharp
 public async Task<Result> TransferAsync(
@@ -1037,7 +1037,7 @@ var users = await _db.Users.AsNoTracking().ToListAsync();
 
 ---
 
-### Case Study #3 — Bulk update без EF 7+
+### Case Study #3 — Bulk update до EF Core 7
 
 **Сценарий:** Деактивировать 1M users.
 
@@ -1048,7 +1048,7 @@ foreach (var u in users) u.IsActive = false;
 await _db.SaveChangesAsync();  // 1M UPDATE statements!
 ```
 
-**✅ EF 7+ ExecuteUpdate:**
+**✅ EF Core 7+ ExecuteUpdate:**
 ```csharp
 await _db.Users
     .Where(u => u.LastLogin < cutoff)
@@ -1071,8 +1071,7 @@ await _db.Users
 | Filter | `.Where(predicate)` |
 | Pagination | `.OrderBy().Skip(n).Take(n)` |
 | Conditional include | `.Include(o => o.Items.Where(i => i.IsActive))` |
-| Bulk update (EF 7+) | `.ExecuteUpdateAsync(s => s.SetProperty(...))` |
-| Bulk delete (EF 7+) | `.ExecuteDeleteAsync()` |
+| Bulk update / delete (EF Core 7+) | ExecuteUpdate / ExecuteDelete — см. [[ef-bulk-operations]] |
 | Raw SQL | `.FromSqlRaw("...", params)` |
 | Track changes | default (Add, Update modify entities) |
 | Detach | `_db.Entry(entity).State = EntityState.Detached` |
@@ -1106,13 +1105,13 @@ EF Core решение?
 │
 ├── Need related data?
 │   ├── 1 collection → Include
-│   ├── Multiple collections → AsSplitQuery (.NET 5+)
+│   ├── Multiple collections → AsSplitQuery (EF Core 5+)
 │   ├── Только некоторые fields → Projection (Select)
 │   └── Filtered → Include + Where (filtered include)
 │
 ├── Bulk operation?
-│   ├── EF 7+ → ExecuteUpdate / ExecuteDelete
-│   ├── EF 6 — → Dapper или raw SQL
+│   ├── EF Core 7+ → ExecuteUpdate / ExecuteDelete
+│   ├── EF Core ≤6 → Dapper или raw SQL
 │   └── Очень большой volume → SqlBulkCopy
 │
 ├── Performance critical?

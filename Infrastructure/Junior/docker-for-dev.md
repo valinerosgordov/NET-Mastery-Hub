@@ -1,7 +1,7 @@
 ---
 tags: [infrastructure, docker, junior, basics, containers]
 level: Junior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Docker для разработчика — практические basics
@@ -27,7 +27,7 @@ Cross-language якоря свёрнуты. Interview-вопросы встро�
 ```
 Без Docker:
 - "У меня работает!" (но не у тебя — другая версия .NET / SQL)
-- Развёртывание: установи .NET 8, MS SQL, Redis, настрой connection strings...
+- Развёртывание: установи .NET 10, MS SQL, Redis, настрой connection strings...
 - Onboarding: 1-3 дня
 
 С Docker:
@@ -69,10 +69,10 @@ Container — running instance из image (как объект)
 
 ```bash
 # Pull image (download)
-docker pull mcr.microsoft.com/dotnet/aspnet:8.0
+docker pull mcr.microsoft.com/dotnet/aspnet:10.0
 
 # Run container из image
-docker run mcr.microsoft.com/dotnet/aspnet:8.0
+docker run mcr.microsoft.com/dotnet/aspnet:10.0
 ```
 
 ### 1.4. Зачем тебе как .NET dev
@@ -102,7 +102,7 @@ docker run mcr.microsoft.com/dotnet/aspnet:8.0
 ```
 
 > [!info]- Если ты приходил из Java / Python / Node.js
-> Концепция та же. Java — `Dockerfile FROM openjdk:17`, Python — `FROM python:3.11`, .NET — `FROM mcr.microsoft.com/dotnet/aspnet:8.0`. Команды `docker run / build / compose` идентичны. Microsoft images — official aspnet/sdk/runtime variants.
+> Концепция та же. Java — `Dockerfile FROM openjdk:17`, Python — `FROM python:3.11`, .NET — `FROM mcr.microsoft.com/dotnet/aspnet:10.0`. Команды `docker run / build / compose` идентичны. Microsoft images — official aspnet/sdk/runtime variants.
 
 > [!question]- Интервью: что такое Docker?
 > Платформа для **containerization** — упаковки приложения в isolated lightweight environment. **Container** = process + filesystem + network namespace. Запускается одинаково на любой OS с Docker. **Use cases**: 1) Dev environment (Postgres/Redis local). 2) Production deployment (k8s). 3) CI/CD (build + test isolation). 4) Microservices. **Vs VM**: containers share host kernel, лёгкие (MB не GB), быстрый start (seconds не minutes). **.NET 2024+**: official Microsoft images (`mcr.microsoft.com/dotnet/*`), multi-arch (x64/ARM64), Linux + Windows.
@@ -177,7 +177,7 @@ docker images
 
 # Pull (download) image
 docker pull postgres:16
-docker pull mcr.microsoft.com/dotnet/aspnet:8.0
+docker pull mcr.microsoft.com/dotnet/aspnet:10.0
 
 # Удалить image
 docker rmi postgres:16
@@ -323,12 +323,13 @@ docker system df
 
 ```dockerfile
 # Базовый image с runtime + ASP.NET Core
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+# (.NET 8+ images слушают порт 8080 под non-root user, не 80)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
-EXPOSE 80
+EXPOSE 8080
 
 # Build stage — image с SDK для compile
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy csproj и restore (cached если не менялся)
@@ -372,11 +373,11 @@ RUN dotnet restore
 RUN apt-get update && apt-get install -y curl
 
 # Переменные окружения (build-time + runtime)
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Открыть порт (документация — фактически не открывает)
-EXPOSE 80
+EXPOSE 8080
 
 # Команда при `docker run` (single command)
 CMD ["dotnet", "MyApp.dll"]
@@ -432,8 +433,8 @@ docker build -t my-app:1.0 .
 # Build с tag
 docker build -t my-app:latest -t my-app:1.0 .
 
-# Run собственного image
-docker run -d -p 8080:80 --name my-app-1 my-app:1.0
+# Run собственного image (.NET app внутри слушает 8080)
+docker run -d -p 8080:8080 --name my-app-1 my-app:1.0
 
 # Проверь
 curl http://localhost:8080/health
@@ -443,13 +444,13 @@ curl http://localhost:8080/health
 
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-  CMD curl -f http://localhost/health || exit 1
+  CMD curl -f http://localhost:8080/health || exit 1
 ```
 
 Docker / Kubernetes используют это для restart unhealthy containers.
 
 > [!question]- Интервью: что такое multi-stage build?
-> Dockerfile с несколькими `FROM` — каждый = отдельный stage. **Зачем**: 1) **Stage 1 (SDK)** — содержит compiler, build tools, source code. Большой (~700 MB). 2) **Stage 2 (runtime)** — только runtime + скомпилированное приложение. Маленький (~200 MB). Source code НЕ в final image. **Преимущества**: 1) **Smaller final image** (3-5x меньше). 2) **Security** — нет SDK / source в production. 3) **Layer caching** — отдельный stage для restore (cached если csproj не менялся). **.NET pattern**: `mcr.microsoft.com/dotnet/sdk:8.0 AS build` → `mcr.microsoft.com/dotnet/aspnet:8.0 AS final`.
+> Dockerfile с несколькими `FROM` — каждый = отдельный stage. **Зачем**: 1) **Stage 1 (SDK)** — содержит compiler, build tools, source code. Большой (~1 GB). 2) **Stage 2 (runtime)** — только runtime + скомпилированное приложение. Маленький (~220 MB). Source code НЕ в final image. **Преимущества**: 1) **Smaller final image** (3-5x меньше). 2) **Security** — нет SDK / source в production. 3) **Layer caching** — отдельный stage для restore (cached если csproj не менялся). **.NET pattern**: `mcr.microsoft.com/dotnet/sdk:10.0 AS build` → `mcr.microsoft.com/dotnet/aspnet:10.0 AS final`.
 
 ---
 
@@ -497,7 +498,7 @@ services:
       dockerfile: Dockerfile
     container_name: myapp-api
     ports:
-      - "8080:80"
+      - "8080:8080"
     environment:
       ConnectionStrings__Default: "Host=postgres;Database=myapp;Username=appuser;Password=secret"
       ConnectionStrings__Redis: "redis:6379"
@@ -619,13 +620,12 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up
 `.NET 7+`: можно публиковать в container напрямую без Dockerfile:
 
 ```bash
-dotnet publish --os linux --arch x64 \
-    -p:PublishProfile=DefaultContainer \
-    -p:ContainerImageName=my-app \
-    -p:ContainerImageTag=1.0
+dotnet publish /t:PublishContainer \
+    -p ContainerRepository=my-app \
+    -p ContainerImageTags=1.0
 ```
 
-Microsoft built-in container generation — без Dockerfile для простых случаев.
+Microsoft built-in container generation — без Dockerfile для простых случаев. Деталь и когда это достаточно vs Dockerfile — [[docker|Senior/docker.md]], раздел «SDK container builds».
 
 ### 6.2. SQL Server в Docker
 
@@ -779,14 +779,14 @@ docker compose build --no-cache   # ignore cache полностью
 
 ```dockerfile
 # ❌ Cache invalidated каждый раз
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY . .                              # копируем ВСЁ перед restore
 RUN dotnet restore                    # cache invalid каждый раз
 RUN dotnet publish -c Release -o /app
 
 # ✅ Optimized cache
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["MyApp.csproj", "."]            # только csproj
 RUN dotnet restore                    # cached если csproj не менялся!
@@ -802,7 +802,7 @@ docker run my-app
 # Port НЕ открыт извне
 
 # ✅ Явный port mapping
-docker run -p 8080:80 my-app
+docker run -p 8080:8080 my-app
 ```
 
 ### 7.7. Image size
@@ -811,8 +811,8 @@ docker run -p 8080:80 my-app
 # Image весит 1.5 GB?
 docker images
 # Проверь base image:
-# FROM mcr.microsoft.com/dotnet/sdk:8.0  → SDK 800 MB
-# FROM mcr.microsoft.com/dotnet/aspnet:8.0  → runtime 200 MB
+# FROM mcr.microsoft.com/dotnet/sdk:10.0  → SDK ~1 GB
+# FROM mcr.microsoft.com/dotnet/aspnet:10.0  → runtime ~220 MB
 
 # Используй runtime для final stage, SDK только для build
 ```
@@ -824,7 +824,7 @@ docker images
 FROM mcr.microsoft.com/dotnet/aspnet:latest
 
 # ✅ Pin version
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 ```
 
 ### 7.9. Secrets в Dockerfile
@@ -853,7 +853,7 @@ docker run --rm my-cli-tool arg1 arg2
 ```
 
 > [!question]- Интервью: топ-3 ошибки с Docker?
-> 1) **`localhost` в container vs host** — service-to-service в compose через service names (`postgres:5432`), доступ к host из container через `host.docker.internal`. 2) **Cache layer breaking** — `COPY . .` перед `dotnet restore` invalidates cache при каждом code change. Fix: copy csproj first, restore, then copy остальное. 3) **Не pin version в FROM** — `FROM aspnet:latest` приводит к unexpected breakage. Fix: explicit version (`aspnet:8.0`). **Bonus**: `EXPOSE` в Dockerfile это только документация — нужен `-p` при run.
+> 1) **`localhost` в container vs host** — service-to-service в compose через service names (`postgres:5432`), доступ к host из container через `host.docker.internal`. 2) **Cache layer breaking** — `COPY . .` перед `dotnet restore` invalidates cache при каждом code change. Fix: copy csproj first, restore, then copy остальное. 3) **Не pin version в FROM** — `FROM aspnet:latest` приводит к unexpected breakage. Fix: explicit version (`aspnet:10.0`). **Bonus**: `EXPOSE` в Dockerfile это только документация — нужен `-p` при run.
 
 ---
 
@@ -894,11 +894,11 @@ docker volume rm volume_name                 # remove
 
 ```dockerfile
 # === Optimized .NET multi-stage Dockerfile ===
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
-EXPOSE 80
+EXPOSE 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["MyApp.csproj", "."]
 RUN dotnet restore
@@ -930,7 +930,7 @@ services:
   
   api:
     build: .
-    ports: ["8080:80"]
+    ports: ["8080:8080"]
     depends_on:
       postgres: { condition: service_healthy }
 
@@ -948,7 +948,7 @@ volumes:
 1. Создай Dockerfile (multi-stage, Microsoft images)
 2. Создай `.dockerignore`
 3. `docker build -t my-api:1.0 .`
-4. `docker run -d -p 8080:80 my-api:1.0`
+4. `docker run -d -p 8080:8080 my-api:1.0`
 5. `curl http://localhost:8080/health` или `/swagger`
 6. Размер image после build — `docker images`
 
@@ -969,7 +969,7 @@ volumes:
 ### 9.3. Optimize image size
 
 Возьми Dockerfile из 9.1. Цель: уменьшить final image:
-1. Использовать alpine variant (`mcr.microsoft.com/dotnet/aspnet:8.0-alpine`)
+1. Использовать alpine variant (`mcr.microsoft.com/dotnet/aspnet:10.0-alpine`)
 2. Скомбинировать `RUN` команды
 3. Использовать `.dockerignore`
 4. Сравни размеры: до/после

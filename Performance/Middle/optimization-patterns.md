@@ -457,6 +457,34 @@ public class ReportService
 }
 ```
 
+### Pattern: Frozen collections на hot path (.NET 8+)
+
+`FrozenDictionary<TKey, TValue>` / `FrozenSet<T>` — крайняя форма eager: **дорогая инициализация ради максимально быстрого чтения**. Обычный `Dictionary<TKey, TValue>` обязан в любой момент уметь `Add`/`Remove`, поэтому его внутренняя структура — компромисс. `ToFrozenDictionary()` видит весь набор ключей заранее и на этапе построения подбирает специализированную реализацию (линейный скан для маленьких наборов, дискриминатор по длине/подстроке для строковых ключей, perfect-hash-подход для общего случая) — lookup получается заметно быстрее.
+
+```csharp
+using System.Collections.Frozen;
+
+// Build once at startup — read millions of times
+private static readonly FrozenDictionary<string, decimal> _taxRates =
+    LoadTaxRates().ToFrozenDictionary();
+
+private static readonly FrozenSet<string> _allowedCurrencies =
+    new[] { "USD", "EUR", "AED" }.ToFrozenSet();
+
+public decimal GetRate(string country) => _taxRates[country];
+public bool IsAllowed(string currency) => _allowedCurrencies.Contains(currency);
+```
+
+Когда что:
+
+| Коллекция | Ниша |
+|-----------|------|
+| `Dictionary<K,V>` | Читается и меняется; построение дёшево |
+| `FrozenDictionary<K,V>` | Построил один раз (startup, конфиг, роутинг) → только чтение на hot path |
+| `ImmutableDictionary<K,V>` | Нужны дешёвые снапшоты-с-изменением; чтение медленнее обеих |
+
+Build-cost у Frozen заметно выше обычного `Dictionary` — не годится для кеша с периодическим рефрешем: «изменить» нельзя, только перестроить целиком. Механика внутренних стратегий и `GetAlternateLookup` (lookup по `ReadOnlySpan<char>` без аллокации строки) — [[collections-linq|Collections и LINQ]].
+
 ### Pattern: Eager hydration
 
 ```csharp
@@ -834,6 +862,7 @@ Slow code?
 ├── CPU bound?
 │   ├── Algorithm O(n²) → Improve algorithm
 │   ├── Single thread → Parallel
+│   ├── Read-only lookup на hot path → FrozenDictionary / FrozenSet
 │   └── Allocations → ObjectPool / Span
 ├── Memory pressure?
 │   ├── GC pauses → Reduce allocations
@@ -970,6 +999,7 @@ public ValueTask<User> GetAsync(int id)
 | Async deadlock | dotnet-stack threads dump |
 | Lock contention | dotnet-trace + Concurrency Visualizer |
 | Allocation hot path | BenchmarkDotNet `[MemoryDiagnoser]` |
+| Hot-path lookup по read-only данным | `FrozenDictionary` / `FrozenSet` (.NET 8+) |
 | Microoptimization | BenchmarkDotNet, disasm |
 
 | Allocation Cost | Bytes |

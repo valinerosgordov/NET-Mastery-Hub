@@ -1708,7 +1708,7 @@ dotnet_naming_style.i_prefix_pascal_case_style.capitalization = pascal_case
 
 Это standard pattern для команд, которые хотят strict enforcement.
 
-### 12.5. SonarQube / SonarLint
+### 12.5. SonarQube / SonarQube for IDE
 
 Дополнительные code-quality правила сверх StyleCop:
 - Code smells (длинные методы, deep nesting).
@@ -1716,7 +1716,7 @@ dotnet_naming_style.i_prefix_pascal_case_style.capitalization = pascal_case
 - Security (SQL injection, secrets in code).
 - Coverage tracking.
 
-Платные / on-prem versions для enterprise. SonarLint — бесплатный IDE plugin для warnings.
+Платные / on-prem versions для enterprise. SonarQube for IDE — бесплатный IDE plugin для warnings.
 
 ### 12.6. Workflow в команде
 

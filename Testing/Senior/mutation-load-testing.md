@@ -1,7 +1,7 @@
 ---
 tags: [testing, mutation, stryker, load-testing, nbomber, k6]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Mutation & Load Testing
@@ -728,7 +728,7 @@ public class PerformanceBudgets
 | Contract tests | PactNet, Pact.NET |
 | Code review | PR + GitHub Copilot review |
 | Pre-commit hooks | Husky.NET + lint-staged |
-| CI quality gate | SonarCloud / Codacy |
+| CI quality gate | SonarQube Cloud / Codacy |
 
 | Refactoring smell | Action |
 |-------------------|--------|

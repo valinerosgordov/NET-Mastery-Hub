@@ -1,7 +1,7 @@
 ---
 tags: [performance, caching, redis, memory-cache, distributed-cache, strategies]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Caching Strategies — стратегии кеширования
@@ -235,8 +235,10 @@ public class RefreshAheadCache<T>
 |----------|---------|-------|
 | `IMemoryCache` | In-process, микросекунды | Single-instance, небольшие горячие данные |
 | `IDistributedCache` (Redis) | Shared между репликами, ~1-2 ms (сериализация + network) | Multi-instance, общий кэш |
-| `HybridCache` (.NET 9+) | L1 (memory) + L2 (Redis) + stampede protection одним API | Новые проекты — дефолт |
+| `HybridCache` | L1 (memory) + L2 (Redis) + stampede protection одним API | Новые проекты — дефолт |
 | Output Caching (.NET 7+) | Кэш целого HTTP-ответа | Одинаковые ответы: public API, анонимные endpoints |
+
+`HybridCache` — это NuGet-пакет `Microsoft.Extensions.Caching.Hybrid` (GA 2025), а не часть runtime: работает вплоть до `netstandard2.0` / .NET Framework 4.7.2; в документации и шаблонах позиционируется с .NET 9.
 
 Expiration: **Absolute** — reference data (обновляется периодически), **Sliding** — сессии и recent items, оба вместе — sliding для активного использования с absolute-потолком.
 
@@ -299,7 +301,7 @@ _redis.Subscribe("user-updated", (channel, message) =>
 cache.RemoveByTag("products");
 ```
 
-В .NET 9 HybridCache:
+В HybridCache (пакет `Microsoft.Extensions.Caching.Hybrid`):
 ```csharp
 await cache.SetAsync(key, value, tags: new[] { "products", "category-1" });
 
@@ -344,7 +346,7 @@ DB: 💀
 ### Решения (реализации — в [[caching|Caching и Rate Limiting]])
 
 - **Один загружает, остальные ждут** — `SemaphoreSlim` с double-check, in-process SingleFlight или distributed mutex.
-- **HybridCache (.NET 9+)** — stampede protection из коробки: конкурентные запросы разделяют один fetch.
+- **HybridCache** — stampede protection из коробки: конкурентные запросы разделяют один fetch.
 - **Probabilistic early refresh / XFetch** — обновление до истечения TTL с вероятностью, растущей ближе к expiry; фоновый refresh, пока отдаётся старое значение.
 
 ---
@@ -360,7 +362,7 @@ User → CDN / edge        (static assets, public GET)
      → DB                (последний resort, ~10-100 ms)
 ```
 
-Ручную связку L1+L2 (проверить memory → Redis → DB, наполняя кэши по пути назад) в .NET 9+ делает `HybridCache` автоматически — см. [[caching|Caching и Rate Limiting]].
+Ручную связку L1+L2 (проверить memory → Redis → DB, наполняя кэши по пути назад) делает `HybridCache` автоматически — см. [[caching|Caching и Rate Limiting]].
 
 ---
 
@@ -466,7 +468,7 @@ _cache.Set("MyApp:Users:1", ...);
 - **TTL обязательно** — bounded staleness
 - **Per-user keys** для user-specific data
 - **Namespace prefixes** в shared cache (`MyApp:Users:1`)
-- **HybridCache (.NET 9+)** для multi-tier
+- **HybridCache** (NuGet, GA 2025) для multi-tier
 - **Output caching** для public APIs
 - **Stampede protection** на high-traffic items
 - **Graceful degradation** — если cache down, fallback to DB
@@ -488,7 +490,7 @@ Need cache?
     │   └── IMemoryCache
     ├── Multi-instance app?
     │   ├── Need cross-instance? → Redis (IDistributedCache)
-    │   ├── Want both? → HybridCache (.NET 9+)
+    │   ├── Want both? → HybridCache
     │   └── Per-instance OK? → IMemoryCache
     ├── HTTP responses cache?
     │   └── Output Caching middleware
@@ -497,7 +499,7 @@ Need cache?
     ├── Need cross-service invalidation?
     │   └── Pub/Sub (Redis) + manual invalidation
     └── Need tags?
-        └── HybridCache (.NET 9+) или custom logic
+        └── HybridCache или custom logic
 ```
 
 ---

@@ -1,7 +1,7 @@
 ---
 tags: [efcore, migrations, schema, seed-data, zero-downtime, dbup, fluent-migrator]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Migrations и схема БД
@@ -75,7 +75,7 @@ dotnet ef migrations script --idempotent -o migration.sql
 # Скрипт от-до (для CI/CD)
 dotnet ef migrations script FromMigration ToMigration --idempotent -o migration.sql
 
-# Bundle (.NET 7+) — самодостаточный exe-файл с миграциями
+# Bundle (EF Core 6+) — самодостаточный exe-файл с миграциями
 dotnet ef migrations bundle -o ./efbundle
 ./efbundle --connection "Host=...;Database=..."
 ```
@@ -265,7 +265,7 @@ jobs:
 
 ---
 
-## EF Migrations Bundle (.NET 7+)
+## EF Migrations Bundle (EF Core 6+)
 
 Самодостаточный исполняемый файл со всеми миграциями. Не нужен .NET SDK на target машине.
 
@@ -1013,8 +1013,7 @@ modelBuilder.Entity<User>().HasData(new User
 | Filter | `.Where(predicate)` |
 | Pagination | `.OrderBy().Skip(n).Take(n)` |
 | Conditional include | `.Include(o => o.Items.Where(i => i.IsActive))` |
-| Bulk update (EF 7+) | `.ExecuteUpdateAsync(s => s.SetProperty(...))` |
-| Bulk delete (EF 7+) | `.ExecuteDeleteAsync()` |
+| Bulk update / delete (EF Core 7+) | ExecuteUpdate / ExecuteDelete — см. [[ef-bulk-operations]] |
 | Raw SQL | `.FromSqlRaw("...", params)` |
 | Track changes | default (Add, Update modify entities) |
 | Detach | `_db.Entry(entity).State = EntityState.Detached` |
@@ -1048,13 +1047,13 @@ EF Core решение?
 │
 ├── Need related data?
 │   ├── 1 collection → Include
-│   ├── Multiple collections → AsSplitQuery (.NET 5+)
+│   ├── Multiple collections → AsSplitQuery (EF Core 5+)
 │   ├── Только некоторые fields → Projection (Select)
 │   └── Filtered → Include + Where (filtered include)
 │
 ├── Bulk operation?
-│   ├── EF 7+ → ExecuteUpdate / ExecuteDelete
-│   ├── EF 6 — → Dapper или raw SQL
+│   ├── EF Core 7+ → ExecuteUpdate / ExecuteDelete
+│   ├── EF Core ≤6 → Dapper или raw SQL
 │   └── Очень большой volume → SqlBulkCopy
 │
 ├── Performance critical?

@@ -337,6 +337,44 @@ public void Process(IShape shape)
 
 Dynamic PGO превращает виртуальные вызовы в прямые (Guarded Devirtualization) на основе реальной статистики.
 
+### .NET 10 JIT: escape analysis и object stack allocation
+
+**Why before how.** Аллокация на heap — это не только цена самого `new`: каждый объект нагружает GC и блокирует другие оптимизации. .NET 10 существенно расширил **escape analysis**: JIT доказывает, что объект не «убегает» из метода (не сохраняется в поле, не возвращается, не уходит в другой поток) — и тогда размещает его **на стеке**, как struct. После stack-аллокации JIT может пойти дальше и разложить объект на скалярные значения в регистрах (promotion) — объект исчезает целиком.
+
+Что стало stack-аллоцируемым в .NET 10:
+
+| Объект | Условие |
+|--------|---------|
+| Малые массивы value-типов | фиксированный небольшой размер, без GC-указателей, не переживает метод |
+| Малые массивы ref-типов | .NET 10 добавил и ссылочные элементы (раньше — только value) |
+| Делегаты | escape analysis для delegate-аллокаций: лямбда не убежала — не аллоцируется |
+| Объекты в полях структур | анализ смотрит «сквозь» локальные struct-поля |
+| Энумераторы | conditional escape analysis для `foreach` по интерфейсу |
+
+Вторая половина картины — **де-виртуализация интерфейсных вызовов массивов**: JIT научился devirtualize и inline'ить методы интерфейсов, реализуемых массивами (`GetEnumerator`/`MoveNext`/`Current` через `IEnumerable<T>`). Вместе эти две оптимизации снимают классический «налог на абстракцию»:
+
+```csharp
+public int SumViaInterface(int[] values)
+{
+    IEnumerable<int> seq = values;   // интерфейс вместо конкретного типа
+    var sum = 0;
+    foreach (var v in seq)
+        sum += v;
+    return sum;
+}
+// .NET 9:  heap-аллокация энумератора + виртуальные MoveNext()/Current на каждой итерации
+// .NET 10: devirtualization + inlining + stack-аллокация энумератора —
+//          ноль аллокаций, тело цикла как у обычного for; на таких
+//          IEnumerable-итерациях по массивам/List<T> — до ~5x быстрее .NET 9
+```
+
+> [!info] Практический вывод
+> «foreach по интерфейсу = аллокация энумератора» — ещё одно правило, которое устаревает (ср. раздел 6 про boxing). Для array/`List<T>`-источников на .NET 10 JIT часто убирает и аллокацию, и виртуальные вызовы сам. Прежде чем переписывать сигнатуры с `IEnumerable<T>` на конкретные типы ради перфа — проверь `Allocated` в BenchmarkDotNet на своём target runtime.
+
+### Exception handling rewrite (.NET 9)
+
+CoreCLR в .NET 9 перешёл на модель exception handling из NativeAOT-runtime — вместо Windows SEH и его эмуляции на Unix (везде, кроме Windows x86). Throw/unwind стали **в 2–4x быстрее** в микробенчмарках. Нюанс к правилу «exceptions are slow»: исключения по-прежнему на порядки дороже Result pattern и не годятся для control flow, но сама цена throw/catch на современном runtime заметно ниже, чем в фольклоре времён .NET Framework.
+
 ---
 
 ## 4. ReadyToRun (R2R)
@@ -459,7 +497,7 @@ public Type GetEntityType() => typeof(Order);
 | **AWS Lambda / Azure Functions** | Да | Cold start критичен |
 | **Микросервис (Minimal API)** | Да | Быстрый старт, маленький Docker image |
 | **Полное ASP.NET Core приложение** | Осторожно | Многие библиотеки не AOT-ready |
-| **EF Core** | Нет (пока) | Активно использует рефлексию |
+| **EF Core** | Экспериментально | Активно использует рефлексию; precompiled queries + NativeAOT (EF Core 9/10) существуют, но на 2026 — highly experimental, не для production |
 | **Plugin-система** | Нет | Нужен runtime loading |
 
 #### Чеклист AOT-готовности

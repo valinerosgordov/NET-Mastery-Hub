@@ -1,7 +1,7 @@
 ---
 tags: [sql, indexes, btree, hash, performance, query-plan, postgresql]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Indexes Deep — индексы досконально
@@ -146,6 +146,9 @@ CONCURRENTLY медленнее, но не блокирует — критичн
 - ❌ `WHERE B = ?`
 - ❌ `WHERE C = ?`
 - ❌ `WHERE B = ? AND C = ?`
+
+> [!info] PostgreSQL 18: skip scan размывает «абсолют»
+> B-tree **skip scan** (PG 18) умеет использовать составной индекс и без условия на ведущую колонку: если у `A` низкая cardinality (например, 4 значения status), планировщик сам перебирает каждое значение `A` и делает точечные пробы по `B`. Т.е. `WHERE B = ?` может пойти по индексу `(A, B)`. Это спасательный круг, а не замена дизайна: чем выше cardinality ведущей колонки, тем бесполезнее skip scan. **Правило leftmost prefix остаётся эвристикой проектирования индексов.**
 
 ### Пример
 

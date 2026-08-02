@@ -11,7 +11,7 @@ tags:
   - inline-arrays
   - deepdive
 complexity: Senior
-date: 2026-04-30
+date: 2026-08-02
 level: Senior
 ---
 
@@ -528,9 +528,9 @@ int idx = buffer.IndexOfAny(Whitespace);
 
 ---
 
-## 6. Tensor primitives (.NET 9+)
+## 6. Tensor primitives (.NET 8+, существенно расширен в 9/10)
 
-`System.Numerics.Tensors` — high-level API для тензорной математики, под капотом SIMD:
+`System.Numerics.Tensors` — high-level API для тензорной математики, под капотом SIMD. NuGet-пакет stable с версии 8.0.0 (ноябрь 2023); в .NET 9/10 набор операций существенно расширен (generic-перегрузки, сотни новых методов):
 
 ```csharp
 using System.Numerics.Tensors;

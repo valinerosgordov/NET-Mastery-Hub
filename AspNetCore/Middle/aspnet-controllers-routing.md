@@ -1,7 +1,7 @@
 ---
 tags: [aspnetcore, controllers, minimal-api, routing, middle, model-binding]
 level: Middle
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # ASP.NET Core Controllers vs Minimal API — routing, binding, return types
@@ -530,7 +530,8 @@ app.MapPost("/users", (CreateUserDto dto) => /* ... */)
 ### 5.4. FluentValidation
 
 ```bash
-dotnet add package FluentValidation.AspNetCore
+dotnet add package FluentValidation
+dotnet add package FluentValidation.DependencyInjectionExtensions
 ```
 
 ```csharp

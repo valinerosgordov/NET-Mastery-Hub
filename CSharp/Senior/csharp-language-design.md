@@ -1,12 +1,12 @@
 ---
 tags: [csharp, language-design, senior, csharp-evolution, philosophy, lang-design, history]
 level: Senior
-date: 2026-05-09
+date: 2026-08-02
 ---
 
 # C# Language Design — философия и эволюция языка
 
-> **Принципы проектирования C#, design committee, эволюция через 13 версий, trade-offs.** Зачем добавили (и не добавили) features, как принимаются решения, что отличает C# от Java/Kotlin/F#. Закрывает пробел: «знаю синтаксис, не понимаю почему C# такой, и зачем records появились в C# 9, а primary constructors — в C# 12».
+> **Принципы проектирования C#, design committee, эволюция через 14 версий, trade-offs.** Зачем добавили (и не добавили) features, как принимаются решения, что отличает C# от Java/Kotlin/F#. Закрывает пробел: «знаю синтаксис, не понимаю почему C# такой, и зачем records появились в C# 9, а primary constructors — в C# 12».
 
 ---
 
@@ -26,7 +26,7 @@ Cross-language якоря свёрнуты. Interview-вопросы встро�
 
 **Language design** — set decisions определяющий: какие features add, в каком порядке, в какой syntax form, какие compromises делать. **Anders Hejlsberg** (Turbo Pascal, Delphi, J++) — chief architect C# 1.0-onwards. **Mads Torgersen** — language design lead currently.
 
-C# не "приставлен к .NET" — designed alongside Common Language Runtime (CLR). 22 years (2002-2024) consistent direction.
+C# не "приставлен к .NET" — designed alongside Common Language Runtime (CLR). 24 years (2002-2026) consistent direction.
 
 ### 1.2. Главные guiding principles
 
@@ -179,7 +179,7 @@ Examples successfully community-driven:
 - Pattern matching — extends existing switch.
 
 **Отложено / отклонено:**
-- Discriminated unions — long-discussed (since C# 7?), still в development. Roadmapped C# 14+.
+- Discriminated unions — long-discussed (since C# 7), почти десятилетие в proposals; первый preview — **C# 15** (.NET 11 Preview 2, апрель 2026), GA ожидается ~ноябрь 2026. Пример «отложено надолго ≠ отклонено».
 - Type classes — too complex для mainstream.
 - Operator constraints в generics — replaced static abstract members + `INumber<T>`.
 
@@ -194,7 +194,7 @@ Examples successfully community-driven:
 В csharplang repo. Anyone может read decisions history.
 
 > [!question]- Интервью: как принимаются решения в C# language design?
-> **C# Language Design Meeting (LDM)** — weekly Microsoft + community participants. Proposals lifecycle: GitHub discussion → champion takes ownership → document → LDM reviews → spec → compiler → preview → final. Average 1-3 years. Decision criteria: solves common problem (not edge), composable с existing, future-compatible, implementation tractable, educational cost reasonable. Examples: records (C# 9, community pressure), primary constructors classes (C# 12, DI complaints), discriminated unions (still in progress). Notes публичные на github.com/dotnet/csharplang/meetings.
+> **C# Language Design Meeting (LDM)** — weekly Microsoft + community participants. Proposals lifecycle: GitHub discussion → champion takes ownership → document → LDM reviews → spec → compiler → preview → final. Average 1-3 years. Decision criteria: solves common problem (not edge), composable с existing, future-compatible, implementation tractable, educational cost reasonable. Examples: records (C# 9, community pressure), primary constructors classes (C# 12, DI complaints), discriminated unions (десятилетие обсуждений → preview в C# 15). Notes публичные на github.com/dotnet/csharplang/meetings.
 
 ---
 
@@ -207,7 +207,7 @@ Examples successfully community-driven:
                                           — Mads Torgersen
 ```
 
-Code написанный для C# 1.0 (2002) **компилируется** в C# 13 (2024). 22 years guarantee.
+Code написанный для C# 1.0 (2002) **компилируется** в C# 14 (2025). 24 years guarantee.
 
 ### 3.2. How preserved
 
@@ -249,7 +249,7 @@ Microsoft публикует [breaking changes](https://learn.microsoft.com/dotn
 - `ArrayList` + `List<T>` — same.
 - Property syntax вариаций (auto-implemented C# 3 → init C# 9 → primary ctor C# 12).
 
-C# carries weight of 22-year history. Not always clean.
+C# carries weight of 24-year history. Not always clean.
 
 ### 3.5. ApplicationException — example deprecated
 
@@ -267,7 +267,7 @@ public class MyException : ApplicationException { }
 Enterprise codebase: миллионы lines, decades old, shared libraries. Если updating C# breaks code — never update. Microsoft chose: **slow careful evolution** > fast clean rebuild. Stability над elegance.
 
 > [!question]- Интервью: почему C# так сильно предан backward compatibility?
-> **Microsoft enterprise customers** — крупные codebases (миллионы lines), legacy libraries, third-party dependencies. Если C# upgrade ломает code — никто не upgrade. Stability > elegance. Result: code C# 1.0 (2002) **compiles** в C# 13 (2024). New features через **contextual keywords** (`var`, `async`, `record`, `required`) — не reserved (existing identifiers сохраняются). Opt-in через `<LangVersion>` или `<Nullable>`. Trade-offs: legacy patterns остаются (`delegate` + `Func<>`, `Hashtable` + `Dictionary`), некоторые corners ugly. Stability paid via constraints — language carries 22-year baggage.
+> **Microsoft enterprise customers** — крупные codebases (миллионы lines), legacy libraries, third-party dependencies. Если C# upgrade ломает code — никто не upgrade. Stability > elegance. Result: code C# 1.0 (2002) **compiles** в C# 14 (2025). New features через **contextual keywords** (`var`, `async`, `record`, `required`, `extension`) — не reserved (existing identifiers сохраняются). Opt-in через `<LangVersion>` или `<Nullable>`. Trade-offs: legacy patterns остаются (`delegate` + `Func<>`, `Hashtable` + `Dictionary`), некоторые corners ugly. Stability paid via constraints — language carries 24-year baggage.
 
 ---
 
@@ -283,7 +283,7 @@ Java erasure:
 - Один classfile compile-time
 
 C# reification:
-- List<int>, List<string> — runtime distinct types
+- `List<int>`, `List<string>` — runtime distinct types
 - typeof(T) works in runtime
 - No boxing для value types
 - JIT specializes per value T (separate machine code)
@@ -730,7 +730,7 @@ C# — middle ground: more ceremonious than Python, less than Java/Rust.
 | **Generics** | Reified | Erased | JVM erased | Structural | Hindley-Milner | Monomorphized |
 | **Null safety** | Opt-in NRT | Optional | Sound | Opt-in | `Option<T>` | `Option<T>` |
 | **Pattern matching** | Yes (8+) | Switch (21+) | When | Yes | Yes | Yes |
-| **Discriminated unions** | No (planned) | Sealed (17+) | Sealed | Yes (union types) | Yes | Yes |
+| **Discriminated unions** | Preview (C# 15) | Sealed (17+) | Sealed | Yes (union types) | Yes | Yes |
 | **Records** | Yes (9+) | Yes (14+) | Data class | No | Yes | Yes (struct) |
 
 ### 9.4. Ecosystem comparison
@@ -769,7 +769,7 @@ Rust:
 ### 9.5. C# strengths
 
 ```
-✅ Backward compat (22 years stable)
+✅ Backward compat (24 years stable)
 ✅ Performance (reified generics, value types, AOT)
 ✅ Tooling (VS, Rider top tier)
 ✅ Microsoft backing — enterprise reliability
@@ -780,8 +780,8 @@ Rust:
 ### 9.6. C# weaknesses
 
 ```
-❌ Verbose vs Python/Kotlin — boilerplate в places (хотя 9-12 уменьшил)
-❌ Discriminated unions missing (planned)
+❌ Verbose vs Python/Kotlin — boilerplate в places (хотя 9-14 уменьшил)
+❌ Discriminated unions — пока только preview (C# 15 / .NET 11, GA ~ноябрь 2026)
 ❌ Higher kinded types missing
 ❌ AOT ecosystem early (2024+)
 ❌ Mobile second-class
@@ -789,29 +789,33 @@ Rust:
 ```
 
 > [!question]- Интервью: что отличает C# от Java?
-> 1) **Reified generics** (vs Java erasure) — no boxing, runtime type info, JIT specialization. 2) **Value types** (struct) — true stack allocation, no boxing для primitives. 3) **Faster evolution** — C# 8-13 added: NRT, records, init, primary constructors, raw strings, collection expressions. Java equivalent slower (records 14, sealed 17). 4) **async/await** built-in (C# 5). Java только CompletableFuture / virtual threads (21+). 5) **LINQ** — Java added Streams (8) inspired by LINQ. 6) **Better tooling** — Visual Studio + Rider. **Java strengths**: more mature ecosystem, better Android, JVM ecosystem (Scala, Kotlin, Clojure share JVM).
+> 1) **Reified generics** (vs Java erasure) — no boxing, runtime type info, JIT specialization. 2) **Value types** (struct) — true stack allocation, no boxing для primitives. 3) **Faster evolution** — C# 8-14 added: NRT, records, init, primary constructors, raw strings, collection expressions, extension members. Java equivalent slower (records 14, sealed 17). 4) **async/await** built-in (C# 5). Java только CompletableFuture / virtual threads (21+). 5) **LINQ** — Java added Streams (8) inspired by LINQ. 6) **Better tooling** — Visual Studio + Rider. **Java strengths**: more mature ecosystem, better Android, JVM ecosystem (Scala, Kotlin, Clojure share JVM).
 
 ---
 
 ## 10. Future — discriminated unions, more
 
-### 10.1. Long-anticipated — discriminated unions
+### 10.1. Long-anticipated — discriminated unions: уже в preview
+
+Дошло до реализации: первый preview — **C# 15** (.NET 11 Preview 2, апрель 2026), за `<LangVersion>preview</LangVersion>` + `net11.0`. GA ожидается с .NET 11 (~ноябрь 2026); синтаксис до GA может измениться.
 
 ```csharp
-// Не существует в C# (2024)
-public union Shape
-{
-    Circle(double Radius);
-    Square(double Side);
-}
+// C# 15 preview — union поверх существующих case-типов
+public record Circle(double Radius);
+public record Square(double Side);
 
-// Workaround сейчас (records + sealed)
-public abstract record Shape;
-public record Circle(double Radius) : Shape;
-public record Square(double Side) : Shape;
+public union Shape(Circle, Square);
+
+// Compiler enforces exhaustiveness при pattern matching
+static double Area(Shape shape) => shape switch
+{
+    Circle c => Math.PI * c.Radius * c.Radius,
+    Square s => s.Side * s.Side
+    // нет _ — компилятор знает, что set закрыт
+};
 ```
 
-Roadmapped C# 14+ (no commitment).
+Модель C# — **type union** (композиция существующих standalone-типов), а не tag union как в F#/Rust; value types в дефолтной реализации боксятся — simplicity over max performance. Workaround до GA — records + abstract base (sealed hierarchy) + `_ => throw`.
 
 ### 10.2. Type classes / higher-kinded types
 
@@ -822,17 +826,21 @@ val map : ('a -> 'b) -> M<'a> -> M<'b> when M : Functor
 
 C# не имеет HKT. Discussion ongoing, complex добавить с reified generics.
 
-### 10.3. Roles / extensions
+### 10.3. Extensions — shipped в C# 14
+
+Долгий proposal «roles/extension types» приземлился в виде **extension members** — реальная фича C# 14 (.NET 10, ноябрь 2025):
 
 ```csharp
-// Hypothetical — extension types
-extension UserViewModel : User
+public static class UserExtensions
 {
-    public string DisplayName => $"{FirstName} {LastName}";
+    extension(User user)
+    {
+        public string DisplayName => $"{user.FirstName} {user.LastName}";   // extension property
+    }
 }
 ```
 
-Roles/extensions — proposed C# 13+, в development.
+Extension properties / static members / operators — компилируются в static методы, старый `this`-синтаксис остаётся валиден. Полноценные «roles» (именованные view-типы поверх существующих) в исходном виде не вышли — LDM сузил scope до members. Детали — [[modern-features|Modern C# Features]] раздел 12.
 
 ### 10.4. Sound null safety
 
@@ -876,8 +884,8 @@ NOT planned: macros (C++/Rust style) — Microsoft considers source generators s
 
 ⚠️ Cautious adoption (mixed teams):
   - Generic Math (.NET 7+) — niche
-  - field keyword (C# 13) — too new
-  - Discriminated unions (когда выйдут)
+  - field keyword (C# 14) — стабилен, но проверь что команда понимает семантику
+  - Discriminated unions (C# 15 preview) — до GA только эксперименты
 
 ❌ Avoid в legacy projects:
   - NRT migration disruptive — gradual, per-file
@@ -973,7 +981,9 @@ C# 9.0 (2020) — Records, init, top-level, target-typed new, source generators
 C# 10.0 (2021) — File-scoped namespaces, global usings, record struct
 C# 11.0 (2022) — Raw strings, required, list patterns, generic attrs, static abstract
 C# 12.0 (2023) — Primary constructors (all types), collection expressions
-C# 13.0 (2024) — field keyword, partial properties, params Span<T>, Lock type
+C# 13.0 (2024) — partial properties, params Span<T>, Lock type, field keyword (preview)
+C# 14.0 (2025) — extension members, field (stable), ?.= assignment, partial ctors/events
+C# 15.0 (~2026) — union types (preview в .NET 11)
 ```
 
 ---

@@ -1,7 +1,7 @@
 ---
 tags: [ef-core, queries, performance, n-plus-1, projection, compiled-queries, bulk]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # EF Core — Queries и Performance
@@ -71,7 +71,7 @@ options.LogTo(Console.WriteLine, LogLevel.Information);
 
 В логах увидишь сколько запросов → если десятки на одну операцию — N+1.
 
-В .NET 8+ EF Core по умолчанию **варнингает** в logs если detected:
+EF Core по умолчанию **варнингает** в logs если detected (событие `MultipleCollectionIncludeWarning`):
 ```
 warn: Microsoft.EntityFrameworkCore.Query[20504]
       Compiling a query which loads related collections for more than one collection navigation...
@@ -190,7 +190,7 @@ options.UseNpgsql(connStr, b =>
 
 Default — single query. Лучше явно ставить per-query.
 
-### Filtered Include (.NET 5+)
+### Filtered Include (EF Core 5+)
 
 ```csharp
 var users = await db.Users
@@ -264,7 +264,7 @@ var users = await db.Users
     .ToListAsync();
 ```
 
-В .NET 8+ можно глобально:
+Можно глобально:
 ```csharp
 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 // Tracking явно где нужно через .AsTracking()
@@ -319,14 +319,16 @@ public Task<User?> GetByEmailAsync(string email) =>
 
 5-10x speedup на hot path. Используй для часто-вызываемых query (login, identity, hot endpoints).
 
-### Limitations
-- Не поддерживает `Include` — только projection
-- Не поддерживает dynamic queries (предикаты в runtime)
-- Compiled query держит **сильную ссылку** на DbContext type — может мешать unloading test assemblies
+### Limitations (по официальным docs)
+- Работает только с **одной моделью EF Core** — если context'ы одного типа сконфигурированы с разными моделями, compiled queries не поддерживаются
+- Параметры — только **простые скалярные**: member/method access на инстансах (`user.Id`, `GetEmail()`) в параметрах не транслируется
+- Не поддерживает dynamic queries (предикаты, собираемые в runtime, — expression фиксируется при компиляции)
+
+`Include`, projection, `Where` и прочие операторы работают как в обычных запросах — вопреки распространённому мифу, ограничения на `Include` в docs нет.
 
 ---
 
-## ExecuteUpdate / ExecuteDelete (.NET 7+)
+## ExecuteUpdate / ExecuteDelete (EF Core 7+)
 
 Bulk operations **без загрузки entities в память**.
 

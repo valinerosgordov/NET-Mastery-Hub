@@ -1,7 +1,7 @@
 ---
 tags: [efcore, basics, junior, orm, dbcontext]
 level: Junior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # EF Core Basics — что такое ORM и как им пользоваться
@@ -113,7 +113,7 @@ Raw SQL — для редких edge cases.
 > Концепция та же — Object-Relational Mapping. EF Core ближе к Hibernate чем Sequelize. **DbContext** ≈ Hibernate Session / SQLAlchemy session. **`DbSet<T>`** ≈ Hibernate `Session.createQuery` / SQLAlchemy `session.query(Model)`. Migrations ≈ Alembic / Hibernate dbm. Главное отличие — LINQ queries (compile-time checked).
 
 > [!question]- Интервью: что такое EF Core?
-> **Entity Framework Core** — Microsoft's official ORM для .NET. Преобразует C# objects в SQL queries и обратно. Provides: 1) **DbContext** — sessions / unit of work. 2) **`DbSet<T>`** — табличные коллекции. 3) **LINQ queries** — type-safe SQL generation. 4) **Migrations** — schema evolution. 5) **Change tracking** — automatic update detection. **Use case**: повседневная работа с БД в .NET приложении. Cross-platform (.NET 5+), supports SQL Server, PostgreSQL, MySQL, SQLite, Cosmos DB.
+> **Entity Framework Core** — Microsoft's official ORM для .NET. Преобразует C# objects в SQL queries и обратно. Provides: 1) **DbContext** — sessions / unit of work. 2) **`DbSet<T>`** — табличные коллекции. 3) **LINQ queries** — type-safe SQL generation. 4) **Migrations** — schema evolution. 5) **Change tracking** — automatic update detection. **Use case**: повседневная работа с БД в .NET приложении. Cross-platform, supports SQL Server, PostgreSQL, MySQL, SQLite, Cosmos DB.
 
 ---
 
@@ -317,7 +317,7 @@ public async Task UpdateUserNameAsync(int id, string newName)
 ```
 
 ```csharp
-// Способ 2: Update без load (optimization, .NET 7+)
+// Способ 2: Update без load (optimization, EF Core 7+)
 public async Task UpdateUserNameAsync(int id, string newName)
 {
     await _db.Users
@@ -350,7 +350,7 @@ public async Task DeleteUserAsync(int id)
     await _db.SaveChangesAsync();
 }
 
-// Способ 2: Bulk delete без load (.NET 7+)
+// Способ 2: Bulk delete без load (EF Core 7+)
 public async Task DeleteUserAsync(int id)
 {
     await _db.Users
@@ -627,7 +627,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ```
 
 > [!question]- Интервью: что такое conventions в EF Core?
-> Default rules которые EF Core применяет автоматически: 1) **PK detection** — property named "Id" или "`<TypeName>Id`". 2) **Type mapping** — C# `string` → `nvarchar(MAX)`, `int` → `int`. 3) **Table name** — DbSet property name. 4) **FK detection** — `<RelatedTypeName>Id` linked to navigation. 5) **Index** — none by default (need explicit `[Index]` или Fluent). **Override**: Data Annotations на class, Fluent API в OnModelCreating, или global conventions (.NET 7+ `ConfigureConventions`). **Best practice**: rely on conventions для типичных случаев, override только когда нужно.
+> Default rules которые EF Core применяет автоматически: 1) **PK detection** — property named "Id" или "`<TypeName>Id`". 2) **Type mapping** — C# `string` → `nvarchar(MAX)`, `int` → `int`. 3) **Table name** — DbSet property name. 4) **FK detection** — `<RelatedTypeName>Id` linked to navigation. 5) **Index** — none by default (need explicit `[Index]` или Fluent). **Override**: Data Annotations на class, Fluent API в OnModelCreating, или global conventions (EF Core 7+ `ConfigureConventions`). **Best practice**: rely on conventions для типичных случаев, override только когда нужно.
 
 ---
 
@@ -1023,7 +1023,7 @@ var user = await _db.Users.FindAsync(id);
 user.Name = "Bob";
 await _db.SaveChangesAsync();
 
-// Bulk update (.NET 7+)
+// Bulk update (EF Core 7+)
 await _db.Users
     .Where(u => u.IsActive)
     .ExecuteUpdateAsync(u => u.SetProperty(x => x.LastLogin, DateTime.UtcNow));
@@ -1033,7 +1033,7 @@ var user = await _db.Users.FindAsync(id);
 _db.Users.Remove(user);
 await _db.SaveChangesAsync();
 
-// Bulk delete (.NET 7+)
+// Bulk delete (EF Core 7+)
 await _db.Users
     .Where(u => !u.IsActive)
     .ExecuteDeleteAsync();

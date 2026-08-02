@@ -1,5 +1,5 @@
 ---
-tags: [testing, xunit, tunit, testcontainers, mutation-testing, property-based, playwright, aspire, nbomber]
+tags: [testing, xunit, tunit, microsoft-testing-platform, testcontainers, mutation-testing, property-based, playwright, aspire, nbomber]
 level: Senior
 date: 2026-08-02
 ---
@@ -55,14 +55,14 @@ date: 2026-08-02
 
 | Tool | Назначение | NuGet | Статус |
 |------|-----------|-------|--------|
-| **xUnit** | Тестовый фреймворк (default) | `xunit` | ✅ OSS, де-факто стандарт |
-| **TUnit** | Modern alternative (.NET 8+, source generators) | `TUnit` | ✅ OSS, для новых проектов worth checking |
+| **xUnit v3** | Тестовый фреймворк (default) | `xunit.v3` | ✅ OSS, де-факто стандарт; v2 (`xunit`) — legacy |
+| **TUnit** | MTP-native alternative (.NET 8+, source generators) | `TUnit` | ✅ OSS, 1.0 stable (ноябрь 2025) |
 | **NSubstitute** | Mocking | `NSubstitute` | ✅ OSS |
 | **Shouldly** | Assertions (рекомендуется) | `Shouldly` | ✅ OSS — **замена FluentAssertions** |
 | **FluentAssertions** | Assertions (legacy) | `FluentAssertions` | ⚠️ С 2025 — commercial для prod use |
 | **Testcontainers** | Docker для integration tests | `Testcontainers.PostgreSql` etc. | ✅ OSS |
 | **WebApplicationFactory** | In-memory ASP.NET Core | `Microsoft.AspNetCore.Mvc.Testing` | ✅ Built-in |
-| **Aspire Testing** | Distributed-app в тестах | `Aspire.Hosting.Testing` | ✅ Microsoft |
+| **Aspire Testing** | Distributed-app в тестах | `Aspire.Hosting.Testing` | ✅ Microsoft (бренд Aspire, с v13 без «.NET») |
 | **Bogus** | Fake data generation | `Bogus` | ✅ OSS |
 | **AutoFixture** | Auto-create test objects | `AutoFixture` | ✅ OSS |
 | **Respawn** | DB reset между тестами | `Respawn` | ✅ OSS |
@@ -166,9 +166,69 @@ public class CustomerTests { /* ... */ }
 
 ---
 
+## xUnit v3 и Microsoft.Testing.Platform
+
+Пакет `xunit.v3` — актуальное поколение xUnit (stable 1.0 — декабрь 2024, к 2026 — ветка 3.x). Старая линейка `xunit` (v2) осталась в legacy-режиме: новые проекты стартуют на v3.
+
+### Что изменилось vs v2
+
+| | xUnit v2 (`xunit`) | xUnit v3 (`xunit.v3`) |
+|--|--------------------|------------------------|
+| Test project | classlib, нужен внешний host (VSTest) | **standalone exe** (`OutputType=Exe`) — тесты запускаются как обычная программа |
+| `IAsyncLifetime` | `Task InitializeAsync/DisposeAsync` | `ValueTask InitializeAsync()`, `DisposeAsync` из `IAsyncDisposable` (тоже `ValueTask`) |
+| Cancellation | своими руками | встроенный `TestContext.Current.CancellationToken` — прокидывай во все async-вызовы |
+| Min target | .NET Framework 4.5.2 / netstandard | .NET 8+ (или .NET Framework 4.7.2+) |
+| Runner | только VSTest | VSTest **и** Microsoft.Testing.Platform (MTP) |
+
+Механизм standalone exe: тест-сборка сама содержит entry point и умеет исполнять себя (`dotnet run` / `./MyApp.Tests`) — не нужен reflection-based discovery через внешний `testhost.exe`. Это и делает возможным Native AOT и быстрый старт.
+
+### MTP vs VSTest
+
+**Microsoft.Testing.Platform** — новый runner-протокол Microsoft, замена VSTest: тест-проект = самодостаточный исполняемый файл, расширения ставятся как NuGet-пакеты, поддерживается всеми основными фреймворками (MSTest, NUnit, xUnit v3, TUnit). VSTest остаётся для legacy (xUnit v2 работает только через него).
+
+В **.NET 10 SDK** `dotnet test` умеет нативно работать через MTP — режим включается в `global.json`:
+
+```json
+{
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
+  }
+}
+```
+
+Опции MTP передаются после `--`: `dotnet test -- --retry-failed-tests 3`.
+
+### Расширения `Microsoft.Testing.Extensions.*`
+
+| Пакет | Что даёт |
+|-------|----------|
+| `...Extensions.Retry` | `--retry-failed-tests N` — авторетрай flaky-тестов |
+| `...Extensions.CrashDump` / `...HangDump` | dump процесса при crash / зависании (CI-диагностика) |
+| `...Extensions.CodeCoverage` | `--coverage` — встроенный coverage без coverlet |
+| `...Extensions.TrxReport` | `--report-trx` — TRX-отчёт для CI |
+
+### Рекомендуемый csproj (xUnit v3 + MTP)
+
+```xml
+<PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework>
+  <OutputType>Exe</OutputType>
+  <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+</PropertyGroup>
+<ItemGroup>
+  <PackageReference Include="xunit.v3" />
+  <!-- только для IDE/VSTest-совместимости; при чистом MTP не обязателен -->
+  <PackageReference Include="xunit.runner.visualstudio" />
+</ItemGroup>
+```
+
+`Microsoft.NET.Test.Sdk` в MTP-режиме не нужен — он часть VSTest-мира. Примеры в этом файле с `Task InitializeAsync` — v2-стиль; при переносе на v3 сигнатуры меняются на `ValueTask`.
+
+---
+
 ## TUnit — modern alternative
 
-`TUnit` использует Source Generators вместо reflection — быстрее, AOT-friendly, modern API.
+`TUnit` использует Source Generators вместо reflection — быстрее, AOT-friendly, modern API. Построен поверх Microsoft.Testing.Platform с самого начала (MTP-native); стабильный релиз 1.0 — ноябрь 2025.
 
 ```csharp
 [Test]
@@ -189,13 +249,14 @@ public async Task RaceConditionTest() { /* ... */ }
 
 | | xUnit | TUnit |
 |--|-------|-------|
-| Maturity | Production stable | Newer, под активным развитием |
-| AOT support | Limited | Native AOT support |
-| Speed | Reflection | Source-gen (faster) |
+| Maturity | Production stable | 1.0 stable (ноябрь 2025) — зрелая альтернатива |
+| AOT support | v3: есть (MTP) | Native AOT support |
+| Speed | v2 reflection / v3 быстрее | Source-gen (faster) |
 | Hooks | `IClassFixture`, attributes | Lifecycle hooks через attributes |
+| Runner | VSTest + MTP (v3) | Только MTP (native) |
 | Когда | По умолчанию для большинства проектов | New projects, AOT requirements |
 
-xUnit для existing — нет смысла мигрировать. Но для нового проекта — стоит попробовать TUnit.
+xUnit для existing — нет смысла мигрировать. Но для нового проекта TUnit — полноценный кандидат, уже не эксперимент.
 
 ---
 
@@ -641,7 +702,7 @@ Property-based **не заменяет** example-based unit tests, **допол�
 
 ## Aspire Testing — distributed system
 
-`.NET Aspire` — фреймворк для multi-service apps. `Aspire.Hosting.Testing` — поднимает всю distributed app в test environment (контейнеры, services, dependencies).
+`Aspire` (до версии 13, ноябрь 2025, назывался «.NET Aspire» — бренд отвязали от .NET, платформа стала polyglot) — фреймворк для multi-service apps. `Aspire.Hosting.Testing` — поднимает всю distributed app в test environment (контейнеры, services, dependencies).
 
 ```csharp
 public class DistributedAppTests : IAsyncLifetime
@@ -941,7 +1002,7 @@ public async Task Test() => await DoSomethingAsync();
 
 ## Testing checklist
 
-- [ ] xUnit или TUnit как framework
+- [ ] xUnit v3 (`xunit.v3`) или TUnit как framework — оба через Microsoft.Testing.Platform
 - [ ] Shouldly как assertions (миграция с FluentAssertions если был)
 - [ ] WebApplicationFactory для integration tests
 - [ ] Testcontainers для real DB / Redis / RabbitMQ
@@ -954,7 +1015,7 @@ public async Task Test() => await DoSomethingAsync();
 - [ ] Playwright для critical E2E user flows
 - [ ] NBomber для load tests перед launches
 - [ ] CI запускает all tests на каждый PR
-- [ ] Coverage report в PR (Codecov / SonarCloud)
+- [ ] Coverage report в PR (Codecov / SonarQube Cloud)
 - [ ] Architecture tests (NetArchTest) для слоёв
 - [ ] Performance regression check (BenchmarkDotNet baseline в CI)
 
@@ -1047,7 +1108,7 @@ public async Task Test() => await DoSomethingAsync();
 | Contract tests | PactNet, Pact.NET |
 | Code review | PR + GitHub Copilot review |
 | Pre-commit hooks | Husky.NET + lint-staged |
-| CI quality gate | SonarCloud / Codacy |
+| CI quality gate | SonarQube Cloud / Codacy |
 
 | Refactoring smell | Action |
 |-------------------|--------|
@@ -1120,6 +1181,6 @@ Quality issue?
 - **Microsoft Playwright docs** — playwright.dev/dotnet/
 - **NBomber docs** — nbomber.com/docs
 - **Verify** — github.com/VerifyTests/Verify (snapshot testing)
-- **Modern Test-Driven Development in .NET** — Mark Seemann (про unit tests done right)
+- **Code That Fits in Your Head** — Mark Seemann (инженерная дисциплина, тесты как драйвер дизайна)
 - **xUnit Test Patterns** — Gerard Meszaros (canonical reference)
 - **Working Effectively with Legacy Code** — Michael Feathers (как добавить тесты в код без тестов)

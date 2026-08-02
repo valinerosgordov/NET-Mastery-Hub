@@ -1,7 +1,7 @@
 ---
 tags: [efcore, queries, junior, linq, crud, filtering]
 level: Junior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # EF Core Queries — LINQ basics, фильтры, сортировка, projection
@@ -665,7 +665,7 @@ var users = await _db.Users
     .ToListAsync();
 ```
 
-### 7.4. Filtered Include (.NET 5+)
+### 7.4. Filtered Include (EF Core 5+)
 
 ```csharp
 // Include только paid orders

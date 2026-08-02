@@ -1,6 +1,6 @@
 # Quality — clean code & code quality
 
-> 5 файлов / ~135 KB. Clean code (Junior принципы) + Senior tooling (analyzers, SonarCloud).
+> 5 файлов / ~135 KB. Clean code (Junior принципы) + Senior tooling (analyzers, SonarQube Cloud).
 
 [[README|← Главный README]] · [[INDEX|Полный INDEX]]
 
@@ -12,7 +12,7 @@
 |--------|---------------|
 | Junior, basics | [[clean-code|`clean-code.md`]] — naming, principles |
 | На code review | [[code-review|`code-review.md`]] |
-| Setup analyzers / SonarCloud | [[code-quality|`code-quality.md`]], [[static-analysis|`static-analysis.md`]] |
+| Setup analyzers / SonarQube Cloud | [[code-quality|`code-quality.md`]], [[static-analysis|`static-analysis.md`]] |
 | Refactor legacy | [[refactoring|`refactoring.md`]] |
 
 ---
@@ -29,7 +29,7 @@
 
 | Файл | Описание |
 |------|----------|
-| [[code-quality|`code-quality.md`]] | Analyzers, EditorConfig, SonarCloud |
+| [[code-quality|`code-quality.md`]] | Analyzers, EditorConfig, SonarQube Cloud |
 | [[static-analysis|`static-analysis.md`]] | Roslyn analyzers, .editorconfig |
 
 > ⚠️ **`clean-code.md` ≠ `code-quality.md`** — это разные уровни:  

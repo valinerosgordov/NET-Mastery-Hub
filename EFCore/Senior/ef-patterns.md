@@ -636,6 +636,34 @@ public class AppDbContext(
 }
 ```
 
+### Named query filters (EF Core 10)
+
+До EF Core 10 у entity мог быть **только один** query filter — повторный `HasQueryFilter` молча затирал предыдущий. Механизм ломался ровно на связке Soft Delete + Multi-Tenancy: оба фильтра приходилось склеивать в одну лямбду, а `IgnoreQueryFilters()` отключал **всё сразу** — админка «показать удалённые» случайно отключала и tenant isolation (security-дыра).
+
+EF Core 10 добавил **именованные фильтры** — несколько на entity, отключаемые выборочно:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Order>()
+        .HasQueryFilter("SoftDelete", o => !o.IsDeleted)
+        .HasQueryFilter("Tenant", o => o.TenantId == tenantProvider.TenantId);
+}
+
+// Обычные запросы — оба фильтра активны:
+// WHERE NOT IsDeleted AND TenantId = @tenant
+
+// Админка/restore: отключаем ТОЛЬКО soft delete, tenant isolation остаётся
+var withDeleted = await context.Orders
+    .IgnoreQueryFilters(["SoftDelete"])
+    .ToListAsync();
+
+// IgnoreQueryFilters() без аргументов по-прежнему снимает все фильтры —
+// для multi-tenant кода это почти всегда ошибка, используй именованную версию
+```
+
+Правила: имена — обычные строки (для рефакторинга удобно держать константы); named и unnamed фильтры на одной entity **смешивать нельзя** — нужно два и больше, значит именуй все.
+
 ### Strategy: Postgres Row-Level Security
 
 См. подробно [[postgresql-deep|PostgreSQL Deep — RLS]].
@@ -1233,7 +1261,7 @@ catch
 **Best in class libraries:**
 - **Ardalis.Specification** — Specification pattern
 - **MediatR** — CQRS handlers
-- **EFCore.BulkExtensions** — bulk ops до EF 7
+- **EFCore.BulkExtensions** — bulk ops до EF Core 7
 
 
 ---
@@ -1264,7 +1292,7 @@ catch
 │   └── Сложные → Saga orchestration (MassTransit)
 │
 └── Bulk operations?
-    ├── EF 7+ → ExecuteUpdate / ExecuteDelete (built-in)
+    ├── EF Core 7+ → ExecuteUpdate / ExecuteDelete (built-in)
     ├── Старые версии → EFCore.BulkExtensions
     └── Очень large data → raw SQL или Dapper
 ```

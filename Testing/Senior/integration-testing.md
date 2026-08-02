@@ -1,7 +1,7 @@
 ---
 tags: [testing, integration, testcontainers, webapplicationfactory, e2e]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Integration Testing
@@ -51,7 +51,7 @@ date: 2026-04-30
 - xUnit / NUnit               — runner
 - WebApplicationFactory       — real ASP.NET host
 - Testcontainers              — Docker контейнеры в тестах
-- Shouldly / FluentAssertions — readable asserts
+- Shouldly                    — readable asserts (FluentAssertions v8+ — коммерческая лицензия, из стека исключён)
 - Bogus                       — fake test data
 - WireMock.NET                — mock external HTTP
 - Verify                      — snapshot testing
@@ -764,7 +764,7 @@ public async Task CreateOrder_persists()
 | Contract tests | PactNet, Pact.NET |
 | Code review | PR + GitHub Copilot review |
 | Pre-commit hooks | Husky.NET + lint-staged |
-| CI quality gate | SonarCloud / Codacy |
+| CI quality gate | SonarQube Cloud / Codacy |
 
 | Refactoring smell | Action |
 |-------------------|--------|

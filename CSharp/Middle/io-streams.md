@@ -1,7 +1,7 @@
 ---
 tags: [csharp, io, streams, middle, file, async, encoding, pipelines]
 level: Middle
-date: 2026-05-07
+date: 2026-08-02
 ---
 
 # IO и Streams — работа с файлами и потоками
@@ -93,8 +93,8 @@ Crypto → CryptoStream
 | **.NET 1.0** | `Stream`, `FileStream`, `MemoryStream`, sync I/O |
 | **.NET 4.5** | `ReadAsync`/`WriteAsync` (TAP) |
 | **.NET Core 2.1** | `Stream.Read(Span<byte>)` — Span overloads |
+| **.NET Core 2.1** | `System.IO.Pipelines` — zero-allocation (2018, вместе с Kestrel rewrite) |
 | **.NET Core 3.0** | `IAsyncDisposable`, `await using` |
-| **.NET Core 3.0** | `System.IO.Pipelines` — zero-allocation |
 | **.NET 5+** | `RandomAccess` API для random reads |
 | **.NET 6+** | `File.ReadLinesAsync`, `IAsyncEnumerable<string>` |
 | **.NET 8+** | `Memory<T>` improvements, perf gains |
@@ -717,7 +717,7 @@ LIFO disposal: writer → gzip → crypto → fs. Все flush в правиль
 
 ---
 
-## 9. System.IO.Pipelines (.NET Core 3+)
+## 9. System.IO.Pipelines (.NET Core 2.1+)
 
 ### 9.1. Что такое
 

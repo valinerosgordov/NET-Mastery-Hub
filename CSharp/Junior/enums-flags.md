@@ -1,7 +1,7 @@
 ---
 tags: [csharp, enums, flags, junior, bitwise, conversion, ef-core]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # Enums и Flags — перечисления и битовые маски
@@ -2403,55 +2403,9 @@ if (user.IsActive && user.CanRead) { ... }
 
 ---
 
-## 19. Что читать дальше — порядок и почему
+## 19. Performance benchmarks
 
-1. **[[csharp-basics|C# Basics]]** — типы и переменные.
-2. **[[modern-features|Modern Features]]** — pattern matching, switch expressions с enum.
-3. **[[generics-deep|Generics deep]]** — `where T : Enum` constraint.
-4. **EF Core mapping** — value converters, table-per-hierarchy.
-5. **[[dotnet-cli-getting-started|.NET CLI]]** — для миграций.
-6. **JSON deep dive** — кастомные converter'ы.
-7. **DDD value objects** — smart enum vs records.
-8. **Source Generators** — для type-safe smart enum.
-
----
-
-## 20. См. также
-
-- [[csharp-basics|C# Basics]] — value types vs reference types
-- [[modern-features|Modern Features]] — pattern matching, switch expressions
-- [[generics-deep|Generics deep]] — Enum constraint
-- [[anonymous-types|Anonymous Types]] — для projections с enum
-- EF Core Mapping — ValueConverter
-- JSON Serialization — JsonStringEnumConverter
-- DDD Value Objects — smart enum patterns
-- Roslyn Analyzers — статический анализ enum usage
-- Ardalis.SmartEnum — popular smart enum library
-- Vogen — type-safe value objects
-
----
-
-## 21. Reading list
-
-- **Microsoft Docs — Enumeration types** — learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/enum
-- **Microsoft Docs — Enum class** — learn.microsoft.com/dotnet/api/system.enum
-- **Microsoft Docs — Flags attribute** — learn.microsoft.com/dotnet/api/system.flagsattribute
-- **Eric Lippert — Enum design considerations** — ericlippert.com
-- **Steve Smith — Smart Enum pattern** — ardalis.com/enum-alternatives-in-c/
-- **Ardalis.SmartEnum** — github.com/ardalis/SmartEnum
-- **Vogen** — github.com/SteveDunn/Vogen
-- **Microsoft .NET Design Guidelines — Enum Design** — learn.microsoft.com/dotnet/standard/design-guidelines/enum
-- **Andrew Lock — Working with EF Core enum mappings** — andrewlock.net
-- **Microsoft Docs — Pattern matching enums** — learn.microsoft.com/dotnet/csharp/fundamentals/functional/pattern-matching
-- **CSharpLang — Discriminated unions proposal** — github.com/dotnet/csharplang/issues/113
-- **Bill Wagner — Effective C#** — items по enum design
-- **SharpLab** — sharplab.io — посмотреть IL для enum operations
-- **BenchmarkDotNet — Enum operations** — benchmarkdotnet.org
-- **Roslyn Analyzers — Enum design rules** — learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1027
-
-## 22. Performance benchmarks
-
-### 22.1. Cast vs HasFlag (.NET 5+)
+### 19.1. Cast vs HasFlag (.NET 5+)
 
 ```csharp
 [Flags]
@@ -2475,7 +2429,7 @@ public bool BitwiseAnd() => (p & Permission.Read) != 0;
 
 Разница пренебрежима. До .NET 5 `HasFlag` боксил, был ~50ns. Сейчас inline-нут JIT-ом.
 
-### 22.2. ToString performance
+### 19.2. ToString performance
 
 ```csharp
 [Benchmark]
@@ -2500,7 +2454,7 @@ public string Format_D() => OrderStatus.Paid.ToString("D");
 
 `nameof()` бесплатно — compile-time. `ToString()` оптимизирован для enum. `"D"` формат всегда дороже.
 
-### 22.3. Enum.Parse vs TryParse
+### 19.3. Enum.Parse vs TryParse
 
 ```csharp
 [Benchmark]
@@ -2532,7 +2486,7 @@ public OrderStatus Switch_Manual() => "Paid" switch
 
 Если parsing критичен в hot path — switch вручную в 30x быстрее. Reflection в `Enum.Parse` дорогая.
 
-### 22.4. `Dictionary<Enum, T>` vs `T[]`
+### 19.4. `Dictionary<Enum, T>` vs `T[]`
 
 ```csharp
 private static readonly Dictionary<OrderStatus, string> Dict = new()
@@ -2562,7 +2516,7 @@ public string ArrLookup() => Arr[(int)OrderStatus.Paid];
 
 Для маленьких enum'ов (5-20 member'ов) array через index — оптимально. Trade-off: память (если enum sparse), но обычно того стоит.
 
-### 22.5. Boxing проверка
+### 19.5. Boxing проверка
 
 ```csharp
 public static void TakesObject(object o) { /* boxing */ }
@@ -2591,13 +2545,13 @@ public void NoBoxingCall() => TakesEnum(OrderStatus.Paid);
 
 ---
 
-## 23. Source generators для enum
+## 20. Source generators для enum
 
-### 23.1. Зачем
+### 20.1. Зачем
 
 `Enum.Parse`, `Enum.GetValues`, `Enum.IsDefined` — все используют reflection. Source generators могут сгенерировать код во время компиляции, который делает то же без reflection — быстрее, AOT-friendly.
 
-### 23.2. EnumGenerator — пример
+### 20.2. EnumGenerator — пример
 
 Популярный пакет: `Andrew Lock's NetEscapades.EnumGenerators`:
 
@@ -2657,7 +2611,7 @@ OrderStatusExtensions.IsDefinedFast((OrderStatus)999);   // false
 OrderStatusExtensions.GetValuesFast();                    // массив
 ```
 
-### 23.3. Performance generators vs reflection
+### 20.3. Performance generators vs reflection
 
 ```
 | Method                  |    Mean | Allocated |
@@ -2674,11 +2628,11 @@ OrderStatusExtensions.GetValuesFast();                    // массив
 
 Source generators дают огромный perf-boost для enum-операций.
 
-### 23.4. AOT-совместимость
+### 20.4. AOT-совместимость
 
 Native AOT (`PublishAot=true`) ограничивает reflection. `Enum.Parse` / `Enum.GetValues` могут не работать в AOT-mode без специальных hint'ов. Source generators решают это: код сгенерирован, рефлексия не нужна.
 
-### 23.5. Когда использовать
+### 20.5. Когда использовать
 
 ✅ **Используй когда:**
 - Hot path с миллионами enum-операций.
@@ -2694,9 +2648,9 @@ Native AOT (`PublishAot=true`) ограничивает reflection. `Enum.Parse`
 
 ---
 
-## 24. Discriminated unions — что .NET НЕ умеет
+## 21. Discriminated unions — что .NET НЕ умеет
 
-### 24.1. Чего нет
+### 21.1. Чего нет
 
 В Rust / F# / Swift / Kotlin есть **discriminated unions** (sum types) — enum с ассоциированными данными:
 
@@ -2717,9 +2671,9 @@ type PaymentResult =
     | Pending
 ```
 
-В C# (на 2026-05) такого нет — только числовые enum. Discriminated unions предложены ([proposal #113](https://github.com/dotnet/csharplang/issues/113)), но пока в pre-design.
+В стабильном C# (C# 14 / .NET 10, на 2026-08) такого нет — только числовые enum. Но фича уже дошла до компилятора: ключевое слово `union` доступно в preview с .NET 11 Preview 2 (апрель 2026) — статус и синтаксис в 21.5.
 
-### 24.2. Эмуляция через class hierarchy
+### 21.2. Эмуляция через class hierarchy
 
 ```csharp
 public abstract record PaymentResult;
@@ -2748,7 +2702,7 @@ Trade-offs:
 - ✅ Полноценные методы / поля на каждом case.
 - ✅ Совместимо с pattern matching.
 
-### 24.3. OneOf — community library
+### 21.3. OneOf — community library
 
 ```bash
 dotnet add package OneOf
@@ -2779,7 +2733,7 @@ string description = result.Match(
 
 `OneOf<T1, T2, T3>` — generic-обёртка для union types. Type-safe. Используется в DDD/functional projects.
 
-### 24.4. Когда нужна union вместо enum
+### 21.4. Когда нужна union вместо enum
 
 ✅ **Discriminated union лучше когда:**
 - Каждый case имеет **разные данные** (Success содержит txId, Failed — error).
@@ -2791,11 +2745,75 @@ string description = result.Match(
 - Compact бит-mask нужен.
 - Performance critical (enum — value type, union — class).
 
-### 24.5. Будущее C#
+### 21.5. `union` — уже в preview (.NET 11)
 
-Microsoft работает над discriminated unions — в C# 14+ появятся как часть language spec. Активно обсуждается в csharplang. Когда появятся — это будет встроенная замена для OneOf и emulation через record hierarchy.
+Дискуссия прошла путь от [issue #113](https://github.com/dotnet/csharplang/issues/113) до актуального proposal `unions.md` в dotnet/csharplang — и до кода: с .NET 11 Preview 2 (апрель 2026) компилятор понимает контекстное ключевое слово `union`. GA ожидается с C# 15 / .NET 11 (~ноябрь 2026), но команда пока прямо пишет «active, not yet committed to a release».
+
+```csharp
+// Требуется: .NET 11 Preview SDK, net11.0, LangVersion = preview
+public union PaymentResult(Success, Failed, Pending);
+
+// Cases — обычные типы (например, records из 21.2)
+string Describe(PaymentResult r) => r switch
+{
+    Success s => $"OK: {s.TransactionId}",
+    Failed f => $"Error: {f.Error}, retry in {f.RetryAfter}s",
+    Pending => "Waiting..."
+    // без _ — компилятор проверяет exhaustiveness по списку cases
+};
+```
+
+**Механизм:** компилятор генерирует struct с полем `object? Value` (value types боксируются) и implicit conversion из каждого case-типа. Pattern matching автоматически «разворачивает» `Value`, а switch по всем cases считается исчерпывающим — discard `_` не нужен. Когда фича дойдёт до GA, она станет встроенной заменой OneOf и эмуляции через record hierarchy.
 
 > [!question]- Интервью: что такое discriminated union и есть ли они в C#?
-> Discriminated union (sum type) — это enum, где каждый case может содержать **разные ассоциированные данные**. Есть в Rust, F#, Swift, Kotlin (sealed classes). В C# (на 2026) нет встроенно — эмулируются через `abstract record` hierarchy + pattern matching, или через `OneOf<T1, T2, T3>` библиотеку. Простые enum в C# — это лишь именованные числа без данных. Microsoft работает над discriminated unions для C# 14+, есть proposal в csharplang. Используй emulation для Result/Either patterns в DDD проектах.
+> Discriminated union (sum type) — это enum, где каждый case может содержать **разные ассоциированные данные**. Есть в Rust, F#, Swift, Kotlin (sealed classes). В стабильном C# (C# 14) встроенно нет — эмулируются через `abstract record` hierarchy + pattern matching, или через `OneOf<T1, T2, T3>` библиотеку. Простые enum в C# — это лишь именованные числа без данных. Ключевое слово `union` уже в preview с .NET 11 Preview 2, GA ожидается с C# 15 (~ноябрь 2026). Пока — emulation для Result/Either patterns в DDD проектах.
+
+---
+
+## 22. Что читать дальше — порядок и почему
+
+1. **[[csharp-basics|C# Basics]]** — типы и переменные.
+2. **[[modern-features|Modern Features]]** — pattern matching, switch expressions с enum.
+3. **[[generics-deep|Generics deep]]** — `where T : Enum` constraint.
+4. **EF Core mapping** — value converters, table-per-hierarchy.
+5. **[[dotnet-cli-getting-started|.NET CLI]]** — для миграций.
+6. **JSON deep dive** — кастомные converter'ы.
+7. **DDD value objects** — smart enum vs records.
+8. **Source Generators** — для type-safe smart enum.
+
+---
+
+## 23. См. также
+
+- [[csharp-basics|C# Basics]] — value types vs reference types
+- [[modern-features|Modern Features]] — pattern matching, switch expressions
+- [[generics-deep|Generics deep]] — Enum constraint
+- [[anonymous-types|Anonymous Types]] — для projections с enum
+- EF Core Mapping — ValueConverter
+- JSON Serialization — JsonStringEnumConverter
+- DDD Value Objects — smart enum patterns
+- Roslyn Analyzers — статический анализ enum usage
+- Ardalis.SmartEnum — popular smart enum library
+- Vogen — type-safe value objects
+
+---
+
+## 24. Reading list
+
+- **Microsoft Docs — Enumeration types** — learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/enum
+- **Microsoft Docs — Enum class** — learn.microsoft.com/dotnet/api/system.enum
+- **Microsoft Docs — Flags attribute** — learn.microsoft.com/dotnet/api/system.flagsattribute
+- **Eric Lippert — Enum design considerations** — ericlippert.com
+- **Steve Smith — Smart Enum pattern** — ardalis.com/enum-alternatives-in-c/
+- **Ardalis.SmartEnum** — github.com/ardalis/SmartEnum
+- **Vogen** — github.com/SteveDunn/Vogen
+- **Microsoft .NET Design Guidelines — Enum Design** — learn.microsoft.com/dotnet/standard/design-guidelines/enum
+- **Andrew Lock — Working with EF Core enum mappings** — andrewlock.net
+- **Microsoft Docs — Pattern matching enums** — learn.microsoft.com/dotnet/csharp/fundamentals/functional/pattern-matching
+- **CSharpLang — Unions proposal** — github.com/dotnet/csharplang, proposals/unions.md (вырос из issue #113)
+- **Bill Wagner — Effective C#** — items по enum design
+- **SharpLab** — sharplab.io — посмотреть IL для enum operations
+- **BenchmarkDotNet — Enum operations** — benchmarkdotnet.org
+- **Roslyn Analyzers — Enum design rules** — learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1027
 
 ---

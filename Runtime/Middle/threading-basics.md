@@ -1,7 +1,7 @@
 ---
 tags: [runtime, threading, thread, threadpool, tpl, parallel, plinq, middle]
 level: Middle
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Threading Basics — Thread, ThreadPool, TPL
@@ -606,6 +606,24 @@ public void Increment()
 }
 ```
 
+С .NET 9 современный дефолт — выделенный тип `System.Threading.Lock` вместо `object`-поля:
+
+```csharp
+// .NET 9+ — компилятор генерирует Lock.EnterScope() вместо Monitor
+private readonly Lock _lock = new();
+private int _counter;
+
+public void Increment()
+{
+    lock (_lock)
+    {
+        _counter++;
+    }
+}
+```
+
+Быстрее Monitor, исключает случайный boxing/lock на чужом объекте, а тип поля явно говорит «это лок». Механика (`EnterScope`, отличия от Monitor) — [[concurrency-atomics|Concurrency и Atomics]].
+
 ### Interlocked — atomic operations
 
 ```csharp
@@ -1077,7 +1095,7 @@ private readonly ConcurrentDictionary<int, T> _items = new();
 | Atomic counter | `Interlocked.Increment(ref counter)` |
 | Concurrent dictionary | `ConcurrentDictionary<K, V>` |
 | Cancellation | `CancellationTokenSource` |
-| Single mutex | `lock(obj)` |
+| Single mutex | `lock` на `Lock`-поле (.NET 9+) / private object |
 | Async mutex | `SemaphoreSlim(1, 1)` |
 | Sleep async | `await Task.Delay(...)` |
 | Long-running thread | `BackgroundService` или `Task.Factory.StartNew(work, TaskCreationOptions.LongRunning)` |
@@ -1109,7 +1127,7 @@ private readonly ConcurrentDictionary<int, T> _items = new();
 Synchronization?
 │
 ├── Atomic int? → Interlocked
-├── Single mutex? → lock (private object)
+├── Single mutex? → lock (Lock-поле .NET 9+; иначе private object)
 ├── Async mutex? → SemaphoreSlim(1, 1)
 ├── Limit concurrency? → SemaphoreSlim(N)
 ├── Concurrent collection? → ConcurrentDictionary / Bag / Queue

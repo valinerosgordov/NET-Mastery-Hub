@@ -1,7 +1,7 @@
 ---
 tags: [blazor, blazor-server, signalr, render-modes, dotnet-10, mudblazor]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Blazor Server — production guide
@@ -15,7 +15,7 @@ date: 2026-06-28
 
 - **Blazor Server** — компоненты живут на сервере, UI обновляется через SignalR (WebSocket). Один процесс — много пользователей.
 - **Blazor WebAssembly** — .NET-runtime скачивается в браузер, всё работает на клиенте.
-- **Blazor United / InteractiveAuto (.NET 8+)** — гибрид: первый рендер SSR, потом WebAssembly или Server по выбору.
+- **Render modes (.NET 8+)** — единая модель: первый рендер — static SSR, интерактивность включается per-page/per-component (`InteractiveServer` / `InteractiveWebAssembly` / `InteractiveAuto`). Ранний рабочий термин «Blazor United» Microsoft отбросила ещё до релиза .NET 8 — официально это render modes.
 
 **Аналогия:** ASP.NET MVC + Razor — это статичный сайт с раз в N секунд POST-back'ом. SPA на React — приложение в браузере с клиентским state. Blazor Server — это «сервер симулирует SPA через WebSocket-канал»: каждое нажатие отправляется на сервер, тот пересчитывает компоненты и шлёт обратно diff.
 
@@ -92,6 +92,10 @@ Browser                                     Server (Kestrel)
 <Counter @rendermode="InteractiveServer" />
 <UserProfile @rendermode="InteractiveAuto" />
 ```
+
+**.NET 10 — точечные улучшения:**
+- **Reconnection UX** — шаблон Blazor Web App включает компонент `ReconnectModal` (свои collocated CSS/JS, без inline-стилей → дружит со строгим CSP): полный контроль над UI переподключения circuit'а.
+- **Declarative persistent state** — атрибут `[PersistentState]` на public-свойстве заменяет ручной `PersistentComponentState.RegisterOnPersisting`: state переживает prerender-границу и восстанавливается после реконнекта (`RestoreBehavior.SkipLastSnapshot` — если после реконнекта нужны свежие данные).
 
 ### Enhanced navigation
 

@@ -1,7 +1,7 @@
 ---
 tags: [csharp, datetime, timezones, junior, datetimeoffset, dateonly, timeonly, nodatime]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # DateTime и Timezones — даты, время, часовые пояса
@@ -78,9 +78,8 @@ UI / Reports / User interaction:     local (с известным TZ польз�
 | **.NET 1.0** | 2002 | `DateTime`, `TimeSpan` |
 | **.NET 2.0** | 2005 | `DateTimeKind` enum, `TimeZoneInfo` |
 | **.NET 3.5 SP1** | 2008 | `DateTimeOffset` |
-| **.NET 6** | 2021 | `DateOnly`, `TimeOnly` |
-| **.NET 6** | 2021 | `TimeProvider` abstract type, IANA support на Windows |
-| **.NET 8** | 2023 | Better Intl support, performance improvements |
+| **.NET 6** | 2021 | `DateOnly`, `TimeOnly`, IANA support на Windows |
+| **.NET 8** | 2023 | `TimeProvider` abstract type, better Intl support, performance improvements |
 | **.NET 10** | 2025 | Уточнения formatting, `DateOnly.ToDateTime` overloads |
 
 ### 1.6. Когда что использовать — quick decision
@@ -1275,7 +1274,7 @@ var dtNow = DateTime.UtcNow;
 
 Stopwatch измеряет **прошедшее время**, DateTime — **календарное время**. Они принципиально разные. Не пытайся конвертировать одно в другое для абсолютных вычислений.
 
-### 10.6. .NET 6+ TimeProvider — abstraction для тестов
+### 10.6. .NET 8+ TimeProvider — abstraction для тестов
 
 ```csharp
 public class OrderService

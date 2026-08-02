@@ -1,7 +1,7 @@
 ---
-tags: [aspnet, auth, jwt, oauth2, oidc, cors, security, identityserver, keycloak, mtls]
+tags: [aspnet, auth, jwt, oauth2, oidc, cors, security, identityserver, keycloak, mtls, passkeys]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Authentication, Authorization и безопасность
@@ -409,7 +409,7 @@ builder.Services.AddAuthentication("Bearer")
 
 | | Keycloak | IdentityServer | Auth0 | Clerk | Supabase Auth | Microsoft Entra ID |
 |--|----------|----------------|-------|-------|----------------|---------------------|
-| Тип | Self-hosted | Self-hosted (commercial с .NET 8) | SaaS | SaaS | SaaS | SaaS (Azure) |
+| Тип | Self-hosted | Self-hosted (Duende, commercial с v5/2021) | SaaS | SaaS | SaaS | SaaS (Azure) |
 | Цена | Free OSS | Платный | Per-user $$$ | Per-user $$ | Per-MAU $ | Per-user $$ |
 | Setup | Сложно (Postgres + конфиг) | Сложно (свой код) | Очень просто | Очень просто | Просто | Сложно (admin portal) |
 | Кастомизация | Высокая | Максимальная | Средняя | Средняя | Средняя | Низкая |
@@ -468,12 +468,12 @@ public static class IdentityConfig
 }
 ```
 
-> [!question]- **Интервью: Duende IdentityServer стал платным с 2022. Что делать?**
-> Альтернативы:
-> 1. **OpenIddict** — open-source, MIT, .NET-native, активно развивается
+> [!question]- **Интервью: Duende IdentityServer платный. Что делать?**
+> С v5 (2021) IdentityServer развивает Duende Software под коммерческой лицензией (бесплатна только для dev/testing и небольших компаний). Бесплатная поддержка **IdentityServer4 закончилась в ноябре 2022** — security patches с тех пор не выходят. Альтернативы:
+> 1. **OpenIddict** — open-source, Apache 2.0, .NET-native, активно развивается
 > 2. **Keycloak** — JVM-stack, но best-in-class OSS IDP
 > 3. **Использовать managed (Auth0/Clerk/Supabase)**
-> Проекты на старом IdentityServer4 — **deprecated** с 2024, security patches не выходят. Срочно мигрируй.
+> Проекты на IdentityServer4 — срочно мигрируй.
 
 ---
 
@@ -807,6 +807,53 @@ app.MapPost("/logout", async (HttpContext ctx) =>
 
 ---
 
+## ASP.NET Core Identity в 2026
+
+### MapIdentityApi (.NET 8+) — быстрый встроенный auth
+
+Когда нужен auth «за 10 минут» для своего SPA/mobile без внешнего IDP — Identity даёт готовые endpoints:
+
+```csharp
+builder.Services.AddAuthentication(IdentityConstants.BearerScheme);
+builder.Services.AddAuthorizationBuilder();
+builder.Services
+    .AddIdentityApiEndpoints<AppUser>()
+    .AddEntityFrameworkStores<AppDbContext>();
+
+var app = builder.Build();
+app.MapIdentityApi<AppUser>();
+// → POST /register, /login, /refresh, /confirmEmail, /resetPassword,
+//   /manage/2fa, /manage/info
+```
+
+`/login` возвращает **opaque bearer token (не JWT!)** либо ставит cookie (`?useCookies=true`). Токен выписывает и валидирует тот же сервер — распределённым системам, где токен проверяют другие сервисы, не подходит: там нужен JWT/OIDC.
+
+**Позиционирование:**
+
+| Сценарий | Выбор |
+|----------|-------|
+| Монолит + свой фронт, пользователи в своей БД, без SSO | `MapIdentityApi` |
+| Токен читают другие сервисы, кастомные claims/flows | Самописный JWT (см. выше) или OpenIddict |
+| SSO, соцсети, enterprise federation | Внешний IDP (Keycloak/Entra/Auth0) |
+
+### Passkeys / WebAuthn в Identity (.NET 10)
+
+.NET 10 добавил в Identity first-class поддержку passkeys (WebAuthn/FIDO2): вход по биометрии/аппаратному ключу вместо пароля. Phishing-resistant — credential привязан к домену; сервер хранит только public key, утечка БД не даёт ничего. Встроено в шаблон Blazor Web App (Individual Accounts); ключевые методы — `SignInManager.PasskeySignInAsync`, `UserManager.AddOrUpdatePasskeyAsync`.
+
+```csharp
+builder.Services.Configure<IdentityPasskeyOptions>(opts =>
+{
+    opts.ServerDomain = "example.com";      // Relying Party ID — фиксируй явно,
+                                            // иначе берётся из host header
+    opts.AuthenticatorTimeout = TimeSpan.FromMinutes(3);
+    opts.UserVerificationRequirement = "required";  // биометрия/PIN обязательны
+});
+```
+
+Реализация сознательно ограничена сценариями аутентификации: attestation-валидации по умолчанию нет (хук — `VerifyAttestationStatement`), 2FA-фактором passkey не является. Для полного WebAuthn — сторонние библиотеки (fido2-net-lib). vs самописный JWT: passkey решает «как пользователь доказывает личность», а не «как сервисы проверяют токен» — это ортогональные вещи, passkey-вход спокойно живёт рядом с JWT-выдачей для API.
+
+---
+
 ## Secrets management
 
 ### Никогда
@@ -1092,7 +1139,7 @@ app.MapGet("/api/{tenantId}/orders", (...) => ...).RequireAuthorization("SameTen
 | CVE | Affected | Fix |
 |-----|----------|-----|
 | **CVE-2026-40372** | DataProtection 10.0.0–10.0.6 | Update to 10.0.7+ |
-| Old IdentityServer4 | Все версии до 10/2024 | Migrate to OpenIddict |
+| IdentityServer4 EOL | Все версии (поддержка закончилась 11/2022) | Migrate to Duende / OpenIddict |
 
 См. подробнее в [[security-practices|security-practices.md]].
 

@@ -1,7 +1,7 @@
 ---
 tags: [csharp, keywords, reference, middle, language-features]
 level: Middle
-date: 2026-05-07
+date: 2026-08-02
 ---
 
 # C# Keywords Reference — справочник по ключевым словам
@@ -41,7 +41,7 @@ int @int = 5;   // OK — escape
 
 ### 1.2. Эволюция
 
-Каждая C# version добавляет keywords. До 2024:
+Каждая C# version добавляет keywords. До 2026:
 - C# 1.0 — base set (~50)
 - C# 2.0 — `partial`, `yield`, generics
 - C# 3.0 — `var`, `from`/`select`/`where` (LINQ)
@@ -50,12 +50,13 @@ int @int = 5;   // OK — escape
 - C# 6.0 — `nameof`, `when`
 - C# 7-8 — `is` patterns, `record` (preview), `notnull`
 - C# 9 — `record`, `init`, `with`
-- C# 11 — `required`, `file`
+- C# 11 — `required`, `file`, `scoped`
 - C# 12 — primary constructors syntax (no new keyword)
-- C# 13 — `field`, `params <T>` collections
+- C# 13 — `params` collections, `allows ref struct`, `field` (preview)
+- C# 14 — `extension`, `field` (stable)
 
 > [!question]- Интервью: чем reserved keyword отличается от contextual?
-> **Reserved** — слово, которое нельзя использовать как identifier (`int`, `class`, `void`). Compiler error если попытаться. **Contextual** — special meaning **только в специфическом context** (`async`, `var`, `yield`, `where`, `record`, `init`). Можно использовать как identifier вне context, но плохой стиль. `@` префикс позволяет escape: `int @int = 5;` OK. Новые keywords обычно contextual (для backward compat). Список в C# language reference (~80 reserved + ~40 contextual в 2024).
+> **Reserved** — слово, которое нельзя использовать как identifier (`int`, `class`, `void`). Compiler error если попытаться. **Contextual** — special meaning **только в специфическом context** (`async`, `var`, `yield`, `where`, `record`, `init`). Можно использовать как identifier вне context, но плохой стиль. `@` префикс позволяет escape: `int @int = 5;` OK. Новые keywords обычно contextual (для backward compat). Список в C# language reference (~80 reserved + ~40 contextual в 2026).
 
 ---
 
@@ -817,7 +818,7 @@ string json = """
     """;
 ```
 
-### 11.8. field (C# 13+)
+### 11.8. field (C# 14; preview в C# 13)
 
 ```csharp
 public string Name
@@ -827,7 +828,7 @@ public string Name
 }
 ```
 
-Без явного `_name` backing field.
+Без явного `_name` backing field. Стабилен с **C# 14** (.NET 10); в C# 13 был доступен только с `<LangVersion>preview</LangVersion>`.
 
 > [!question]- Интервью: что делает `init` accessor?
 > Variant `set`, доступный **только в constructor** или **object initializer**. После construction — read-only. Использует setter syntax: `public string Name { get; init; }`. Caller: `new User { Name = "Alice" }` OK; `user.Name = "Bob"` — compile error. С C# 9+. Удобный для immutable types без full constructor — flexible initialization + immutable after.
@@ -921,6 +922,49 @@ public event EventHandler MyEvent
 
 Property accessors.
 
+### 12.16. scoped (C# 11+)
+
+Ограничивает lifetime ref/`ref struct` параметра текущим методом — ссылка не может «убежать» наружу:
+
+```csharp
+public static void Fill(scoped Span<byte> buffer)
+{
+    buffer.Clear();
+    // compiler гарантирует: buffer не сохранится в поле/не вернётся из метода
+}
+```
+
+Позволяет compiler'у принимать код, который иначе отклонил бы ref-safety анализ (например, передачу `stackalloc`-буфера).
+
+### 12.17. allows ref struct (C# 13+)
+
+Anti-constraint для generics — разрешает `ref struct` (например, `Span<T>`) как type argument:
+
+```csharp
+public static void Process<T>(T value) where T : allows ref struct
+{
+    // T может быть Span<char>; boxing и поля класса по-прежнему запрещены
+}
+```
+
+Детали ограничений — [[types-and-memory|Types и Memory]] раздел 4.
+
+### 12.18. extension (C# 14+)
+
+Открывает `extension`-блок в static class — extension members (properties, static members, operators), не только методы:
+
+```csharp
+public static class StringExtensions
+{
+    extension(string s)
+    {
+        public bool IsBlank => string.IsNullOrWhiteSpace(s);   // extension property
+    }
+}
+```
+
+Детали — [[modern-features|Modern C# Features]] раздел 12.
+
 ---
 
 ## 13. Best Practices
@@ -1012,7 +1056,7 @@ var u2 = u1 with { Name = "Bob" };
 // raw strings (C# 11+)
 string s = """text""";
 
-// field keyword (C# 13+)
+// field keyword (C# 14; preview в C# 13)
 public int X
 {
     get;

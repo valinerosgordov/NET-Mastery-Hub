@@ -1,7 +1,7 @@
 ---
 tags: [csharp, oop, junior, classes, inheritance, polymorphism, encapsulation, abstraction, records, solid]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # OOP и классы — четыре столпа объектно-ориентированного программирования
@@ -94,7 +94,7 @@ Console.WriteLine(account.GetBalance());   // 1300
 
 OOP — не серебряная пуля. C# поддерживает и procedural (static methods), и functional (LINQ, records, pattern matching) подходы. Хороший C# код **сочетает** все три парадигмы.
 
-### 1.4. Эволюция: .NET 1.0 → C# 13
+### 1.4. Эволюция: .NET 1.0 → C# 14
 
 | Версия | Год | Что появилось |
 |--------|-----|---------------|
@@ -110,6 +110,7 @@ OOP — не серебряная пуля. C# поддерживает и proce
 | **C# 11** | 2022 | required properties, generic math interfaces |
 | **C# 12** | 2023 | **primary constructors для classes** |
 | **C# 13** | 2024 | params для коллекций, partial properties |
+| **C# 14** | 2025 | **`field` keyword**, extension members |
 
 ### 1.5. Class vs Struct vs Record — quick decision
 
@@ -382,7 +383,7 @@ public class User
         set
         {
             if (value < 0) throw new ArgumentException("Age cannot be negative");
-            field = value;   // C# 13: contextual keyword 'field' instead of backing
+            field = value;   // C# 14: contextual keyword 'field' instead of backing
         }
     }
 }
@@ -446,7 +447,7 @@ var u = new User
 
 `required` — caller обязан проинициализировать в object initializer. Альтернатива constructor с обязательными параметрами.
 
-### 3.6. Backing field через `field` keyword (C# 13+)
+### 3.6. Backing field через `field` keyword (C# 14+)
 
 ```csharp
 public string Name
@@ -456,7 +457,7 @@ public string Name
 }
 ```
 
-C# 13 contextual keyword `field` даёт доступ к auto-generated backing field без явного `_name`. Уменьшает boilerplate.
+C# 14 contextual keyword `field` даёт доступ к auto-generated backing field без явного `_name` (в C# 13 был только preview-фичей). Уменьшает boilerplate.
 
 ### 3.7. Private setter — controlled mutation
 

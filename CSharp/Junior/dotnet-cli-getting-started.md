@@ -1,7 +1,7 @@
 ---
 tags: [dotnet, cli, junior, getting-started, sdk, project-templates, msbuild]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # .NET CLI — getting started
@@ -51,7 +51,7 @@ Visual Studio (Windows) или Rider — мощные IDE с GUI для всех
 2. **CI/CD.** Любой автоматический pipeline (GitHub Actions, GitLab CI, Azure DevOps, Jenkins) — это последовательность CLI-команд. Не зная CLI, ты не настроишь pipeline.
 3. **Docker.** Все официальные .NET-образы — `mcr.microsoft.com/dotnet/sdk` — внутри только CLI, без IDE.
 4. **Воспроизводимость.** Команда `dotnet test` даст одинаковый результат на машине разработчика и на CI. Кнопка «Run All Tests» в VS — нет.
-5. **Quick scripts.** `dotnet-script`, `dotnet run` для одиночных файлов в .NET 11+ — заменяют bash-скрипты для одноразовых задач.
+5. **Quick scripts.** File-based apps (`dotnet run app.cs`, .NET 10+) — заменяют bash-скрипты для одноразовых задач.
 6. **Понимание происходящего.** IDE прячет процессы. Когда кнопка «Build» падает — без понимания CLI не разберёшься.
 
 ### 1.3. SDK vs Runtime — что разное
@@ -93,8 +93,8 @@ dotnet --list-runtimes
 | .NET 6 | 2021 | `dotnet watch run` (hot reload), workloads (`dotnet workload install`) |
 | .NET 7 | 2022 | `dotnet publish -p:PublishAot=true` (Native AOT GA) |
 | .NET 8 | 2023 LTS | `dotnet publish` с улучшенным AOT |
-| .NET 10 | 2025 | Расширенные shell completions (zsh/bash/fish/pwsh) |
-| .NET 11 | 2026 preview | **File-based apps** — `dotnet run app.cs` без `.csproj` |
+| .NET 10 | 2025 LTS | **File-based apps** — `dotnet run app.cs` без `.csproj`; расширенные shell completions (zsh/bash/fish/pwsh) |
+| .NET 11 | 2026 preview | Multi-file для file-based apps — директива `#:include` (бэкпортирована в .NET 10 SDK 10.0.300+) |
 
 ### 1.5. Когда CLI достаточно, когда нужна IDE
 
@@ -375,23 +375,50 @@ dotnet new webapi --auth IndividualB2C
 dotnet new console -f net8.0
 ```
 
-### 3.6. File-based apps (.NET 11 preview)
+### 3.6. File-based apps (.NET 10)
 
-С .NET 11 можно запускать одиночные `.cs` файлы без проекта:
+С .NET 10 (GA ноябрь 2025) одиночный `.cs` файл запускается **без проекта и без шаблона** — просто создаёшь файл и запускаешь:
 
 ```bash
-# Создать file-based app
-dotnet new singlecs -n hello -o .
+# app.cs — обычный текстовый файл, создаётся любым редактором
+echo 'Console.WriteLine("Hello!");' > app.cs
 
-# Это создаёт hello.cs:
-# Console.WriteLine("Hello!");
-
-# Запустить напрямую
-dotnet run hello.cs
+dotnet run app.cs
 # Hello!
+
+# Короткая форма
+dotnet app.cs
+
+# Аргументы приложению — после --
+dotnet run app.cs -- --verbose
 ```
 
-Это для скриптов и одноразовых задач — не для production. Близко к `python script.py` или `node script.js`. Поддерживается `#:package` директива для NuGet-зависимостей внутри файла.
+Конфигурация — через директивы `#:` в начале файла (заменяют csproj):
+
+```csharp
+#!/usr/bin/env -S dotnet --
+#:sdk Microsoft.NET.Sdk.Web
+#:package Humanizer@2.14.1
+#:property LangVersion=preview
+
+using Humanizer;
+
+Console.WriteLine(DateTime.UtcNow.AddHours(-2).Humanize()); // "2 hours ago"
+```
+
+- **`#:package Name@Version`** — NuGet-зависимость прямо в файле (версия после `@`, поддерживаются wildcards: `@2.*`).
+- **`#:sdk`** — какой SDK использовать (`Microsoft.NET.Sdk.Web` — и одиночный файл становится Minimal API).
+- **`#:property Key=Value`** — любое MSBuild-property.
+- **Shebang** `#!/usr/bin/env -S dotnet --` — на Linux/macOS файл запускается как скрипт: `chmod +x app.cs && ./app.cs` (line endings — LF).
+
+Когда скрипт вырос в проект — конвертация в полноценный csproj одной командой:
+
+```bash
+dotnet project convert app.cs
+# Создаст папку app/ с app.csproj (директивы #: переедут в XML) и Program.cs
+```
+
+Это для скриптов, прототипов и обучения — близко к `python script.py` или `node script.js`. Multi-file: директива `#:include helpers.cs` подключает соседние файлы (появилась в .NET 11 preview, бэкпортирована в .NET 10 SDK 10.0.300+).
 
 ### 3.7. Создание собственного шаблона
 
@@ -2435,7 +2462,7 @@ dotnet new update
 │   ├── Class library — `dotnet new classlib -n Name`
 │   ├── Tests (xunit) — `dotnet new xunit -n Name.Tests`
 │   ├── Solution — `dotnet new sln -n Solution`
-│   └── File-based script (.NET 11) — `dotnet new singlecs -n script`
+│   └── File-based script (.NET 10) — создать `script.cs` руками, запускать `dotnet run script.cs`
 │
 ├── Добавить пакет / reference
 │   ├── NuGet package — `dotnet add package Name [--version X]`

@@ -22,7 +22,7 @@ date: 2026-08-02
 | Лицензия | Permissive (PostgreSQL License) | Платный (для prod-нагрузок) | GPL (страх ~~Oracle~~) |
 | JSONB | Лучший в индустрии | JSON есть, индексы хуже | JSON есть, индексы слабее |
 | Row-Level Security | Native, мощный | Native | Нет (только через VIEWs) |
-| Vector search (RAG) | pgvector — стандарт | через CLR — костыль | нет нативно |
+| Vector search (RAG) | pgvector — зрелый стандарт (halfvec, quantization, filtered search) | SQL Server 2025: нативный `VECTOR` + DiskANN-индекс | MySQL 9+: нативный `VECTOR`, но ANN-индексация ограничена (HeatWave) |
 | Полнотекстовый поиск | Native (`tsvector`) | Native (`CONTAINS`) | Native (`MATCH AGAINST`) |
 | Партиционирование | Declarative (PG 10+) | Native | Native |
 | Расширения | 1000+ (pg_partman, citus, timescale, postgis) | Скромно | Скромно |
@@ -825,6 +825,55 @@ SET ivfflat.probes = 10;        -- IVFFlat
 > Например, 100K векторов → lists ~316. После создания индекса — `SET ivfflat.probes = sqrt(lists)` (10-30 обычно даёт recall > 95%).
 > ⚠️ IVFFlat зависит от ANALYZE — после большого insert/delete нужно `REINDEX`.
 
+### pgvector 0.7 / 0.8 — типы, quantization, filtered search
+
+Что добавили последние мажорные релизы расширения:
+
+- **`halfvec`** (0.7) — 2-байтовые float: **2x меньше памяти/диска**, HNSW-индексация до 4,000 dims (у `vector` — до 2,000), recall почти не страдает. Для OpenAI-эмбеддингов — практически бесплатная экономия.
+- **`sparsevec`** (0.7) — разреженные векторы (SPLADE и т.п.), индексация до 1,000 ненулевых координат.
+- **Binary quantization** (0.7) — `binary_quantize()` + expression index по `bit`: до 32x меньше индекс, двухфазный поиск (грубый по битам → re-rank по полным векторам).
+- **Iterative index scans** (0.8) — лечит классическую боль **filtered search**: раньше `WHERE tenant_id = ...` после ANN-скана мог вернуть меньше строк, чем просили (overfiltering); теперь индекс сканируется итеративно, пока не наберётся LIMIT (`SET hnsw.iterative_scan = 'relaxed_order';`).
+
+```sql
+-- halfvec + квантование при индексации: кастуем в выражении индекса
+CREATE INDEX ON chunks USING hnsw ((embedding::halfvec(1536)) halfvec_cosine_ops);
+
+-- Filtered search без недобора результатов (pgvector 0.8+)
+SET hnsw.iterative_scan = 'relaxed_order';
+SELECT id FROM chunks WHERE tenant_id = 42
+ORDER BY embedding <=> $1 LIMIT 20;
+```
+
+### pgvector из .NET — Pgvector.EntityFrameworkCore
+
+```csharp
+// dotnet add package Pgvector.EntityFrameworkCore
+var dsb = new NpgsqlDataSourceBuilder(connStr);
+dsb.UseVector();                                     // маппинг типа vector
+builder.Services.AddDbContext<AppDbContext>(o =>
+    o.UseNpgsql(dsb.Build(), npg => npg.UseVector()));
+
+public class Chunk
+{
+    public Guid Id { get; set; }
+    public required string Content { get; set; }
+    [Column(TypeName = "vector(1536)")]
+    public required Vector Embedding { get; set; }   // Pgvector.Vector
+}
+
+// HNSW-индекс через Fluent API
+modelBuilder.Entity<Chunk>()
+    .HasIndex(c => c.Embedding)
+    .HasMethod("hnsw")
+    .HasOperators("vector_cosine_ops");
+
+// Top-10 ближайших — транслируется в ORDER BY embedding <=> $1
+var hits = await db.Chunks
+    .OrderBy(c => c.Embedding.CosineDistance(queryEmbedding))
+    .Take(10)
+    .ToListAsync(ct);
+```
+
 ---
 
 ## Транзакции и блокировки
@@ -945,6 +994,19 @@ ALTER TABLE orders SET (
 ```
 
 Для high-write таблиц — настрой агрессивнее (default 20% vacuum часто слишком поздно).
+
+---
+
+## PostgreSQL 17/18 для .NET-разработчика
+
+Краткий обзор фич последних релизов (PG 17 — сент. 2024, PG 18 — сент. 2025), которые реально трогают .NET-бэкенд:
+
+- **`uuidv7()` (PG 18)** — нативная генерация time-ordered UUID без расширений. Пара к `Guid.CreateVersion7()` из .NET 9: генерируй где удобнее, индекс перестаёт страдать от random-вставок UUIDv4 (page splits, bloat).
+- **`JSON_TABLE` (PG 17)** — стандарт SQL/JSON: разворачивает `jsonb` в реляционные строки/колонки прямо в запросе. Удобно для отчётов по JSON-колонкам EF без выноса данных в отдельные таблицы.
+- **B-tree skip scan (PG 18)** — составной индекс `(status, created_at)` может обслужить `WHERE created_at > ...` без условия на `status` (при низкой cardinality ведущей колонки). Меньше «дублирующих» индексов; детали — [[indexes-deep]].
+- **Async I/O, `io_method` (PG 18)** — новая подсистема AIO: `worker` (default) или `io_uring` (Linux). Seq scans, bitmap heap scans и vacuum быстрее (до 2-3x на подходящих нагрузках) — бесплатное ускорение аналитических запросов после апгрейда.
+- **Virtual generated columns (PG 18)** — generated columns теперь могут вычисляться на чтении (и VIRTUAL — новый дефолт), а не только STORED. Маппится на `HasComputedColumnSql(..., stored: false)`, который до PG 18 в Npgsql не работал.
+- **`MERGE ... RETURNING` (PG 17)** — upsert-логика MERGE теперь возвращает затронутые строки (+`merge_action()`): ETL и sync-джобы получают id/статусы одним запросом, без второго SELECT.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 tags: [efcore, loading, eager, lazy, explicit, split-query, middle, n-plus-one]
 level: Middle
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # EF Core Loading Strategies — eager, lazy, explicit, split queries
@@ -116,7 +116,7 @@ var users = await _db.Users
 
 Indent (4 spaces) — convention для readability.
 
-### 2.3. Filtered Include (.NET 5+)
+### 2.3. Filtered Include (EF Core 5+)
 
 ```csharp
 // Загрузить ТОЛЬКО paid orders
@@ -172,7 +172,7 @@ var users = await _db.Users
 
 Размер result set взрывается. Memory + network bandwidth + DB load.
 
-### 2.6. Решение — AsSplitQuery (.NET 5+)
+### 2.6. Решение — AsSplitQuery (EF Core 5+)
 
 ```csharp
 var users = await _db.Users
@@ -230,7 +230,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 Все queries по default используют split. Override на конкретной query через `.AsSingleQuery()`.
 
 > [!question]- **Интервью: что такое cartesian explosion и как fix?**
-> Когда `Include` загружает несколько collections, EF Core генерирует SQL с JOIN для каждой → SQL **умножает** rows: User × Orders × Comments × Reviews. Если у user 10 Orders, 10 Comments, 10 Reviews — то 1000 rows на одного user. **Fix**: `AsSplitQuery()` — генерирует отдельную SELECT для каждой collection (.NET 5+). Trade-off: 1 query → N queries, но каждая **меньше**. **Глобально**: `UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)` в DbContext options. **Когда не нужно**: reference navigations (One-to-One/Many-to-One) — там JOIN не множит.
+> Когда `Include` загружает несколько collections, EF Core генерирует SQL с JOIN для каждой → SQL **умножает** rows: User × Orders × Comments × Reviews. Если у user 10 Orders, 10 Comments, 10 Reviews — то 1000 rows на одного user. **Fix**: `AsSplitQuery()` — генерирует отдельную SELECT для каждой collection (EF Core 5+). Trade-off: 1 query → N queries, но каждая **меньше**. **Глобально**: `UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)` в DbContext options. **Когда не нужно**: reference navigations (One-to-One/Many-to-One) — там JOIN не множит.
 
 ---
 
@@ -587,7 +587,7 @@ foreach (var user in users)
 .Include(u => u.Orders)                          // collection navigation
 .Include(u => u.Address)                         // reference navigation
 .Include(u => u.Orders).ThenInclude(o => o.Items)  // глубже
-.Include(u => u.Orders.Where(o => o.IsActive))   // filtered (.NET 5+)
+.Include(u => u.Orders.Where(o => o.IsActive))   // filtered (EF Core 5+)
 .Include(u => u.Orders.OrderBy(o => o.Date).Take(10))  // sorted + limited
 
 // === Split queries ===

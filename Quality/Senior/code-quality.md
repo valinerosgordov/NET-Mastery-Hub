@@ -1,12 +1,12 @@
 ---
-tags: [code-quality, analyzers, editorconfig, sonarcloud, roslyn, meziantou, global-usings]
+tags: [code-quality, analyzers, editorconfig, sonarqube-cloud, roslyn, meziantou, global-usings]
 level: Senior
 date: 2026-08-02
 ---
 
-# Code Quality — analyzers, EditorConfig, SonarCloud
+# Code Quality — analyzers, EditorConfig, SonarQube Cloud
 
-> Автоматический enforcement стиля и качества кода: `.editorconfig` + Roslyn/Meziantou/SonarAnalyzer analyzers в IDE и CI плюс SonarCloud для PR-gating, чтобы ловить баги и code smells до merge в main.
+> Автоматический enforcement стиля и качества кода: `.editorconfig` + Roslyn/Meziantou/SonarAnalyzer analyzers в IDE и CI плюс SonarQube Cloud (быв. SonarCloud) для PR-gating, чтобы ловить баги и code smells до merge в main.
 
 ## Что это, зачем и когда
 
@@ -32,9 +32,9 @@ date: 2026-08-02
 │  IDE / CI checks                                         │
 └─────────────────────────────────────────────────────────┘
        │           │            │              │
-   EditorConfig  Roslyn      Custom          SonarCloud
-   (стиль,      analyzers   analyzers       (sonarqube)
-    форматy)    (.NET +     (свои rules)    (cloud метрики)
+   EditorConfig  Roslyn      Custom          SonarQube Cloud
+   (стиль,      analyzers   analyzers       (cloud метрики,
+    форматy)    (.NET +     (свои rules)     PR-gating)
                 third-party)
 ```
 
@@ -226,7 +226,7 @@ Open-source расширенный набор от Gérald Barré. Покрыв�
 <PackageReference Include="SonarAnalyzer.CSharp" Version="9.x" PrivateAssets="all" />
 ```
 
-Часть SonarSource — те же rules что в SonarCloud (S-prefix). Бесплатно как analyzer:
+Часть SonarSource — те же rules что в SonarQube Cloud (S-prefix). Бесплатно как analyzer:
 
 | ID | Что |
 |----|-----|
@@ -243,15 +243,18 @@ Combined с Meziantou + .NET built-in — почти все code smells покр
 
 ---
 
-## SonarCloud / SonarQube
+## SonarQube Cloud / SonarQube Server
 
 **Cloud-based code quality platform.** Sonar анализирует репо после push, делает comment в PR с list issues.
+
+> [!info] Ренейминг Sonar-продуктов (октябрь 2024)
+> SonarCloud → **SonarQube Cloud**, self-hosted SonarQube → **SonarQube Server**, бесплатная Community Edition → **SonarQube Community Build**, SonarLint → **SonarQube for IDE**. Механика и rules те же — сменились только названия; хост `sonarcloud.io` продолжает работать.
 
 ### Setup для GitHub Actions
 
 ```yaml
 # .github/workflows/sonar.yml
-name: SonarCloud
+name: SonarQube Cloud
 
 on:
   push:
@@ -259,7 +262,7 @@ on:
   pull_request:
 
 jobs:
-  sonarcloud:
+  sonar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -281,7 +284,7 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
 
-      - name: SonarCloud Scan
+      - name: SonarQube Cloud Scan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -321,7 +324,7 @@ PR fail если quality gate red. Comment в PR показывает где iss
 
 ### Когда Sonar vs analyzers
 
-| | Built-in analyzers | SonarCloud |
+| | Built-in analyzers | SonarQube Cloud |
 |--|---------------------|------------|
 | Where | IDE + CI | Cloud + PR comments |
 | Скорость | Real-time | Run в CI |
@@ -331,9 +334,9 @@ PR fail если quality gate red. Comment в PR показывает где iss
 
 Combined в production:
 - **Built-in + Meziantou + SonarAnalyzer.CSharp** — для real-time IDE feedback
-- **SonarCloud** — для PR-gating + history tracking
+- **SonarQube Cloud** — для PR-gating + history tracking
 
-Бюджет тесный — ограничься analyzers. SonarCloud стоит для commercial.
+Бюджет тесный — ограничься analyzers. SonarQube Cloud стоит для commercial.
 
 ---
 
@@ -376,41 +379,9 @@ global using MyApp.Domain;
 
 ## Custom Roslyn Analyzers
 
-Для domain-specific rules. Например, "запретить `DateTime.Now`, использовать `IClock`".
+Для domain-specific rules — например, "запретить `DateTime.Now`, использовать `IClock`". Конспект; полный разбор (шаблон `dotnet new analyzer`, `DiagnosticAnalyzer` + `RegisterSyntaxNodeAction`, `CodeFixProvider` с auto-fix, packaging в NuGet через `netstandard2.0` + `PackAsAnalyzer`) — canonical в [[static-analysis|Static Analysis — Custom Roslyn Analyzer]].
 
-```csharp
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class ForbidDateTimeNowAnalyzer : DiagnosticAnalyzer
-{
-    public static readonly DiagnosticDescriptor Rule = new(
-        "MYAPP001",
-        "Don't use DateTime.Now",
-        "Use IClock.UtcNow instead of DateTime.Now",
-        "Reliability",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.SimpleMemberAccessExpression);
-    }
-
-    private static void Analyze(SyntaxNodeAnalysisContext context)
-    {
-        var memberAccess = (MemberAccessExpressionSyntax)context.Node;
-        if (memberAccess.Expression is IdentifierNameSyntax identifier &&
-            identifier.Identifier.Text == "DateTime" &&
-            memberAccess.Name.Identifier.Text is "Now" or "Today")
-        {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, memberAccess.GetLocation()));
-        }
-    }
-}
-```
+Скелет: класс с `[DiagnosticAnalyzer]` объявляет `DiagnosticDescriptor` (ID, message, severity), в `Initialize` подписывается на syntax-узлы (`RegisterSyntaxNodeAction`) и репортит `Diagnostic.Create(...)` на совпадениях. Подключается как обычный NuGet-пакет analyzer'ов — build падает с твоим сообщением.
 
 См. [[source-generators|Source Generators]] — Roslyn API similar (analyzer и generator используют одни базовые types).
 
@@ -492,7 +463,7 @@ dotnet test --filter Category=Architecture
 - [ ] `<AnalysisLevel>latest-recommended</AnalysisLevel>`
 - [ ] Meziantou.Analyzer установлен
 - [ ] SonarAnalyzer.CSharp установлен
-- [ ] SonarCloud (или SonarQube) integrated в CI с PR comments
+- [ ] SonarQube Cloud (или self-hosted SonarQube Server / Community Build) integrated в CI с PR comments
 - [ ] Quality Gate настроен (coverage threshold, complexity limits)
 - [ ] BannedApiAnalyzers с domain-specific banned APIs
 - [ ] Custom Roslyn analyzers если есть recurring violations
@@ -523,7 +494,7 @@ dotnet test --filter Category=Architecture
 Зеркальная проблема — все warnings = errors → новый analyzer добавил правило → весь codebase падает на build.
 **Решение:** `WarningsNotAsErrors` для известных warnings, fix gradually.
 
-### 4. SonarCloud как замена code review
+### 4. SonarQube Cloud как замена code review
 Sonar — assistant, не replacement. Code review проверяет архитектуру, intent, business logic. Sonar — automatable rules.
 
 ### 5. Локальный analyzer != CI
@@ -544,7 +515,7 @@ Custom analyzer пишется несколько часов — без тест
 "Linter ничего не находит" — потому что disabled половина правил. Включай aggressive set, fix iteratively.
 
 ### 10. Игнорирование security analyzers
-SonarCloud категории Security Hotspots — каждый требует ручного review. Игнорировать = serious risk.
+SonarQube Cloud категории Security Hotspots — каждый требует ручного review. Игнорировать = serious risk.
 
 ---
 
@@ -562,7 +533,7 @@ SonarCloud категории Security Hotspots — каждый требует 
 - **Microsoft Learn — Code analysis** — learn.microsoft.com/dotnet/fundamentals/code-analysis/
 - **Meziantou.Analyzer** — github.com/meziantou/Meziantou.Analyzer
 - **SonarSource Rules — C#** — rules.sonarsource.com/csharp/
-- **SonarCloud quality gates** — docs.sonarcloud.io
+- **SonarQube Cloud quality gates** — docs.sonarsource.com/sonarqube-cloud/
 - **Andrew Lock — Code analysis series** — andrewlock.net
 - **Gérald Barré (Meziantou) blog** — meziantou.net (canonical для C# analyzers)
 - **Steve Smith — Clean Code analyzers** — ardalis.com

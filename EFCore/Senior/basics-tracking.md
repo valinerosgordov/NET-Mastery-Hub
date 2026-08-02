@@ -1,12 +1,12 @@
 ---
 tags: [efcore, tracking, loading, dbcontext, change-tracker, identity-resolution, compiled-models]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # DbContext, Tracking и Loading
 
-> Глубокий гайд по фундаментальным механизмам EF Core. Закрывает: DbContext lifecycle, Change Tracker внутреннее устройство, Identity Resolution, все типы Loading (Eager/Explicit/Lazy/Projection), AsNoTracking nuances, Cartesian explosion, AsSplitQuery, Filtered Include, Compiled Models (.NET 8+), DbContextPool ловушки.
+> Глубокий гайд по фундаментальным механизмам EF Core. Закрывает: DbContext lifecycle, Change Tracker внутреннее устройство, Identity Resolution, все типы Loading (Eager/Explicit/Lazy/Projection), AsNoTracking nuances, Cartesian explosion, AsSplitQuery, Filtered Include, Compiled Models (EF Core 6+), DbContextPool ловушки.
 
 ---
 
@@ -563,7 +563,7 @@ options.ConfigureWarnings(w =>
 
 ---
 
-## Filtered Include (.NET 5+)
+## Filtered Include (EF Core 5+)
 
 ```csharp
 var customers = await context.Customers
@@ -668,7 +668,7 @@ var order2 = await context.Orders.FirstOrDefaultAsync(o => o.Id == id);
 
 ---
 
-## Compiled Models (.NET 6+)
+## Compiled Models (EF Core 6+)
 
 Для приложений с большой моделью (50+ entities) — startup time замедляется. EF Core compiles model в build-time:
 
@@ -692,6 +692,22 @@ public partial class AppDbContext
 
 > [!warning] Compiled Models нужно регенерировать после каждого изменения модели
 > Добавь в build pipeline: `dotnet ef dbcontext optimize` перед публикацией. Иначе compiled model будет stale.
+
+### MSBuild-интеграция (EF Core 9+)
+
+Ручной `dotnet ef dbcontext optimize` — больше не единственный путь. Пакет `Microsoft.EntityFrameworkCore.Tasks` встраивает генерацию compiled model в build/publish — модель перегенерируется автоматически, проблема stale model исчезает:
+
+```xml
+<PropertyGroup>
+  <EFOptimizeContext>true</EFOptimizeContext>
+  <EFScaffoldModelStage>build</EFScaffoldModelStage> <!-- или publish -->
+</PropertyGroup>
+```
+
+> [!warning] NativeAOT + precompiled queries — всё ещё experimental
+> Та же MSBuild-интеграция умеет прекомпилировать LINQ-запросы для NativeAOT, но и NativeAOT-поддержка EF, и precompiled queries официально experimental (в т.ч. в EF Core 10) — не для production.
+
+Ограничения compiled models (по docs): не поддерживаются global query filters, lazy-loading/change-tracking proxies и custom `IModelCacheKeyFactory`. Если используешь query filters (soft delete, multi-tenancy) — compiled models пока не твой инструмент.
 
 ---
 
@@ -933,7 +949,7 @@ var users = await _db.Users.AsNoTracking().ToListAsync();
 
 ---
 
-### Case Study #3 — Bulk update без EF 7+
+### Case Study #3 — Bulk update до EF Core 7
 
 **Сценарий:** Деактивировать 1M users.
 
@@ -944,7 +960,7 @@ foreach (var u in users) u.IsActive = false;
 await _db.SaveChangesAsync();  // 1M UPDATE statements!
 ```
 
-**✅ EF 7+ ExecuteUpdate:**
+**✅ EF Core 7+ ExecuteUpdate:**
 ```csharp
 await _db.Users
     .Where(u => u.LastLogin < cutoff)
@@ -967,8 +983,7 @@ await _db.Users
 | Filter | `.Where(predicate)` |
 | Pagination | `.OrderBy().Skip(n).Take(n)` |
 | Conditional include | `.Include(o => o.Items.Where(i => i.IsActive))` |
-| Bulk update (EF 7+) | `.ExecuteUpdateAsync(s => s.SetProperty(...))` |
-| Bulk delete (EF 7+) | `.ExecuteDeleteAsync()` |
+| Bulk update / delete (EF Core 7+) | ExecuteUpdate / ExecuteDelete — см. [[ef-bulk-operations]] |
 | Raw SQL | `.FromSqlRaw("...", params)` |
 | Track changes | default (Add, Update modify entities) |
 | Detach | `_db.Entry(entity).State = EntityState.Detached` |
@@ -1002,13 +1017,13 @@ EF Core решение?
 │
 ├── Need related data?
 │   ├── 1 collection → Include
-│   ├── Multiple collections → AsSplitQuery (.NET 5+)
+│   ├── Multiple collections → AsSplitQuery (EF Core 5+)
 │   ├── Только некоторые fields → Projection (Select)
 │   └── Filtered → Include + Where (filtered include)
 │
 ├── Bulk operation?
-│   ├── EF 7+ → ExecuteUpdate / ExecuteDelete
-│   ├── EF 6 — → Dapper или raw SQL
+│   ├── EF Core 7+ → ExecuteUpdate / ExecuteDelete
+│   ├── EF Core ≤6 → Dapper или raw SQL
 │   └── Очень большой volume → SqlBulkCopy
 │
 ├── Performance critical?

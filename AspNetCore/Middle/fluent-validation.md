@@ -1,7 +1,7 @@
 ---
 tags: [aspnetcore, validation, fluent-validation, data-annotations, mediatr, middle]
 level: Middle
-date: 2026-05-01
+date: 2026-08-02
 ---
 
 # FluentValidation — валидация запросов в ASP.NET Core
@@ -76,20 +76,88 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 ## 1. Установка и setup
 
 ```bash
-dotnet add package FluentValidation.AspNetCore
+dotnet add package FluentValidation
 dotnet add package FluentValidation.DependencyInjectionExtensions
 ```
 
+> [!warning] FluentValidation.AspNetCore — deprecated
+> Пакет `FluentValidation.AspNetCore` официально deprecated, репозиторий в архиве. Авто-валидация (`AddFluentValidationAutoValidation`) не рекомендована самим автором библиотеки: она **синхронная** (async-правила кидают исключение в runtime), привязана к MVC model binding и **не работает с Minimal API**. Современный подход — явный вызов валидатора или endpoint-фильтр.
+
+```csharp
+// Program.cs — регистрация всех validators из assembly
+builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
+```
+
+### Явный вызов в endpoint
+
+```csharp
+app.MapPost("/users", async (
+    CreateUserRequest request,
+    IValidator<CreateUserRequest> validator,
+    IUserService users,
+    CancellationToken ct) =>
+{
+    var validation = await validator.ValidateAsync(request, ct);
+    if (!validation.IsValid)
+        return Results.ValidationProblem(validation.ToDictionary());
+
+    var user = await users.CreateAsync(request, ct);
+    return Results.Created($"/users/{user.Id}", user);
+});
+```
+
+### Endpoint-фильтр — validation как cross-cutting concern
+
+```csharp
+public sealed class ValidationFilter<T> : IEndpointFilter where T : class
+{
+    public async ValueTask<object?> InvokeAsync(
+        EndpointFilterInvocationContext context,
+        EndpointFilterDelegate next)
+    {
+        if (context.HttpContext.RequestServices.GetService<IValidator<T>>()
+                is { } validator &&
+            context.Arguments.OfType<T>().FirstOrDefault() is { } argument)
+        {
+            var result = await validator.ValidateAsync(
+                argument, context.HttpContext.RequestAborted);
+            if (!result.IsValid)
+                return Results.ValidationProblem(result.ToDictionary());
+        }
+
+        return await next(context);
+    }
+}
+
+// Use — фильтр вешается на endpoint или на всю группу
+app.MapPost("/users", CreateUser)
+    .AddEndpointFilter<ValidationFilter<CreateUserRequest>>();
+```
+
+### Альтернатива из коробки: встроенная валидация Minimal API (.NET 10)
+
+.NET 10 добавил нативную валидацию для Minimal API — пакет `Microsoft.Extensions.Validation`. Работает через Roslyn source generator: на этапе компиляции обходит граф типов параметров endpoint'ов и генерирует валидационный код без runtime-reflection. Правила — стандартные DataAnnotations-атрибуты.
+
 ```csharp
 // Program.cs
-builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
+builder.Services.AddValidation();
 
-// Auto-validate ASP.NET Core requests
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddFluentValidationClientsideAdapters();  // для Blazor/Razor
+public record CreateProductRequest(
+    [property: Required, MaxLength(200)] string Name,
+    [property: Range(0.01, 1_000_000)] decimal Price);
 
-// Если используешь только в MediatR — auto-validation не нужен
+app.MapPost("/products", (CreateProductRequest request) => /* ... */);
+// Невалидный запрос → автоматический 400 с ProblemDetails (errors по полям)
 ```
+
+```xml
+<!-- .csproj — включить source-generated интерцепторы -->
+<PropertyGroup>
+  <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.Http.Validation.Generated</InterceptorsNamespaces>
+</PropertyGroup>
+```
+
+Что умеет: DataAnnotations-атрибуты, `IValidatableObject`, кастомные `ValidationAttribute`, вложенные объекты и коллекции. Чего не умеет: async-правила (DB lookup), DI-зависимости в правилах, conditional-цепочки `When`/`Unless` — за этим по-прежнему к FluentValidation.
 
 ### Базовый Validator
 
@@ -622,14 +690,9 @@ RuleFor(x => x).MustAsync(async (req, ct) =>
 ### 2. Validator не зарегистрирован в DI
 
 ```csharp
-// ❌
-public class CreateUser_Tests
-{
-    [Fact] public async Task Test() 
-    { 
-        // Validator не вызывается — `[ApiController]` его не находит 
-    }
-}
+// ❌ Endpoint резолвит IValidator<CreateUserRequest> — DI кидает
+// InvalidOperationException или GetService возвращает null,
+// и endpoint-фильтр молча пропускает запрос без валидации
 
 // ✅
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
@@ -772,7 +835,7 @@ RuleFor(x => x.Phone).Matches(PhoneRegex);
 ### Integration
 
 - **MediatR pipeline behavior** для CQRS
-- **Auto-validation в API** через `AddFluentValidationAutoValidation`
+- **Endpoint-фильтр или явный вызов** — НЕ deprecated auto-validation из `FluentValidation.AspNetCore`
 - **Global exception handler** маппит → 422
 
 См. [[clean-code|Clean Code]] и [[cqrs-mediatr|CQRS & MediatR]].
@@ -805,14 +868,17 @@ RuleFor(x => x.Phone).Matches(PhoneRegex);
 ```
 Какой validation подход?
 │
-├── Простой, attributes достаточно?
-│   ├── 2-3 simple rules → DataAnnotations
-│   └── Иначе → FluentValidation
+├── Minimal API + простые rules (required/format/range)?
+│   → Встроенная валидация .NET 10 (Microsoft.Extensions.Validation)
+│     zero dependencies, source-generated, 400 + ProblemDetails из коробки
+│
+├── Controllers + 2-3 simple rules?
+│   → DataAnnotations (auto-validation через [ApiController])
 │
 ├── Async checks (DB)?
-│   → FluentValidation (DataAnnotations не умеет)
+│   → FluentValidation (ни DataAnnotations, ни встроенная не умеют)
 │
-├── Cross-field rules?
+├── Cross-field rules / DI-зависимости в правилах?
 │   → FluentValidation
 │
 ├── Complex business rules?
@@ -835,7 +901,7 @@ RuleFor(x => x.Phone).Matches(PhoneRegex);
 - [[api-design|API Design]] — request/response DTOs
 - [[http-fundamentals|HTTP Fundamentals]] — 422 status code
 - [[cqrs-mediatr|CQRS & MediatR]] — pipeline integration
-- [[error-handling|Error Handling]] — Result<T> vs exceptions
+- [[error-handling|Error Handling]] — `Result<T>` vs exceptions
 - [[testing-fundamentals|Testing]] — validator tests
 - [[basics-tracking|EF Basics]] — async repository
 - [[object-mapping|Object Mapping]] — после validation

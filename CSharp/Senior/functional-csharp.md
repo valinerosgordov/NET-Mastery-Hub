@@ -1,7 +1,7 @@
 ---
 tags: [csharp, functional, senior, lambda, linq, immutability, monad, composition, fp]
 level: Senior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Functional C# — функциональные техники в OOP-языке
@@ -979,7 +979,7 @@ C# closes gap:
 - Records (C# 9+)
 - Pattern matching (C# 8+)
 - Init properties (C# 9+)
-- Discriminated unions (C# 14+ planned)
+- Discriminated unions (preview в C# 15 / .NET 11, GA ~ноябрь 2026)
 ```
 
 ### 8.2. F# example (для context)
@@ -1024,7 +1024,7 @@ var pipeline = Enumerable.Range(1, 10)
     .Sum();
 ```
 
-C# verbose чем F# но достижимо. Discriminated unions C# 14+ улучшат.
+C# verbose чем F# но достижимо. Discriminated unions (C# 15 preview) уберут `_`-ветку — compiler-enforced exhaustiveness.
 
 ### 8.4. Когда F# vs C#
 
@@ -1071,7 +1071,7 @@ public class OrderService
 Same CLR — seamless interop. F# для domain logic, C# для I/O / framework integration.
 
 > [!question]- Интервью: какие F# features missing в C#?
-> 1) **Discriminated unions native** — `type Shape = Circle | Square | Rectangle`. C# workaround через `abstract record + sealed`. Roadmapped C# 14+. 2) **Hindley-Milner type inference** — F# almost no annotations, C# limited (`var`, target-typed). 3) **Pipe operator `|>`** — F# `data |> Filter |> Map |> Sum`. C# method chaining alternative. 4) **Computation expressions** — F# generic monadic syntax (any monad). C# only specific (async, LINQ). 5) **Records mature longer** (F# 1.0 vs C# 9+). 6) **Forward composition `>>`** — F# `f >> g`. C# verbose. 7) **Active patterns** — extensible pattern matching. **C# advantages**: bigger ecosystem, more popular, easier hiring, better tooling (VS), records C# enough modern. Mix: F# для domain logic, C# для plumbing.
+> 1) **Discriminated unions native** — `type Shape = Circle | Square | Rectangle`. C# workaround через `abstract record + sealed`; native unions — preview в C# 15 (.NET 11). 2) **Hindley-Milner type inference** — F# almost no annotations, C# limited (`var`, target-typed). 3) **Pipe operator `|>`** — F# `data |> Filter |> Map |> Sum`. C# method chaining alternative. 4) **Computation expressions** — F# generic monadic syntax (any monad). C# only specific (async, LINQ). 5) **Records mature longer** (F# 1.0 vs C# 9+). 6) **Forward composition `>>`** — F# `f >> g`. C# verbose. 7) **Active patterns** — extensible pattern matching. **C# advantages**: bigger ecosystem, more popular, easier hiring, better tooling (VS), records C# enough modern. Mix: F# для domain logic, C# для plumbing.
 
 ---
 

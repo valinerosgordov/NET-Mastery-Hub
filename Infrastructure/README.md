@@ -1,6 +1,6 @@
 # Infrastructure — DevOps & deploy
 
-> 14 файлов / ~470 KB. Docker, Kubernetes, CI/CD, observability, messaging, NoSQL, IPC, AI/LLM integration.
+> 14 файлов / ~515 KB. Docker, Kubernetes, CI/CD, observability, messaging, NoSQL, IPC, AI/LLM integration.
 
 [[README|← Главный README]] · [[INDEX|Полный INDEX]]
 

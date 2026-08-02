@@ -430,7 +430,7 @@ public void NoCyclicDependencies()
 // OpenTelemetry alert: p99 latency > 500ms (architectural SLO)
 
 // Static: complexity threshold
-// SonarCloud — fail PR if cyclomatic complexity > 15
+// SonarQube Cloud — fail PR if cyclomatic complexity > 15
 
 // Dynamic: load test — система держит target RPS
 // k6 / NBomber в CI на staging
@@ -509,13 +509,13 @@ public class ForbidGetAwaiterGetResultAnalyzer : DiagnosticAnalyzer
 | Layer dependencies, naming, basic rules | NetArchTest.eNhancedEdition |
 | SOLID checks, cycles, member-level | ArchUnitNET |
 | Forbidden API usage (Console.WriteLine, etc.) | Roslyn analyzer + EditorConfig |
-| Code complexity, cyclomatic | SonarCloud / SonarLint |
+| Code complexity, cyclomatic | SonarQube Cloud / SonarQube for IDE |
 | Forbidden namespaces / packages | NsDepCop |
 | Forbidden imports / using | Roslyn analyzer |
 
 В большинстве проектов — комбинация:
 - **NetArchTest** для layer rules
-- **SonarCloud** для quality metrics
+- **SonarQube Cloud** для quality metrics
 - **EditorConfig + .NET analyzers** для style/code quality
 - **Custom Roslyn analyzers** для domain-specific patterns
 
@@ -640,7 +640,7 @@ Type из ref'нутой assembly не значит код её **использ
 - [ ] Каждое правило связано с ADR (документация)
 - [ ] Failing tests не "игнорируются", а fix'ятся или удаляются
 - [ ] Architecture tests gate PRs to main
-- [ ] Complexity / quality metrics через SonarCloud / SonarLint
+- [ ] Complexity / quality metrics через SonarQube Cloud / SonarQube for IDE
 - [ ] Custom Roslyn analyzers для domain-specific (если нужно)
 
 ---
@@ -651,7 +651,7 @@ Type из ref'нутой assembly не значит код её **использ
 - [[ddd|DDD на практике]] — domain rules для arch tests
 - [[solid|SOLID + DRY/KISS/YAGNI]] — рулы которые arch tests могут проверить
 - [[cqrs-mediatr|CQRS и Mediator]] — handler naming conventions
-- [[code-quality|Code Quality]] — analyzers, EditorConfig, SonarCloud
+- [[code-quality|Code Quality]] — analyzers, EditorConfig, SonarQube Cloud
 - [[architecture-decisions|Architecture Decisions]] — ADR formats
 - [[testing|Testing]] — общие подходы к тестированию
 

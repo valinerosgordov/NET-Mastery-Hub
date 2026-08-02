@@ -1,7 +1,7 @@
 ---
 tags: [csharp, types, memory, senior, gc, stack, heap, value-types, reference-types, generations]
 level: Senior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Types и Memory — value vs reference, stack/heap, GC
@@ -473,11 +473,12 @@ public ref struct Stack<T>
 }
 ```
 
-`ref struct` — special struct type **stack-only**:
+`ref struct` — special struct type **stack-only** (правила актуальны для C# 13+):
 - Cannot be field of class or non-ref struct
-- Cannot be boxed
-- Cannot be generic type parameter (mostly)
-- Cannot be in async / iterator (no await crossing)
+- Cannot be boxed (включая каст в интерфейс)
+- Generic type argument — только если параметр объявлен с `allows ref struct` (C# 13; до этого — нельзя вообще)
+- В async/iterators локалы **разрешены** (C# 13), но не могут пересекать `await` / `yield return`
+- Может реализовывать интерфейсы (C# 13) — используется через generic constraint, не через каст
 - Cannot be heap-allocated
 
 Used by `Span<T>`, `ReadOnlySpan<T>`, `ValueStringBuilder`.
@@ -498,7 +499,7 @@ Span<byte> slice = span.Slice(0, 100);   // no allocation!
 
 См. [[memory-pooling]].
 
-### 4.3. ref struct ограничения
+### 4.3. ref struct ограничения (C# 13+)
 
 ```csharp
 // ❌ ref struct cannot be class field
@@ -507,19 +508,41 @@ public class C
     private Span<int> _span;   // ❌ Compile error
 }
 
-// ❌ Cannot be in generic type
+// ❌ List<T> не объявляет allows ref struct
 List<Span<int>> bad;   // ❌
 
-// ❌ Cannot cross await
+// ✅ C# 13: generic через anti-constraint allows ref struct
+public static void Process<T>(T value) where T : allows ref struct
+{
+    // T может быть Span<int> — но по-прежнему нельзя boxing/поля класса
+}
+
+// ✅ C# 13: локал ref struct в async разрешён…
 public async Task M()
 {
+    await Task.Delay(100);
+    Span<int> s = stackalloc int[10];   // OK — объявлен после await
+    s[0] = 1;
+}
+
+// ❌ …но пересекать await всё так же нельзя
+public async Task M2()
+{
     Span<int> s = stackalloc int[10];
-    await Task.Delay(100);   // ❌
+    await Task.Delay(100);   // ❌ Compile error — s жив через await boundary
     s[0] = 1;
 }
 
 // ❌ Cannot be boxed
 object o = mySpan;   // ❌
+
+// ✅ C# 13: ref struct может реализовывать интерфейсы
+public ref struct PooledBuffer : IDisposable
+{
+    public void Dispose() { }
+}
+// IDisposable d = new PooledBuffer();   // ❌ каст в интерфейс = boxing — запрещён
+// Использование — через generic: void Use<T>(T x) where T : IDisposable, allows ref struct
 ```
 
 ### 4.4. Escape analysis
@@ -591,7 +614,7 @@ public ref readonly LargeStruct Get(int index, ref readonly LargeStruct[] arr) =
 `ref readonly` — read-only reference. Avoids defensive copies for large readonly structs.
 
 > [!question]- Интервью: что такое `ref struct` и когда использовать?
-> Special struct type **forced stack-only**. Cannot be: 1) Class field. 2) Non-ref struct field. 3) Generic type argument (mostly). 4) Boxed. 5) In async / iterator (cross await forbidden). **Use cases**: 1) **`Span<T>` / `ReadOnlySpan<T>`** — safe stack-bound memory access. 2) **`ValueStringBuilder`** — stack-allocated string building. 3) Custom stack-only types для performance. **Why**: prevents heap allocation, ensures lifetime within method scope, JIT can optimize (no GC tracking). **Trade-offs**: cannot store as field, async limitations. **Best practice**: rarely write own `ref struct`. Use `Span<T>` / `Memory<T>` / `ValueStringBuilder` (provided by BCL).
+> Special struct type **forced stack-only**. Ограничения (C# 13+): 1) Не может быть полем class / non-ref struct. 2) Не boxится — включая каст в интерфейс. 3) Generic type argument — только с anti-constraint `allows ref struct` (C# 13; раньше — вообще нельзя). 4) В async/iterators локалы разрешены с C# 13, но не могут пересекать `await` / `yield return`. 5) С C# 13 может реализовывать интерфейсы — вызов через generic constraint, не через каст. **Use cases**: 1) **`Span<T>` / `ReadOnlySpan<T>`** — safe stack-bound memory access. 2) **`ValueStringBuilder`** — stack-allocated string building. 3) Custom stack-only types для performance. **Why**: prevents heap allocation, ensures lifetime within method scope, JIT can optimize (no GC tracking). **Best practice**: rarely write own `ref struct`. Use `Span<T>` / `Memory<T>` / `ValueStringBuilder` (provided by BCL).
 
 ---
 
@@ -1352,7 +1375,7 @@ public static int Sum<TList>(TList items) where TList : IReadOnlyList<int>
 - ❌ Store struct в `List<object>` — boxes everything.
 - ❌ Mutable struct (`public int X { get; set; }`) — confusing.
 - ❌ Large struct passed by value часто — copy cost.
-- ❌ `ref struct` в `async` method — compile error.
+- ❌ `ref struct` живой через `await` / `yield` boundary — compile error (сами локалы в async разрешены с C# 13).
 - ❌ Force GC.Collect.
 
 ---
@@ -1525,13 +1548,13 @@ public void Process(int[] items)
 ```csharp
 public async Task M()
 {
-    Span<byte> buf = stackalloc byte[100];   // ❌ ref struct
-    await Task.Delay(100);   // Compile error
+    Span<byte> buf = stackalloc byte[100];   // сам локал легален (C# 13)
+    await Task.Delay(100);   // ❌ Compile error — buf пересекает await
     buf[0] = 1;
 }
 ```
 
-**Фикс:** restructure — sync work, async outside.
+**Фикс:** restructure — весь lifetime `Span<T>` до или после `await` (sync work отдельным методом), либо `Memory<T>` вместо `Span<T>`.
 
 ### 13.6. LOH allocations
 
@@ -1595,7 +1618,7 @@ public void HandleRequest()
 **Фикс:** trust GC, profile if issues.
 
 > [!question]- Интервью: топ-3 ошибки с memory в C#?
-> 1) **Boxing surprise** — `List<object>` + value type, `string.Format("{0}", int)`, mutable struct в interface variable. Each = heap allocation. Profile с BenchmarkDotNet `[MemoryDiagnoser]`. Fix: generics + `IEquatable<T>` + specific overloads. 2) **Mutable struct** — `readonly struct` field defensive copy when modifying property. Confusing semantics. Fix: `readonly struct` + `init` properties (or `record struct`). 3) **LOH allocation** — `byte[1_000_000]` → Gen 2 directly, fragmentation, slow. Fix: ArrayPool<byte> для large buffers, chunked stream processing. Бонус: closures в tight loops — compiler generates class per closure invocation. Manual loop без captures.
+> 1) **Boxing surprise** — `List<object>` + value type, `string.Format("{0}", int)`, mutable struct в interface variable. Each = heap allocation. Profile с BenchmarkDotNet `[MemoryDiagnoser]`. Fix: generics + `IEquatable<T>` + specific overloads. 2) **Mutable struct** — `readonly struct` field defensive copy when modifying property. Confusing semantics. Fix: `readonly struct` + `init` properties (or `record struct`). 3) **LOH allocation** — `byte[1_000_000]` → Gen 2 directly, fragmentation, slow. Fix: `ArrayPool<byte>` для large buffers, chunked stream processing. Бонус: closures в tight loops — compiler generates class per closure invocation. Manual loop без captures.
 
 ---
 

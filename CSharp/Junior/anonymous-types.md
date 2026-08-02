@@ -1,7 +1,7 @@
 ---
 tags: [csharp, anonymous-types, linq, projections, junior]
 level: Junior
-date: 2026-05-04
+date: 2026-08-02
 ---
 
 # Anonymous Types — анонимные типы
@@ -103,7 +103,7 @@ Console.WriteLine(p);   // { Name = John, Age = 30 }
 
 Особенно тонкая деталь: `Equals` переопределён, но **оператор `==` — нет**. Anonymous type не реализует custom `==`, поэтому `==` сравнивает по reference. Это ловушка (раздел 15.8).
 
-### 1.4. Эволюция: C# 3.0 → C# 12
+### 1.4. Эволюция: C# 3.0 → C# 14
 
 | Версия | Год | Что добавили |
 |--------|-----|--------------|
@@ -111,6 +111,7 @@ Console.WriteLine(p);   // { Name = John, Age = 30 }
 | **C# 7.0** | 2017 | ValueTuple — частичная альтернатива anonymous |
 | **C# 9.0** | 2020 | Records — серьёзная альтернатива для cross-method случаев |
 | **C# 12** | 2023 | Collection expressions упростили inline-данные, но anonymous остался |
+| **C# 13–14 / .NET 10** | 2024–2025 | Сами anonymous types не менялись — стабильная фича; альтернативы (tuples, records) тоже без изменений |
 
 С C# 7+ часть сценариев (multi-return, локальные группировки) перешла на tuples. С C# 9+ — на records. Но **внутри LINQ-выражения** anonymous types по-прежнему канон, особенно в EF Core (см. раздел 14).
 
@@ -1949,7 +1950,7 @@ for (int i = 0; i < 1_000_000; i++)
 }
 ```
 
-### 16.2. Бенчмарк (примерно, BenchmarkDotNet, .NET 8)
+### 16.2. Бенчмарк (примерно, BenchmarkDotNet; замерено на .NET 8 — на .NET 10 картина та же по порядку величин)
 
 ```
 | Method               |     Mean | Allocated |

@@ -27,7 +27,7 @@ date: 2026-08-02
 |----------|-----------|----------|-------|
 | **IMemoryCache** | В памяти приложения | Наносекунды | Один сервер, локальные данные |
 | **IDistributedCache (Redis)** | Отдельный Redis | 1-5мс (сеть) | Несколько серверов, shared state |
-| **HybridCache (.NET 9+)** | L1 memory + L2 Redis | Лучшее из обоих | Новые проекты — рекомендуется |
+| **HybridCache** | L1 memory + L2 Redis | Лучшее из обоих | Новые проекты — рекомендуется |
 | **Output Cache** | HTTP response целиком | Мгновенно | GET endpoints без персонализации |
 | **CDN** | Edge servers по миру | Мгновенно для users | Static assets, public API responses |
 | **Browser cache** | На клиенте | 0 ms | Static files, immutable resources |
@@ -59,9 +59,9 @@ Database (исходный источник)
 
 ---
 
-## HybridCache (.NET 9+) — рекомендуется
+## HybridCache — рекомендуется
 
-Новый встроенный API в `Microsoft.Extensions.Caching.Hybrid`. Объединяет L1 (memory) и L2 (Redis) с **автоматическим stampede protection**.
+NuGet-пакет `Microsoft.Extensions.Caching.Hybrid` (GA март 2025) — не часть runtime: работает вплоть до `netstandard2.0` / .NET Framework 4.7.2, хотя в шаблонах и доках позиционируется с .NET 9. Объединяет L1 (memory) и L2 (Redis) с **автоматическим stampede protection**.
 
 ```bash
 dotnet add package Microsoft.Extensions.Caching.Hybrid
@@ -144,7 +144,7 @@ var options = new HybridCacheEntryOptions
 > 2. **Сериализация** руками каждый раз
 > 3. **Cache key conventions** размазаны по сервисам
 >
-> HybridCache решает всё это в одном API. После .NET 9 — стандартный выбор для новых проектов.
+> HybridCache решает всё это в одном API — стандартный выбор для новых проектов (пакет `Microsoft.Extensions.Caching.Hybrid`, GA 2025).
 
 ---
 
@@ -655,89 +655,29 @@ public async Task<Product?> GetResilientAsync(int id, CancellationToken ct = def
 
 ---
 
-## Rate Limiting (.NET 7+)
+## Rate Limiting — кратко
 
-Built-in middleware. До этого — пакеты типа `AspNetCoreRateLimit`.
+Полный разбор — в canonical [[aspnet-rate-limiting|ASP.NET Rate Limiting]]: setup, 4 алгоритма (fixed/sliding window, token bucket, concurrency), partitioning per user/IP/tier, rejection handling, distributed-сценарии. Здесь — только суть для контекста кэширования.
 
 ```csharp
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = 429;
-
-    // Fixed window
-    options.AddFixedWindowLimiter("api", opt =>
-    {
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.PermitLimit = 100;
-        opt.QueueLimit = 0;
-    });
-
-    // Token bucket — smooth burst
-    options.AddTokenBucketLimiter("burst", opt =>
+    options.AddTokenBucketLimiter("api", opt =>
     {
         opt.TokenLimit = 100;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
         opt.ReplenishmentPeriod = TimeSpan.FromSeconds(1);
         opt.TokensPerPeriod = 10;
-        opt.AutoReplenishment = true;
     });
-
-    // Per-user
-    options.AddPolicy("per-user", context =>
-    {
-        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return RateLimitPartition.GetTokenBucketLimiter(
-            partitionKey: userId ?? "anonymous",
-            factory: _ => new TokenBucketRateLimiterOptions
-            {
-                TokenLimit = 100,
-                ReplenishmentPeriod = TimeSpan.FromSeconds(1),
-                TokensPerPeriod = 10,
-            });
-    });
-
-    // Concurrency limiter — макс N параллельных
-    options.AddConcurrencyLimiter("heavy", opt =>
-    {
-        opt.PermitLimit = 5;
-        opt.QueueLimit = 100;
-    });
-
-    options.OnRejected = async (ctx, ct) =>
-    {
-        if (ctx.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-        {
-            ctx.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString("0");
-        }
-        ctx.HttpContext.Response.StatusCode = 429;
-        await ctx.HttpContext.Response.WriteAsync("Too many requests. Try later.", ct);
-    };
 });
 
 app.UseRateLimiter();
-
 app.MapGet("/api/data", () => "...").RequireRateLimiting("api");
-app.MapPost("/api/heavy-task", () => "...").RequireRateLimiting("heavy");
 ```
 
-### Algorithms
-
-| | Fixed window | Sliding window | Token bucket | Concurrency |
-|--|--------------|----------------|--------------|-------------|
-| Что | N в фиксированном окне | N в скользящем окне | Токены пополняются | N одновременных |
-| Burst | Большой на стыке окон | Сглажен | Bucket size | По limit |
-| Use case | Простой | Точный | Most APIs | Resource-heavy ops |
-
-**Для public API:** token bucket. Smooth.
-
-### Distributed rate limiting
-
-In-memory rate limiter — per-instance. За LB user может получить N × InstanceCount запросов. Для distributed:
-- Redis + Lua-скрипт (см. [[system-design|System Design]])
-- Гейт перед API (nginx limit_req, Cloudflare, AWS API Gateway)
-
-См. полный пример Lua-скрипта в [[system-design#Шаблон 1 — Rate Limiter|System Design — Rate Limiter]].
+Ключевое:
+- **Token bucket** — дефолт для public API (сглаженный burst).
+- In-memory limiter — **per-instance**: за LB клиент получает N × InstanceCount запросов. Distributed — Redis-based limiter или гейт перед API (nginx `limit_req`, Cloudflare, API Gateway); Lua-скрипт — в [[system-design#Шаблон 1 — Rate Limiter|System Design — Rate Limiter]].
 
 ---
 
@@ -782,7 +722,7 @@ builder.Services.AddHostedService<CacheWarmupService>();
 
 ## Production checklist
 
-- [ ] HybridCache для новых проектов (.NET 9+)
+- [ ] HybridCache для новых проектов (пакет `Microsoft.Extensions.Caching.Hybrid`)
 - [ ] L2 = Redis cluster (не single instance)
 - [ ] Stampede protection (HybridCache built-in или distributed lock)
 - [ ] TTL разумный — не слишком короткий (нагрузка на DB), не слишком длинный (stale)
