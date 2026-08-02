@@ -231,6 +231,21 @@ CreateMap<User, UserDto>();
 
 **4. AOT-incompatible** — reflection не работает в Native AOT.
 
+### ⚠️ AutoMapper commercial (v15+, 2025)
+
+В **июле 2025** автор AutoMapper (Jimmy Bogard) перевёл библиотеку на commercial license под Lucky Penny Software — та же история, что с MediatR (см. [[cqrs-mediatr|CQRS и MediatR]]).
+
+| | До v15 | v15+ |
+|--|--------|------|
+| Лицензия | Apache 2.0 / MIT (free) | Dual: RPL-1.5 или commercial |
+| OSS, личное, revenue < $5M | Free | Free tier |
+| Production / commercial | Free | Платная (per-developer tiers) |
+| Security updates | Free | Commercial only после 14.x |
+
+Enforcement — только предупреждения в логах (нет license-сервера, фичи не отключаются), но compliance-риск для компаний реальный.
+
+**Что делать:** остаться на ≤ 14.x (Apache 2.0 / MIT, без обновлений), заплатить — или мигрировать на Mapperly, что и так recommended default этого файла. Лицензия — ещё один аргумент в пользу миграции сверх performance и AOT.
+
 ---
 
 ## 3. Mapperly — source generator (recommended 2026)

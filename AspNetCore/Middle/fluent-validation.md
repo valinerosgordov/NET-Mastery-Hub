@@ -68,6 +68,9 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 
 ✅ DTO — pure data. Validation отдельно. Tests возможны без HTTP context.
 
+> [!info] Лицензия (проверено 2026-07)
+> FluentValidation — **по-прежнему бесплатна**: Apache 2.0, без платных тиров; автор лишь просит sponsorship для коммерческих проектов. Не путать с `FluentAssertions`, `MediatR` и `AutoMapper` v15+ — те перешли на коммерческие лицензии. Альтернатива без внешней зависимости — inline-валидация через Result pattern / свой `IValidator<T>` (см. [[api-design|API Design]]).
+
 ---
 
 ## 1. Установка и setup

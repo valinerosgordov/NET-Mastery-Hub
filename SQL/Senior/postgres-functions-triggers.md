@@ -301,7 +301,7 @@ await db.Database
 - [[postgresql-deep]] — JSONB, RLS, партиционирование, EXPLAIN
 - [[optimization]] — планы запросов, статистика
 - [[indexes-deep]] — expression index (где нужен IMMUTABLE)
-- [[../EFCore/dapper-comparison]] — raw SQL через Dapper
+- [[dapper-comparison]] — raw SQL через Dapper
 
 ## Reading list
 - PostgreSQL docs: PL/pgSQL, CREATE FUNCTION, CREATE TRIGGER

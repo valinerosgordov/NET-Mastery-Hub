@@ -1,6 +1,6 @@
 # SQL — relational databases
 
-> 8 файлов / ~215 KB. SQL fundamentals + index internals + PostgreSQL deep features + concurrency + safe migrations + security.
+> 9 файлов / ~253 KB. SQL fundamentals + index internals + PostgreSQL deep features + concurrency + safe migrations + security + EAV indexing.
 
 [← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
 
@@ -17,11 +17,12 @@
 | Конкурентность, блокировки, очереди задач | [`mvcc-and-locking.md`](Senior/mvcc-and-locking.md) |
 | Меняю схему на проде без даунтайма | [`zero-downtime-migrations.md`](Senior/zero-downtime-migrations.md) |
 | Безопасность: инъекции, роли, привилегии | [`sql-security.md`](Senior/sql-security.md) |
-| Готовлюсь к Senior собесу | Все 8 файлов |
+| Гибкая схема / EAV, индексы под неё | [`eav-flexible-store-indexing.md`](Senior/eav-flexible-store-indexing.md) |
+| Готовлюсь к Senior собесу | Все 9 файлов |
 
 ---
 
-## 📚 Все 8 файлов
+## 📚 Все 9 файлов
 
 | Файл | Уровень | Описание |
 |------|---------|----------|
@@ -33,6 +34,7 @@
 | [`mvcc-and-locking.md`](Senior/mvcc-and-locking.md) | Senior | MVCC, xmin/xmax, lock modes, SKIP LOCKED, UPSERT, LISTEN/NOTIFY ⭐ |
 | [`zero-downtime-migrations.md`](Senior/zero-downtime-migrations.md) | Senior | Безопасный DDL, lock_timeout, CONCURRENTLY, expand-contract, EF Core ⭐ |
 | [`sql-security.md`](Senior/sql-security.md) | Senior | SQL injection, roles/GRANT, least privilege, SECURITY DEFINER, TLS |
+| [`eav-flexible-store-indexing.md`](Senior/eav-flexible-store-indexing.md) | Senior | EAV-хранилище: фиксированный набор индексов, covering/partial, type-segregated UNIQUE |
 
 ---
 

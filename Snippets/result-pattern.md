@@ -1,3 +1,8 @@
+---
+tags: [result-pattern, error-handling, railway-oriented, minimal-api]
+level: Middle
+---
+
 # Snippets — Result<T> Pattern
 
 > Кастомный `Result<T>` + `Error` record как замена исключениям: фабрики Ok/Fail, `Match()` для маппинга в HTTP-ответы Minimal API и railway-oriented chaining нескольких шагов.

@@ -1,3 +1,8 @@
+---
+tags: [mediatr, cqrs, handlers, result-pattern, pipeline-behavior, validation]
+level: Middle to Senior
+---
+
 # Snippets — MediatR Handlers
 
 > CQRS-обвязка на MediatR: Command/Query handlers, возвращающие `Result<T>`, FluentValidation validator и `IPipelineBehavior<TRequest, TResponse>` для валидации и логирования, плюс регистрация в Program.cs.

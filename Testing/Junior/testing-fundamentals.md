@@ -1065,7 +1065,7 @@ public void Divide_works() => Divide(10, 2).Should().Be(5);
 | **NUnit** | Test framework (mature alternative) |
 | **MSTest** | Microsoft framework (least popular) |
 | **Shouldly** | Assertions library (clear messages) |
-| **FluentAssertions** | Assertions library (fluent API) |
+| **FluentAssertions** | Assertions library (fluent API) — ⚠️ с 2025 (v8+) commercial для prod use, альтернатива — Shouldly |
 | **NSubstitute** | Mocking library (clean syntax) |
 | **Moq** | Mocking library (mature, but Moq 4.20 controversy) |
 | **Bogus** | Fake test data generator |

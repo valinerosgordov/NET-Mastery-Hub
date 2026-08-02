@@ -299,7 +299,7 @@ Features/
 | Уровень | Инструменты | Когда |
 |---------|-------------|-------|
 | **Простой (атрибуты)** | `[Required]`, `[MaxLength]`, `[Range]`, `[EmailAddress]`, `[RegularExpression]` | CRUD с базовыми правилами. Видны в Swagger → клиент получает схему. |
-| **Бизнес-правила с DI** | Собственный `IValidator<T>` + MediatR pipeline, или OrionGuard | Валидация с обращением к БД, сервисам, конфигу. Атрибуты этого не умеют. |
+| **Бизнес-правила с DI** | Собственный `IValidator<T>` + MediatR pipeline, или FluentValidation | Валидация с обращением к БД, сервисам, конфигу. Атрибуты этого не умеют. |
 | **Domain-инварианты** | Конструкторы Value Objects, guards в entity | Инвариант агрегата (Clean Arch / DDD) — невалидное состояние недопустимо на уровне домена. |
 
 ### Почему DataAnnotations упираются в потолок
@@ -308,7 +308,7 @@ Features/
 
 ### Собственный IValidator<T> + MediatR behavior
 
-**Работает без платных библиотек**:
+**Работает без внешних библиотек**:
 
 ```csharp
 public interface IValidator<in T>
@@ -369,19 +369,18 @@ public sealed class ValidationBehavior<TRequest, TResponse>(
 }
 ```
 
-### FluentValidation — статус в 2026
+### FluentValidation — статус лицензии (проверено 2026-07)
 
-> [!warning] **FluentValidation с 2026 — платная для коммерческого использования**
-> Автор перешёл на коммерческую лицензионную модель (так же как `FluentAssertions`). Для OSS и pet-проектов — условно-бесплатно, для production — лицензия.
+> [!info] **FluentValidation остаётся бесплатной** — Apache 2.0
+> В отличие от `FluentAssertions`, `MediatR` и `AutoMapper` v15+ (перешли на коммерческие лицензии), FluentValidation — полностью open-source, без платных тиров; автор лишь просит sponsorship для коммерческих проектов.
 >
-> **Альтернативы:**
+> **Выбор инструмента:**
 >
 > | Вариант | Плюсы | Минусы |
 > |---------|-------|--------|
-> | **Свой IValidator\<T\>** (см. выше) | Полный контроль, OSS, 100 строк кода | Нужно писать базовые правила руками |
-> | **OrionGuard** | Совместим с FluentValidation API → миграция regex-ом, source-generator для NativeAOT | Молодая, маленькое комьюнити — для institutional-проектов риск |
+> | **Inline через Result pattern / свой IValidator\<T\>** (см. выше) — дефолт этого vault'а | Ноль зависимостей, полный контроль, 100 строк кода | Базовые правила пишутся руками |
+> | **FluentValidation** | Декларативные composable-правила, богатые built-in validators, локализация | Лишняя зависимость; business-логика легко «утекает» в validators |
 > | **MiniValidation** + DataAnnotations | `MiniValidation.TryValidate(obj)` — атрибуты + `IValidatableObject` одной строкой | Нет DI — только простые сценарии |
-> | **Фикс версии FluentValidation до смены лицензии** | Работает как раньше | Не получаешь security-патчи, compliance-серая зона |
 
 ### Валидация в Minimal API
 
@@ -404,7 +403,7 @@ app.MapPost("/users", async (
 Или через pipeline behavior — тогда валидация не дублируется в endpoint-ах.
 
 > [!question]- **Интервью: Чем DataAnnotations плохи для сложной валидации?**
-> Атрибут — статическая метадата, в него нельзя через DI прокинуть сервисы. Проверить «email уникален в базе» или «купон валиден через PricingService» — не получится. Для простых правил (`[Required]`, `[MaxLength]`) — норм, для бизнес-логики — отдельный `IValidator<T>` с DI, регистрируется в MediatR pipeline behavior. FluentValidation делал именно это, но с 2026 стал платным для коммерческого использования → либо OrionGuard (совместимый API), либо свой 100-строчный валидатор.
+> Атрибут — статическая метадата, в него нельзя через DI прокинуть сервисы. Проверить «email уникален в базе» или «купон валиден через PricingService» — не получится. Для простых правил (`[Required]`, `[MaxLength]`) — норм, для бизнес-логики — отдельный `IValidator<T>` с DI, регистрируется в MediatR pipeline behavior. FluentValidation делает то же самое декларативно (и остаётся бесплатной, Apache 2.0), но свой 100-строчный валидатор закрывает задачу без внешней зависимости.
 
 ---
 

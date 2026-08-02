@@ -33,16 +33,16 @@ date: 2026-06-12
 
 ```
 LearningPath/    10  roadmaps, interview prep, reading list — этот раздел
-CSharp/          40  язык: basics → modern features → async → метапрограммирование
+CSharp/          41  язык: basics → modern features → async → метапрограммирование
 Runtime/          9  CLR: GC, JIT, memory model, threading internals, диагностика
-AspNetCore/      22  web: pipeline, auth, DI, HttpClient, SignalR, Blazor, AOT
+AspNetCore/      23  web: pipeline, auth, DI, HttpClient, SignalR, Blazor, AOT
 EFCore/          13  ORM: tracking, запросы, миграции, паттерны, Dapper
-SQL/              8  реляционные БД: indexes, optimization, PostgreSQL deep
-Architecture/    14  SOLID, DDD, CQRS, distributed, decision guides, case studies
+SQL/              9  реляционные БД: indexes, optimization, PostgreSQL deep
+Architecture/    16  SOLID, DDD, CQRS, distributed, decision guides, case studies
 Quality/          5  clean code, refactoring, code review, static analysis
 Testing/          5  fundamentals → mocking → integration → mutation
-Performance/     11  профилирование, кеширование, оптимизация, HFT
-Infrastructure/  15  Docker, k8s, CI/CD, messaging, observability, LLM/AI
+Performance/     12  профилирование, кеширование, оптимизация, HFT
+Infrastructure/  14  Docker, k8s, CI/CD, messaging, observability, LLM/AI
 Snippets/         5  готовые рецепты: CRUD, Result, MediatR, EF, MVVM
 ```
 
@@ -58,9 +58,9 @@ Snippets/         5  готовые рецепты: CRUD, Result, MediatR, EF, M
 
 ## 📊 Статистика vault
 
-- **Всего файлов:** 157 контентных заметок (+ README в каждой папке + INDEX)
-- **Общий объём:** ~5.5 MB
-- **По уровням:** Junior 25 · Middle 29 · Middle→Senior 14 · Senior 73 · остальное — All/paths
+- **Всего файлов:** 162 контентные заметки (+ README в каждой папке + INDEX)
+- **Общий объём:** ~5.8 MB
+- **По уровням:** Junior 25 · Junior→Middle 1 · Middle 29 · Middle→Senior 13 · Senior 82 · остальное — All/paths (12)
 - **Покрытие:** все 15 блоков «Complete C# 2026» cheat sheet + architecture/distributed/infra сверху
 - **Языки:** русский (основной), технические термины — английские
 

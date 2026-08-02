@@ -1,3 +1,8 @@
+---
+tags: [wpf, mvvm, community-toolkit, viewmodel, xaml, dependency-injection]
+level: Middle
+---
+
 # Snippets — WPF ViewModels (MVVM Toolkit)
 
 > WPF на CommunityToolkit.Mvvm: `ObservableObject` с `[ObservableProperty]`/`[RelayCommand]`, async-safe загрузка из View.Loaded, DI через `IHostBuilder`, навигация и glassmorphism-стили в XAML.
@@ -5,7 +10,7 @@
 ## Базовый ViewModel
 
 ```csharp
-namespace NexusAI.Presentation.ViewModels;
+namespace MyApp.Presentation.ViewModels;
 
 public sealed partial class OrdersViewModel : ObservableObject
 {
@@ -69,7 +74,7 @@ public sealed partial class OrdersViewModel : ObservableObject
 ## DI + IHostBuilder setup (App.xaml.cs)
 
 ```csharp
-namespace NexusAI.Presentation;
+namespace MyApp.Presentation;
 
 public partial class App : System.Windows.Application
 {

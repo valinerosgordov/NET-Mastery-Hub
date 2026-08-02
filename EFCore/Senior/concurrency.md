@@ -1137,6 +1137,7 @@ EF Core решение?
 
 ## См. также
 
+- [[ef-transactions-concurrency|EF Transactions & Concurrency]] — Middle-уровень: транзакции, SaveChanges-атомарность, optimistic concurrency базово
 - [EF Core Basics & Tracking](basics-tracking.md)
 - [EF Core Migrations](migrations.md)
 -[EF Core Patterns]())

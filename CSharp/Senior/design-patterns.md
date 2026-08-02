@@ -6,7 +6,7 @@ date: 2026-05-10
 
 # Design Patterns в C# — практический обзор
 
-> **SOLID principles, GoF patterns, modern .NET equivalents.** Какие patterns актуальны в 2024+, какие устарели, и где language features заменили patterns. Закрывает пробел: «знаю названия Singleton/Factory/Observer, не понимаю когда применять и какие современные альтернативы».
+> **SOLID principles, GoF patterns, modern .NET equivalents.** Какие patterns актуальны до сих пор, какие устарели, и где language features заменили patterns. Закрывает пробел: «знаю названия Singleton/Factory/Observer, не понимаю когда применять и какие современные альтернативы».
 
 ---
 
@@ -20,171 +20,19 @@ Cross-language якоря свёрнуты. Interview-вопросы встро�
 
 ---
 
-## 1. SOLID — фундамент
+## 1. SOLID — фундамент (кратко)
 
-### 1.1. Single Responsibility Principle
+Полный разбор пяти принципов — с production-примерами на Result pattern, DI и Clean Architecture — в [[solid|SOLID, DRY, KISS, YAGNI]]. Дублировать его здесь незачем; ниже — сводка, чтобы дальше говорить о паттернах на общем языке.
 
-```
-Class должен иметь одну причину изменяться.
-```
+| Принцип | Суть | Маркер нарушения |
+|---------|------|------------------|
+| **S**RP | Одна причина для изменения | «и» в описании класса: «создаёт заказ **и** шлёт email» |
+| **O**CP | Расширяй новым кодом, не правь старый | `switch` по типу, растущий с каждой новой фичей |
+| **L**SP | Подтип заменяет базовый без сюрпризов | `NotSupportedException` в override; классика — `Square : Rectangle` |
+| **I**SP | Маленькие сфокусированные интерфейсы | `Robot`, вынужденный реализовать `Eat()` из fat-интерфейса |
+| **D**IP | Зависимость от абстракций, не от конкретики | `new SqlServerRepository()` внутри бизнес-логики |
 
-```csharp
-// ❌ Violates SRP — много responsibilities
-public class UserService
-{
-    public User GetUser(int id) { /* DB access */ }
-    public void SendEmail(User u, string msg) { /* SMTP */ }
-    public void Log(string msg) { /* file IO */ }
-    public string GenerateReport(User u) { /* HTML */ }
-}
-
-// ✅ Split
-public class UserRepository { public User GetUser(int id); }
-public class EmailService { public void Send(User u, string msg); }
-public class Logger { public void Log(string msg); }
-public class ReportGenerator { public string Generate(User u); }
-```
-
-Цель: changes к email logic не должны касаться DB.
-
-### 1.2. Open/Closed Principle
-
-```
-Open для extension, closed для modification.
-```
-
-```csharp
-// ❌ Violates OCP — каждый новый shape requires modification
-public class AreaCalculator
-{
-    public double Calculate(object shape)
-    {
-        if (shape is Rectangle r) return r.Width * r.Height;
-        if (shape is Circle c) return Math.PI * c.Radius * c.Radius;
-        throw new NotSupportedException();
-    }
-}
-
-// ✅ Polymorphism
-public abstract class Shape { public abstract double Area(); }
-public class Rectangle : Shape { public override double Area() => Width * Height; }
-public class Circle : Shape { public override double Area() => Math.PI * Radius * Radius; }
-
-public class AreaCalculator
-{
-    public double Calculate(Shape shape) => shape.Area();
-}
-```
-
-Adding `Triangle` — new class, no modification.
-
-### 1.3. Liskov Substitution Principle
-
-```
-Subtypes должны быть substitutable за base type.
-```
-
-```csharp
-// ❌ Violates LSP — Square breaks Rectangle contract
-public class Rectangle
-{
-    public virtual int Width { get; set; }
-    public virtual int Height { get; set; }
-}
-
-public class Square : Rectangle
-{
-    public override int Width
-    {
-        set { base.Width = value; base.Height = value; }
-    }
-}
-
-void Test(Rectangle r)
-{
-    r.Width = 5;
-    r.Height = 4;
-    Debug.Assert(r.Width * r.Height == 20);   // fails for Square!
-}
-
-// ✅ Don't model Square as Rectangle
-public abstract class Shape { public abstract int Area(); }
-public class Rectangle : Shape { /* Width × Height */ }
-public class Square : Shape { /* Side² */ }
-```
-
-### 1.4. Interface Segregation Principle
-
-```
-Не заставляй клиентов зависеть от методов которые они не используют.
-```
-
-```csharp
-// ❌ Fat interface
-public interface IWorker
-{
-    void Work();
-    void Eat();
-    void Sleep();
-}
-
-public class Robot : IWorker
-{
-    public void Work() { /* ... */ }
-    public void Eat() => throw new NotSupportedException();   // ❌
-    public void Sleep() => throw new NotSupportedException();
-}
-
-// ✅ Segregated
-public interface IWorker { void Work(); }
-public interface IFeedable { void Eat(); }
-public interface IRestable { void Sleep(); }
-
-public class Robot : IWorker { public void Work(); }
-public class Human : IWorker, IFeedable, IRestable { /* implement all */ }
-```
-
-### 1.5. Dependency Inversion Principle
-
-```
-High-level modules не должны зависеть от low-level. Оба depend on abstractions.
-```
-
-```csharp
-// ❌ High-level depends on low-level
-public class OrderService
-{
-    private SqlServerOrderRepository _repo = new();   // concrete dependency
-    private SmtpEmailService _email = new();
-    
-    public void PlaceOrder(Order o)
-    {
-        _repo.Save(o);
-        _email.Send(o);
-    }
-}
-
-// ✅ Depend on abstractions
-public class OrderService
-{
-    private readonly IOrderRepository _repo;
-    private readonly IEmailService _email;
-    
-    public OrderService(IOrderRepository repo, IEmailService email)
-    {
-        _repo = repo;
-        _email = email;
-    }
-    
-    public void PlaceOrder(Order o)
-    {
-        _repo.Save(o);
-        _email.Send(o);
-    }
-}
-```
-
-Test с mocks. Swap implementations (Sql/Mongo, SMTP/SendGrid).
+Связь с паттернами: большинство GoF-паттернов — инструменты соблюдения SOLID. Strategy и Decorator обслуживают OCP, Adapter и Facade — ISP/DIP, Factory — DIP.
 
 > [!question]- Интервью: что такое SOLID и почему важно?
 > Acronym для **5 OOP design principles**: 1) **S**ingle Responsibility — class should have one reason to change. 2) **O**pen/Closed — extend через inheritance/polymorphism, не modification. 3) **L**iskov Substitution — derived can substitute base без breaking behavior. 4) **I**nterface Segregation — small focused interfaces, not fat ones. 5) **D**ependency Inversion — depend on abstractions, not concretions. **Why**: testability (DI mocks), maintainability (changes localized), extensibility (new features без rewrite). **Pragmatic application**: don't over-apply (SRP не каждый method отдельный class). Coined by Robert C. Martin (Uncle Bob).
@@ -265,137 +113,15 @@ Many "GoF patterns" — language sugar в C#. Don't over-engineer.
 
 ## 3. SOLID в практике (DI + interfaces)
 
-### 3.1. DI container — production standard
+DIP в production .NET реализуется DI-контейнером — `Microsoft.Extensions.DependencyInjection` встроен, сторонние (Autofac) нужны редко. Полный разбор контейнера — регистрация, lifetimes, scope-ловушки — в [[aspnet-dependency-injection-deep|DI Deep Dive]]; применение принципов на слоях — в [[solid|SOLID, DRY, KISS, YAGNI]]. Резюме для контекста паттернов:
 
-```csharp
-// Program.cs
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddSingleton<ICache, RedisCache>();
-builder.Services.AddScoped<IOrderRepository, SqlOrderRepository>();
-builder.Services.AddTransient<IEmailService, SendGridService>();
-
-builder.Services.AddTransient<OrderService>();   // depends on above
-
-var app = builder.Build();
-```
-
-```csharp
-// Service uses DI
-public class OrderService
-{
-    private readonly IOrderRepository _repo;
-    private readonly IEmailService _email;
-    
-    public OrderService(IOrderRepository repo, IEmailService email)
-    {
-        _repo = repo;
-        _email = email;
-    }
-}
-```
-
-`Microsoft.Extensions.DependencyInjection` — built-in. Alternatives: Autofac, Castle Windsor.
-
-### 3.2. Lifetimes
-
-```
-Singleton — one instance for app lifetime
-- Stateless services (encryption, formatters)
-- Caches
-- Configuration
-
-Scoped — one per request (HTTP / scope)
-- Repository, EF Core DbContext
-- Per-request state
-
-Transient — new instance every resolve
-- Lightweight services
-- No state between calls
-```
-
-### 3.3. Constructor injection
-
-```csharp
-// ✅ Standard pattern — constructor injection
-public class Service(IRepository repo, ILogger<Service> logger)   // C# 12 primary ctor
-{
-    public async Task DoAsync()
-    {
-        logger.LogInformation("Starting");
-        await repo.SaveAsync();
-    }
-}
-
-// До C# 12 — explicit constructor
-public class Service
-{
-    private readonly IRepository _repo;
-    private readonly ILogger<Service> _logger;
-    
-    public Service(IRepository repo, ILogger<Service> logger)
-    {
-        _repo = repo;
-        _logger = logger;
-    }
-}
-```
-
-### 3.4. Interfaces vs abstract classes
-
-```csharp
-// Interface — contract only
-public interface IPaymentProcessor
-{
-    Task<bool> ProcessAsync(decimal amount);
-}
-
-// Abstract class — partial implementation
-public abstract class BasePaymentProcessor : IPaymentProcessor
-{
-    public async Task<bool> ProcessAsync(decimal amount)
-    {
-        if (!Validate(amount)) return false;
-        return await ProcessInternalAsync(amount);
-    }
-    
-    private bool Validate(decimal amount) => amount > 0;
-    
-    protected abstract Task<bool> ProcessInternalAsync(decimal amount);
-}
-```
-
-Best practice 2024+:
-- **Interface** для DI contracts.
-- **Abstract class** для template method pattern (shared logic + extension points).
-
-### 3.5. Service Locator anti-pattern
-
-```csharp
-// ❌ Service Locator — hidden dependencies
-public class BadService
-{
-    public void Process()
-    {
-        var repo = ServiceLocator.Get<IRepository>();   // hidden!
-        repo.Save();
-    }
-}
-
-// ✅ Constructor injection — explicit
-public class GoodService(IRepository repo)
-{
-    public void Process()
-    {
-        repo.Save();
-    }
-}
-```
-
-Service Locator hides dependencies — hard to test, brittle.
+- **Constructor injection — стандарт.** Зависимости видны в сигнатуре, подменяются моками в тестах. С C# 12 — primary constructor: `public class Service(IRepository repo, ILogger<Service> logger)`.
+- **Lifetimes:** `Singleton` — stateless-сервисы, кэши, конфигурация; `Scoped` — `DbContext`, репозитории (один на HTTP-запрос); `Transient` — лёгкие объекты без состояния.
+- **Interface vs abstract class:** interface — для DI-контрактов; abstract class — для Template Method (общая логика + защищённые точки расширения).
+- **Service Locator — анти-паттерн.** `ServiceLocator.Get<T>()` прячет зависимости: их не видно в сигнатуре, тесты требуют глобального state, ошибки всплывают в runtime вместо compile-time. Всегда constructor injection; Service Locator — только legacy / специфичные framework-нужды.
 
 > [!question]- Интервью: чем DI отличается от Service Locator?
-> **Dependency Injection** — dependencies passed **explicitly** через constructor (или property). Class declares what it needs. **Service Locator** — class **asks** для dependencies через global accessor: `ServiceLocator.Get<T>()`. **DI advantages**: 1) Explicit dependencies (visible в signature). 2) Testable (mock injected). 3) Compile-time check (constructor params). 4) Lifetime managed by container. **Service Locator anti-pattern**: hidden dependencies, tests need to setup global state, hard to refactor, runtime errors. Best practice 2024+: **always DI**, Service Locator только для legacy / specific framework needs.
+> **Dependency Injection** — dependencies passed **explicitly** через constructor (или property). Class declares what it needs. **Service Locator** — class **asks** для dependencies через global accessor: `ServiceLocator.Get<T>()`. **DI advantages**: 1) Explicit dependencies (visible в signature). 2) Testable (mock injected). 3) Compile-time check (constructor params). 4) Lifetime managed by container. **Service Locator anti-pattern**: hidden dependencies, tests need to setup global state, hard to refactor, runtime errors. Best practice: **always DI**, Service Locator только для legacy / specific framework needs.
 
 ---
 

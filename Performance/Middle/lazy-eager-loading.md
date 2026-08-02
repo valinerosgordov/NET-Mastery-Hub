@@ -32,134 +32,23 @@ date: 2026-04-30
 
 ---
 
-## 1. EF Core loading strategies
+## 1. EF Core loading strategies — кратко
 
-### Eager loading — `Include`
+Canonical-разбор четырёх стратегий — с генерируемым SQL, decision tree и pitfalls — в [[ef-loading-strategies|EF Loading Strategies]]. Здесь только сводка trade-offs:
 
-```csharp
-var orders = await _db.Orders
-    .Include(o => o.Items)
-    .Include(o => o.Customer)
-    .ToListAsync();
-```
-
-**Плюсы:**
-- 1 (или 2) query
-- No N+1
-- All data ready
-
-**Минусы:**
-- Cartesian explosion (см. ниже)
-- Loads even unused data
-
-### Explicit loading
-
-```csharp
-var order = await _db.Orders.FindAsync(1);
-
-// Load related когда нужно
-await _db.Entry(order).Collection(o => o.Items).LoadAsync();
-await _db.Entry(order).Reference(o => o.Customer).LoadAsync();
-```
-
-**Плюсы:**
-- Контроль когда грузить
-- Не каждый раз
-
-**Минусы:**
-- Дополнительные queries
-
-### Lazy loading
-
-```csharp
-public class Order
-{
-    public virtual Customer Customer { get; set; }
-    public virtual ICollection<Item> Items { get; set; }
-}
-
-// Configuration
-optionsBuilder.UseLazyLoadingProxies();
-```
-
-```csharp
-var order = await _db.Orders.FindAsync(1);
-var customer = order.Customer;  // ⚠️ Triggers query!
-foreach (var item in order.Items)  // ⚠️ Triggers another query!
-{
-}
-```
-
-**Плюсы:**
-- Code просто
-- Loads только использованное
-
-**Минусы:**
-- **N+1 problem** очень легко
-- Hidden DB calls
-- Disposed DbContext → exception
+| Стратегия | Суть | Главный риск |
+|-----------|------|--------------|
+| **Eager** — `Include` | Всё одним запросом | Cartesian explosion при нескольких коллекциях — фикс `AsSplitQuery()` |
+| **Projection** — `Select` | Только нужные поля в DTO | — (рекомендуемый дефолт для read-сценариев) |
+| **Explicit** — `Entry().Load()` | Догрузка по требованию | Лишние round-trips, anti-pattern в цикле |
+| **Lazy** — proxies | Прозрачная догрузка при обращении к navigation | N+1, скрытые запросы, exception на disposed `DbContext` |
 
 > [!warning] Lazy loading — обычно плохо
-> EF Core community рекомендует **explicit/eager** instead. Lazy hides perf issues.
-
-### Projection (selective loading)
-
-```csharp
-// Only what you need
-var orders = await _db.Orders
-    .Select(o => new OrderSummary
-    {
-        Id = o.Id,
-        CustomerName = o.Customer.Name,
-        ItemCount = o.Items.Count
-    })
-    .ToListAsync();
-```
-
-**Best of both worlds:** load minimum data, no N+1, type-safe.
-
-См.[[queries-performance|EF Performance]].
+> EF Core community рекомендует eager/explicit/projection. Lazy прячет perf-проблемы за невинным обращением к свойству.
 
 ---
 
-## 2. Cartesian explosion problem
-
-```csharp
-// One Order has many Items + many Tags
-var orders = await _db.Orders
-    .Include(o => o.Items)
-    .Include(o => o.Tags)  // ⚠️
-    .ToListAsync();
-
-// Generated SQL — JOIN всех таблиц:
-// 100 orders × 10 items × 5 tags = 5000 rows!
-```
-
-### Solution: AsSplitQuery
-
-```csharp
-var orders = await _db.Orders
-    .AsSplitQuery()
-    .Include(o => o.Items)
-    .Include(o => o.Tags)
-    .ToListAsync();
-
-// Generates 3 queries:
-// SELECT * FROM Orders
-// SELECT * FROM Items WHERE OrderId IN (...)
-// SELECT * FROM Tags WHERE OrderId IN (...)
-```
-
-**When use SplitQuery:**
-- Multiple Include + collections
-- Cartesian explosion обнаружено
-- Trade: 3 queries но less data overall
-
-См.[[queries-performance|EF Performance]].
-
----
-
-## 3. Lazy\<T\> initialization
+## 2. Lazy\<T\> initialization
 
 ```csharp
 // ❌ Expensive init at construction
@@ -187,7 +76,7 @@ public class Service
 
 ---
 
-## 4. Lazy services в DI
+## 3. Lazy services в DI
 
 ### Lazy resolution
 
@@ -217,7 +106,7 @@ builder.Services.AddScoped<Lazy<IExpensiveService>>(sp =>
 
 ---
 
-## 5. Lazy/eager в кеше
+## 4. Lazy/eager в кеше
 
 ### Cache-aside (lazy)
 
@@ -258,7 +147,7 @@ builder.Services.AddHostedService<CacheWarmupService>();
 
 ---
 
-## 6. Module loading в больших apps
+## 5. Module loading в больших apps
 
 ### Lazy assemblies в Blazor WASM
 
@@ -282,7 +171,7 @@ builder.Services.AddHostedService<CacheWarmupService>();
 
 ---
 
-## 7. ORM-агностичные паттерны
+## 6. ORM-агностичные паттерны
 
 ### IEnumerable vs IList в API
 
@@ -309,7 +198,7 @@ var first5 = service.GetActive().Take(5).ToList();
 
 ---
 
-## 8. Common Pitfalls
+## 7. Common Pitfalls
 
 ### 1. Lazy loading в API responses
 
@@ -328,7 +217,7 @@ public async Task<Order> GetOrder(int id)
 
 ### 2. Multiple Include — Cartesian explosion
 
-См. выше.
+См. [[ef-loading-strategies|EF Loading Strategies]] — фикс `AsSplitQuery()`.
 
 ### 3. Lazy init в hot path
 
@@ -347,7 +236,7 @@ public void DoSomething()
 ### 4. Eager loading всего что можно
 
 ```csharp
-// ❌ Loads 50 фкtors даже если не нужно
+// ❌ Loads весь граф связей даже если он не нужен
 var order = await _db.Orders
     .Include(o => o.Items)
     .Include(o => o.Customer)
@@ -362,7 +251,7 @@ var order = await _db.Orders
 
 ---
 
-## 9. Best Practices
+## 8. Best Practices
 
 - **Eager (Include) для known relationships** в read scenarios
 - **Projection (Select)** для DTOs — minimum data
@@ -541,11 +430,12 @@ Performance issue?
 ## См. также
 
 - [[performance-fundamentals|Performance Fundamentals]]
+- [[ef-loading-strategies|EF Loading Strategies]] — canonical EF-разбор: Include/Select/SplitQuery/explicit
 - [[caching-strategies|Caching Strategies]]
 - [[optimization-patterns|Optimization Patterns]]
--[[queries-performance|EF Queries Performance]]
--[[basics-tracking|EF Basics & Tracking]]
--[[blazor-wasm|Blazor WASM]] (lazy assemblies)
+- [[queries-performance|EF Queries Performance]]
+- [[basics-tracking|EF Basics & Tracking]]
+- [[blazor-wasm|Blazor WASM]] (lazy assemblies)
 
 ## Reading list
 

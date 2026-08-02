@@ -1221,4 +1221,4 @@ App connections idle быстро возвращаются к PgBouncer для r
 
 - [[performance|.NET Performance]]
 - [[queries-performance|EF Core Performance]]
-- [[index|.NET Knowledge Base]]
+- [[INDEX|.NET Knowledge Base]]

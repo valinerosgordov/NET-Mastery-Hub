@@ -2,7 +2,7 @@
 
 > Автогенерируется скриптом `Scripts/generate_index.ps1` из frontmatter (`level:`) и tagline'ов файлов. **Не редактировать руками** — перегенерировать после изменений.
 >
-> **163 файлов / 5,8 MB** · обновлено 2026-06-19
+> **162 файлов / 5,8 MB** · обновлено 2026-07-02
 
 ---
 
@@ -23,16 +23,16 @@
 | [99_reading-list.md](LearningPath/99_reading-list.md) | All | 8,6 | Курируемый список внешних .NET-ресурсов для Senior-level чтения: блоги (antondevtips, Milan Jovanović), Tel... |
 | [case-studies-top7.md](LearningPath/case-studies-top7.md) | Middle to Senior | 29,1 | Дополнение к топ-7 наиболее важным файлам vault'а: реальные production кейсы, какие проблемы возникают, как... |
 
-### CSharp — 41 файлов / 2 445 KB
+### CSharp — 41 файлов / 2 442 KB
 
 | Файл | Уровень | KB | Описание |
 |---|---|---:|---|
 | [Junior/anonymous-types.md](CSharp/Junior/anonymous-types.md) | Junior | 105,2 | `new { Name = "John", Age = 30 }` — типы, рождённые компилятором на лету, без явного `class` объявления. Вс... |
 | [Junior/collections-linq.md](CSharp/Junior/collections-linq.md) | Junior | 57,2 | Главные коллекции BCL и LINQ как универсальный язык pipeline'ов. `List<T>`, `Dictionary<TKey,TValue>`, `Has... |
-| [Junior/csharp-basics.md](CSharp/Junior/csharp-basics.md) | Junior | 88,5 | Стартовая точка для Junior. Не справочник синтаксиса — учебник с акцентом на «почему C# устроен именно так»... |
+| [Junior/csharp-basics.md](CSharp/Junior/csharp-basics.md) | Junior | 88,6 | Стартовая точка для Junior. Не справочник синтаксиса — учебник с акцентом на «почему C# устроен именно так»... |
 | [Junior/datetime-timezones.md](CSharp/Junior/datetime-timezones.md) | Junior | 105,1 | Самая ошибочная тема в backend-коде. `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, IANA vs Windows ... |
 | [Junior/debugging-basics.md](CSharp/Junior/debugging-basics.md) | Junior | 116,8 | Как находить баги в .NET-коде быстро. Breakpoints (все виды), stepping, inspect state, call stack, exceptio... |
-| [Junior/dotnet-cli-getting-started.md](CSharp/Junior/dotnet-cli-getting-started.md) | Junior | 113 | Кросс-платформенный командный интерфейс к .NET. `dotnet` — единственный обязательный инструмент: создание п... |
+| [Junior/dotnet-cli-getting-started.md](CSharp/Junior/dotnet-cli-getting-started.md) | Junior | 113,2 | Кросс-платформенный командный интерфейс к .NET. `dotnet` — единственный обязательный инструмент: создание п... |
 | [Junior/enums-flags.md](CSharp/Junior/enums-flags.md) | Junior | 101,1 | Типобезопасные константы вместо magic numbers и строк. `enum`, `[Flags]`, bitwise операции, конверсии в стр... |
 | [Junior/extension-methods.md](CSharp/Junior/extension-methods.md) | Junior | 103,6 | `obj.MyMethod()` для типов, которые ты не контролируешь. Под капотом — обычные статические методы. Сахарный... |
 | [Junior/iterators-yield.md](CSharp/Junior/iterators-yield.md) | Junior | 101,6 | Метод, который возвращает по одному элементу за раз, а не материализует всю коллекцию. `yield return`, `IEn... |
@@ -58,7 +58,7 @@
 | [Senior/cli-tools-scripting.md](CSharp/Senior/cli-tools-scripting.md) | Senior | 40,8 | Top-level statements, `dotnet script`, `System.CommandLine`, Spectre.Console, Native AOT для CLI. Замена Ba... |
 | [Senior/csharp-language-design.md](CSharp/Senior/csharp-language-design.md) | Senior | 41,6 | Принципы проектирования C#, design committee, эволюция через 13 версий, trade-offs. Зачем добавили (и не до... |
 | [Senior/csharp-vs-other-langs.md](CSharp/Senior/csharp-vs-other-langs.md) | Senior | 47,5 | Конкретные сравнения C# с Java, Kotlin, TypeScript, Go, Rust, Python, F#. Где C# выигрывает, где проигрывае... |
-| [Senior/design-patterns.md](CSharp/Senior/design-patterns.md) | Senior | 58,4 | SOLID principles, GoF patterns, modern .NET equivalents. Какие patterns актуальны в 2024+, какие устарели, ... |
+| [Senior/design-patterns.md](CSharp/Senior/design-patterns.md) | Senior | 54,7 | SOLID principles, GoF patterns, modern .NET equivalents. Какие patterns актуальны до сих пор, какие устарел... |
 | [Senior/desktop-frameworks.md](CSharp/Senior/desktop-frameworks.md) | Senior | 44,8 | WPF (mature Windows), WinUI 3 (modern Windows), WinForms (legacy), MAUI (cross-platform Microsoft), Avaloni... |
 | [Senior/fenwick-bit.md](CSharp/Senior/fenwick-bit.md) | Senior | 13,3 | Binary Indexed Tree: prefix-sum + point-update за O(log n) на плоском `int[]`, без node objects и без аллок... |
 | [Senior/functional-csharp.md](CSharp/Senior/functional-csharp.md) | Senior | 48,4 | Pure functions, immutability, higher-order functions, monads (`Option<T>`, `Result<T>`), function compositi... |
@@ -83,7 +83,7 @@
 | [Senior/interop-pinvoke.md](Runtime/Senior/interop-pinvoke.md) | Senior | 30,2 | Полный гайд по работе с native кодом из .NET. Закрывает: P/Invoke, `LibraryImport` source generator (.NET 7... |
 | [Senior/span-layout.md](Runtime/Senior/span-layout.md) | Senior | 37,3 | Самая глубокая заметка по работе с памятью без аллокаций. Закрывает Span/Memory, struct layout, SIMD/Vector... |
 
-### AspNetCore — 23 файлов / 701 KB
+### AspNetCore — 23 файлов / 703 KB
 
 | Файл | Уровень | KB | Описание |
 |---|---|---:|---|
@@ -92,14 +92,14 @@
 | [Middle/aspnet-dependency-injection-deep.md](AspNetCore/Middle/aspnet-dependency-injection-deep.md) | Middle | 27 | DI lifetimes deep, IServiceScopeFactory, keyed services (.NET 8+), TimeProvider, captive dependencies, asyn... |
 | [Middle/aspnet-error-handling.md](AspNetCore/Middle/aspnet-error-handling.md) | Middle | 26,8 | Exception handling middleware, IExceptionHandler (.NET 8+), ProblemDetails RFC 7807, error pages, validatio... |
 | [Middle/aspnet-rate-limiting.md](AspNetCore/Middle/aspnet-rate-limiting.md) | Middle | 26,6 | Built-in rate limiting middleware (.NET 7+), 4 algorithms (fixed, sliding, token bucket, concurrency), per-... |
-| [Middle/fluent-validation.md](AspNetCore/Middle/fluent-validation.md) | Middle | 23,6 | Стандарт для validation в .NET 2026. vs DataAnnotations: гибче, тестируемо, async-friendly. Closes пробел "... |
+| [Middle/fluent-validation.md](AspNetCore/Middle/fluent-validation.md) | Middle | 24,2 | Стандарт для validation в .NET 2026. vs DataAnnotations: гибче, тестируемо, async-friendly. Closes пробел "... |
 | [Middle/http-client-resilience.md](AspNetCore/Middle/http-client-resilience.md) | Middle | 27,4 | Canonical-файл по HTTP-клиенту в .NET: почему `new HttpClient()` на каждый запрос кладёт прод, почему singl... |
-| [Middle/object-mapping.md](AspNetCore/Middle/object-mapping.md) | Middle | 24 | Daily work каждого ASP.NET проекта: DTO ↔ Domain ↔ ViewModel mapping. Closes пробел "копирую properties вру... |
-| [Senior/api-design.md](AspNetCore/Senior/api-design.md) | Senior | 24,6 | Minimal API — легковесные, меньше boilerplate, хорошо для простых CRUD и прототипов. Controllers — полная м... |
+| [Middle/object-mapping.md](AspNetCore/Middle/object-mapping.md) | Middle | 25,1 | Daily work каждого ASP.NET проекта: DTO ↔ Domain ↔ ViewModel mapping. Closes пробел "копирую properties вру... |
+| [Senior/api-design.md](AspNetCore/Senior/api-design.md) | Senior | 24,5 | Minimal API — легковесные, меньше boilerplate, хорошо для простых CRUD и прототипов. Controllers — полная м... |
 | [Senior/auth-security.md](AspNetCore/Senior/auth-security.md) | Senior | 55,6 | Authentication — кто ты? (identity, JWT, Cookie). Authorization — что тебе можно? (roles, policies, claims). |
 | [Senior/blazor-server.md](AspNetCore/Senior/blazor-server.md) | Senior | 30,9 | Web UI на C#/Razor с рендером на сервере и доставкой diff'ов через SignalR-circuit; разбор render modes, уп... |
 | [Senior/blazor-wasm.md](AspNetCore/Senior/blazor-wasm.md) | Senior | 34,1 | C# в браузере через WebAssembly. Альтернатива Blazor Server и React/Angular/Vue. Закрывает: WASM модель, ho... |
-| [Senior/caching.md](AspNetCore/Senior/caching.md) | Senior | 31,2 | Многоуровневое кэширование (`IMemoryCache`, Redis, HybridCache, Output Cache, CDN) и защита API через Rate ... |
+| [Senior/caching.md](AspNetCore/Senior/caching.md) | Senior | 31,5 | Многоуровневое кэширование (`IMemoryCache`, Redis, HybridCache, Output Cache, CDN) и защита API через Rate ... |
 | [Senior/di-configuration.md](AspNetCore/Senior/di-configuration.md) | Senior | 24,3 | DI-контейнер ASP.NET Core, lifetimes, Keyed Services и типизированная конфигурация через `IOptions` с учёто... |
 | [Senior/graphql.md](AspNetCore/Senior/graphql.md) | Senior | 31,5 | Полный гайд по GraphQL в .NET. Закрывает: HotChocolate v15 (актуальная версия 2026), code-first vs schema-f... |
 | [Senior/hosting-background.md](AspNetCore/Senior/hosting-background.md) | Senior | 38,2 | Фоновая обработка через `BackgroundService` с `Channel<T>` и `PeriodicTimer`, управление жизненным циклом п... |
@@ -119,11 +119,11 @@
 | [Junior/ef-crud-queries.md](EFCore/Junior/ef-crud-queries.md) | Junior | 31,7 | Where, Select, OrderBy, FirstOrDefault, joins basics, includes, aggregations. Practical querying для daily ... |
 | [Middle/dapper-comparison.md](EFCore/Middle/dapper-comparison.md) | Middle | 23,8 | Dapper — micro-ORM: тонкий wrapper над ADO.NET, raw SQL + mapping. Часто требуют в вакансиях как альтернати... |
 | [Middle/ef-bulk-operations.md](EFCore/Middle/ef-bulk-operations.md) | Middle | 28,6 | Bulk INSERT/UPDATE/DELETE без change tracking. ExecuteUpdate/ExecuteDelete .NET 7+, EFCore.BulkExtensions, ... |
-| [Middle/ef-loading-strategies.md](EFCore/Middle/ef-loading-strategies.md) | Middle | 27,3 | Как загружать связанные данные правильно: Include vs Select vs SplitQuery vs explicit loading. Closes пробе... |
+| [Middle/ef-loading-strategies.md](EFCore/Middle/ef-loading-strategies.md) | Middle | 27,4 | Как загружать связанные данные правильно: Include vs Select vs SplitQuery vs explicit loading. Closes пробе... |
 | [Middle/ef-transactions-concurrency.md](EFCore/Middle/ef-transactions-concurrency.md) | Middle | 29,1 | Транзакции в EF Core, isolation levels, optimistic concurrency tokens, deadlock handling, distributed trans... |
 | [Middle/ef-value-converters.md](EFCore/Middle/ef-value-converters.md) | Middle | 15,6 | ValueConverter, ValueComparer, owned types, JSON columns (.NET 7+), backing fields, computed columns. Всё ч... |
 | [Senior/basics-tracking.md](EFCore/Senior/basics-tracking.md) | Senior | 35,7 | Глубокий гайд по фундаментальным механизмам EF Core. Закрывает: DbContext lifecycle, Change Tracker внутрен... |
-| [Senior/concurrency.md](EFCore/Senior/concurrency.md) | Senior | 40,5 | Полный гайд по concurrent доступу к данным через EF Core. Закрывает: optimistic / pessimistic locking, isol... |
+| [Senior/concurrency.md](EFCore/Senior/concurrency.md) | Senior | 40,7 | Полный гайд по concurrent доступу к данным через EF Core. Закрывает: optimistic / pessimistic locking, isol... |
 | [Senior/ef-patterns.md](EFCore/Senior/ef-patterns.md) | Senior | 41,5 | Production-grade паттерны на EF Core. Закрывает: Repository / Unit of Work, Soft Delete, Audit interceptors... |
 | [Senior/migrations.md](EFCore/Senior/migrations.md) | Senior | 40,1 | Полный гайд по управлению схемой БД в .NET. Закрывает: EF Core migrations, idempotent scripts, zero-downtim... |
 | [Senior/queries-performance.md](EFCore/Senior/queries-performance.md) | Senior | 33,6 | Performance-разбор read-side EF Core: устранение N+1 через `Include`/projection/split queries, `AsNoTrackin... |
@@ -151,7 +151,7 @@
 | [Middle/microservices-vs-monolith.md](Architecture/Middle/microservices-vs-monolith.md) | Middle to Senior | 23,8 | Когда монолит, когда микросервисы, когда modular monolith. Реальные trade-offs, не маркетинг. Закрывает: ти... |
 | [Middle/patterns-decision-guide.md](Architecture/Middle/patterns-decision-guide.md) | Middle to Senior | 36,6 | Главный навигационный файл vault'а: под какую задачу что выбрать. Связывает GoF паттерны, архитектурные сти... |
 | [Middle/real-world-scenarios.md](Architecture/Middle/real-world-scenarios.md) | Middle to Senior | 49,6 | Сценарий → решение. От меню навигации до микросервисного e-commerce. От чего зависит выбор архитектуры, как... |
-| [Senior/agent-safe-architecture.md](Architecture/Senior/agent-safe-architecture.md) | Senior | 22,6 | Прозаические правила в `AGENTS.md` гниют под context rot: чем длиннее сессия, тем дальше инструкция уезжает... |
+| [Senior/agent-safe-architecture.md](Architecture/Senior/agent-safe-architecture.md) | Senior | 22,3 | Прозаические правила в `AGENTS.md` гниют под context rot: чем длиннее сессия, тем дальше инструкция уезжает... |
 | [Senior/arch-tests.md](Architecture/Senior/arch-tests.md) | Senior | 23,2 | Правила архитектуры (Domain не зависит от Infrastructure, naming conventions, module boundaries) как исполн... |
 | [Senior/architecture-decisions.md](Architecture/Senior/architecture-decisions.md) | Senior | 36,8 | Полный гайд по ADR: что это, зачем, когда писать, как структурировать, как поддерживать. Закрывает: lifecyc... |
 | [Senior/architecture-patterns.md](Architecture/Senior/architecture-patterns.md) | Senior | 52,7 | По материалам: [N-Layered vs Clean vs VSA](https://antondevtips.com/blog/n-layered-vs-clean-vs-vertical-sli... |
@@ -164,15 +164,15 @@
 | [Senior/twelve-factor-app.md](Architecture/Senior/twelve-factor-app.md) | Senior | 35,3 | Manifesto от Heroku (2011), стал industry standard. 12 принципов для apps which можно reliably deploy в clo... |
 | [Senior/webai-csharp-architecture.md](Architecture/Senior/webai-csharp-architecture.md) | Senior | 29,3 | Landing page generator: user fills form -> AI generates texts + images -> site published instantly. |
 
-### Quality — 5 файлов / 135 KB
+### Quality — 5 файлов / 134 KB
 
 | Файл | Уровень | KB | Описание |
 |---|---|---:|---|
-| [Junior/clean-code.md](Quality/Junior/clean-code.md) | Junior | 34,7 | Что такое читаемый код, как его писать, и почему это самая недооценённая навык программиста. Базовые принци... |
-| [Middle/refactoring.md](Quality/Middle/refactoring.md) | Middle to Senior | 30 | Систематические техники для улучшения кода без изменения внешнего поведения. Каталог refactorings, code sme... |
-| [Senior/code-quality.md](Quality/Senior/code-quality.md) | Senior | 21,2 | Автоматический enforcement стиля и качества кода: `.editorconfig` + Roslyn/Meziantou/SonarAnalyzer analyzer... |
+| [Junior/clean-code.md](Quality/Junior/clean-code.md) | Junior | 34,6 | Что такое читаемый код, как его писать, и почему это самая недооценённая навык программиста. Базовые принци... |
+| [Middle/refactoring.md](Quality/Middle/refactoring.md) | Middle to Senior | 29,9 | Систематические техники для улучшения кода без изменения внешнего поведения. Каталог refactorings, code sme... |
+| [Senior/code-quality.md](Quality/Senior/code-quality.md) | Senior | 21,3 | Автоматический enforcement стиля и качества кода: `.editorconfig` + Roslyn/Meziantou/SonarAnalyzer analyzer... |
 | [Senior/static-analysis.md](Quality/Senior/static-analysis.md) | Senior | 23,1 | Полный гайд по static analysis в .NET. Закрывает: встроенные analyzers, SonarAnalyzer, Meziantou, Roslynato... |
-| [code-review.md](Quality/code-review.md) | All | 25,6 | Полный гайд по code review: что искать, как давать feedback, как принимать критику, anti-patterns, growth-o... |
+| [code-review.md](Quality/code-review.md) | All | 25,5 | Полный гайд по code review: что искать, как давать feedback, как принимать критику, anti-patterns, growth-o... |
 
 ### Testing — 5 файлов / 152 KB
 
@@ -181,18 +181,18 @@
 | [Junior/testing-fundamentals.md](Testing/Junior/testing-fundamentals.md) | Junior | 40,8 | Что такое тест, какие виды бывают, зачем каждый нужен, где применяется. Базовые концепты для джуна, система... |
 | [Middle/mocking-strategies.md](Testing/Middle/mocking-strategies.md) | Middle to Senior | 22,7 | Когда мокать, как мокать, а главное — когда НЕ мокать. Test doubles разных видов, NSubstitute vs Moq, anti-... |
 | [Senior/integration-testing.md](Testing/Senior/integration-testing.md) | Senior | 26,3 | Глубокий гайд по integration tests в .NET. Закрывает: WebApplicationFactory, Testcontainers, тестирование с... |
-| [Senior/mutation-load-testing.md](Testing/Senior/mutation-load-testing.md) | Senior | 23,2 | Mutation testing проверяет качество тестов. Load testing — performance под нагрузкой. Закрывает: Stryker.NE... |
-| [Senior/testing.md](Testing/Senior/testing.md) | Senior | 39,3 | Стратегия и tooling-стек тестирования в .NET 2026: пирамида vs алмаз, xUnit/TUnit, NSubstitute, Testcontain... |
+| [Senior/mutation-load-testing.md](Testing/Senior/mutation-load-testing.md) | Senior | 23,1 | Mutation testing проверяет качество тестов. Load testing — performance под нагрузкой. Закрывает: Stryker.NE... |
+| [Senior/testing.md](Testing/Senior/testing.md) | Senior | 39,2 | Стратегия и tooling-стек тестирования в .NET 2026: пирамида vs алмаз, xUnit/TUnit, NSubstitute, Testcontain... |
 
-### Performance — 12 файлов / 253 KB
+### Performance — 12 файлов / 246 KB
 
 | Файл | Уровень | KB | Описание |
 |---|---|---:|---|
 | [Junior/performance-fundamentals.md](Performance/Junior/performance-fundamentals.md) | Junior | 24,5 | Базовое понимание perfomance. Что такое "медленно", как мерить, почему оптимизировать преждевременно вредно... |
 | [Middle/async-performance.md](Performance/Middle/async-performance.md) | Middle to Senior | 13,4 | Async-specific performance: ValueTask, TaskCompletionSource, async pitfalls, ConfigureAwait. Когда async по... |
 | [Middle/bottleneck-analysis.md](Performance/Middle/bottleneck-analysis.md) | Middle to Senior | 12,2 | Систематический подход к нахождению где система тормозит. CPU, memory, I/O, network, DB — как определить ка... |
-| [Middle/caching-strategies.md](Performance/Middle/caching-strategies.md) | Middle to Senior | 26 | Какие виды кеша есть, когда какой применять, как избежать stale data, как не сделать хуже. Глубокий разбор ... |
-| [Middle/lazy-eager-loading.md](Performance/Middle/lazy-eager-loading.md) | Middle | 14,4 | Когда загружать данные сразу, когда откладывать. Trade-offs для EF Core, lazy initialization, eager configu... |
+| [Middle/caching-strategies.md](Performance/Middle/caching-strategies.md) | Middle to Senior | 20,5 | Какие виды кеша есть, когда какой применять, как избежать stale data, как не сделать хуже. Глубокий разбор ... |
+| [Middle/lazy-eager-loading.md](Performance/Middle/lazy-eager-loading.md) | Middle | 13,2 | Когда загружать данные сразу, когда откладывать. Trade-offs для EF Core, lazy initialization, eager configu... |
 | [Middle/optimization-patterns.md](Performance/Middle/optimization-patterns.md) | Middle to Senior | 25,5 | Practical optimization patterns для типичных задач. Когда применять, что измерять, какие trade-offs. Не "ma... |
 | [Senior/capacity-planning.md](Performance/Senior/capacity-planning.md) | Senior | 10,6 | Сколько ресурсов нужно для текущей и будущей нагрузки. Расчёт CPU, memory, network, БД для заданного traffic. |
 | [Senior/hft-low-latency.md](Performance/Senior/hft-low-latency.md) | Senior | 40,2 | Микросекундный hot-path в .NET: allocation-free через `Span<T>`/`stackalloc`/`ArrayPool<T>`, lock-free стру... |
@@ -201,17 +201,18 @@
 | [Senior/performance.md](Performance/Senior/performance.md) | Senior | 35,3 | Workflow измерения и оптимизации .NET: точные замеры через BenchmarkDotNet (`[MemoryDiagnoser]`), профилиро... |
 | [Senior/threadpool-starvation-hill-climbing.md](Performance/Senior/threadpool-starvation-hill-climbing.md) | Senior | 20,5 | Самый коварный production-инцидент в .NET: throughput падает в разы, p99 уходит в секунды, а CPU при этом 8... |
 
-### Infrastructure — 15 файлов / 542 KB
+### Infrastructure — 14 файлов / 506 KB
 
 | Файл | Уровень | KB | Описание |
 |---|---|---:|---|
 | [Junior/docker-for-dev.md](Infrastructure/Junior/docker-for-dev.md) | Junior | 28,7 | Что такое контейнеры, daily команды, Dockerfile основы, docker-compose для local dev. Введение перед `Senio... |
-| [Junior/project-setup-basics.md](Infrastructure/Junior/project-setup-basics.md) | Junior | 27,9 | dotnet CLI, solution + projects organization, .gitignore, basic git workflow для C# проектов. Введение пере... || [Middle/cicd-github-actions.md](Infrastructure/Middle/cicd-github-actions.md) | Middle | 21,9 | Continuous Integration / Continuous Delivery для .NET: build, test, lint, security scan, deploy. GitHub Act... |
+| [Junior/project-setup-basics.md](Infrastructure/Junior/project-setup-basics.md) | Junior | 27,9 | dotnet CLI, solution + projects organization, .gitignore, basic git workflow для C# проектов. Введение пере... |
+| [Middle/cicd-github-actions.md](Infrastructure/Middle/cicd-github-actions.md) | Middle | 21,9 | Continuous Integration / Continuous Delivery для .NET: build, test, lint, security scan, deploy. GitHub Act... |
 | [Middle/kubernetes.md](Infrastructure/Middle/kubernetes.md) | Middle to Senior | 23 | Что Senior .NET должен знать про Kubernetes: концепты, Pod/Deployment/Service, deploy .NET app, health chec... |
 | [Senior/api-gateway.md](Infrastructure/Senior/api-gateway.md) | Senior | 32,2 | Single entry point для микросервисов. Routing, auth, rate limiting, transformation — в одном месте. Closes ... |
 | [Senior/docker.md](Infrastructure/Senior/docker.md) | Senior | 66,5 | Самая глубокая заметка по контейнеризации в этом vault. Цель — закрыть все вопросы по Docker, которые задаю... |
 | [Senior/ipc-named-pipes-grpc.md](Infrastructure/Senior/ipc-named-pipes-grpc.md) | Senior | 44,2 | Передача данных между процессами в .NET: Named Pipes, Memory-Mapped Files (zero-copy ring buffer), Anonymou... |
-| [Senior/llm-rag-patterns.md](Infrastructure/Senior/llm-rag-patterns.md) | Senior | 48,8 | Production-RAG на .NET: chunking, embeddings, hybrid search (BM25 + dense + RRF), reranking, tool use и str... |
+| [Senior/llm-rag-patterns.md](Infrastructure/Senior/llm-rag-patterns.md) | Senior | 48,6 | Production-RAG на .NET: chunking, embeddings, hybrid search (BM25 + dense + RRF), reranking, tool use и str... |
 | [Senior/messaging.md](Infrastructure/Senior/messaging.md) | Senior | 45,2 | Асинхронная коммуникация через message brokers: RabbitMQ vs Kafka, MassTransit, Outbox pattern и Dead Lette... |
 | [Senior/nosql-databases.md](Infrastructure/Senior/nosql-databases.md) | Senior | 24,6 | Когда NoSQL > SQL и какой NoSQL для какой задачи. MongoDB / Redis / Cosmos DB / DynamoDB / Cassandra — реал... |
 | [Senior/observability.md](Infrastructure/Senior/observability.md) | Senior | 32,6 | Три pillars наблюдаемости (logs, metrics, traces) на OpenTelemetry для .NET: экспорт в Prometheus / Grafana... |
@@ -219,15 +220,15 @@
 | [Senior/semantic-kernel.md](Infrastructure/Senior/semantic-kernel.md) | Senior | 43 | Semantic Kernel как единый AI SDK от Microsoft для .NET (LLM, embeddings, agents) плюс vector search по смы... |
 | [Senior/wpf-production.md](Infrastructure/Senior/wpf-production.md) | Senior | 36,2 | Современный production-стек WPF на .NET 10: CommunityToolkit.Mvvm (source generators), WPF-UI (Fluent Desig... |
 
-### Snippets — 5 файлов / 32 KB
+### Snippets — 5 файлов / 33 KB
 
 | Файл | Уровень | KB | Описание |
 |---|---|---:|---|
 | [crud-example.md](Snippets/crud-example.md) | Senior | 13,2 | Сквозной copy-paste template всех четырёх CRUD-операций: путь от Minimal API endpoint через explicit Handle... |
-| [efcore-queries.md](Snippets/efcore-queries.md) | — | 4,9 | Производительные EF Core read-паттерны: `AsNoTracking` + проекция в DTO, offset- и keyset-пагинация, `AsSpl... |
-| [mediatr-handlers.md](Snippets/mediatr-handlers.md) | — | 4,3 | CQRS-обвязка на MediatR: Command/Query handlers, возвращающие `Result<T>`, FluentValidation validator и `IP... |
-| [result-pattern.md](Snippets/result-pattern.md) | — | 3,7 | Кастомный `Result<T>` + `Error` record как замена исключениям: фабрики Ok/Fail, `Match()` для маппинга в HT... |
-| [wpf-viewmodel.md](Snippets/wpf-viewmodel.md) | — | 6,4 | WPF на CommunityToolkit.Mvvm: `ObservableObject` с `[ObservableProperty]`/`[RelayCommand]`, async-safe загр... |
+| [efcore-queries.md](Snippets/efcore-queries.md) | Middle to Senior | 5 | Производительные EF Core read-паттерны: `AsNoTracking` + проекция в DTO, offset- и keyset-пагинация, `AsSpl... |
+| [mediatr-handlers.md](Snippets/mediatr-handlers.md) | Middle to Senior | 4,4 | CQRS-обвязка на MediatR: Command/Query handlers, возвращающие `Result<T>`, FluentValidation validator и `IP... |
+| [result-pattern.md](Snippets/result-pattern.md) | Middle | 3,7 | Кастомный `Result<T>` + `Error` record как замена исключениям: фабрики Ok/Fail, `Match()` для маппинга в HT... |
+| [wpf-viewmodel.md](Snippets/wpf-viewmodel.md) | Middle | 6,5 | WPF на CommunityToolkit.Mvvm: `ObservableObject` с `[ObservableProperty]`/`[RelayCommand]`, async-safe загр... |
 
 ---
 
@@ -241,19 +242,19 @@
 
 [[02_junior-to-middle]]
 
-### Middle (29)
+### Middle (31)
 
-[[aspnet-controllers-routing]] · [[aspnet-dependency-injection-deep]] · [[aspnet-error-handling]] · [[aspnet-rate-limiting]] · [[fluent-validation]] · [[http-client-resilience]] · [[object-mapping]] · [[attributes-metadata]] · [[bcl-essentials]] · [[delegates-events]] · [[dispose-pattern]] · [[equality-comparison]] · [[error-handling]] · [[generics-deep]] · [[indexers-operators]] · [[io-streams]] · [[keywords-reference]] · [[modern-features]] · [[nullable-types]] · [[numeric-types-math]] · [[serialization-deep]] · [[dapper-comparison]] · [[ef-bulk-operations]] · [[ef-loading-strategies]] · [[ef-transactions-concurrency]] · [[ef-value-converters]] · [[cicd-github-actions]] · [[lazy-eager-loading]] · [[threading-basics]]
+[[aspnet-controllers-routing]] · [[aspnet-dependency-injection-deep]] · [[aspnet-error-handling]] · [[aspnet-rate-limiting]] · [[fluent-validation]] · [[http-client-resilience]] · [[object-mapping]] · [[attributes-metadata]] · [[bcl-essentials]] · [[delegates-events]] · [[dispose-pattern]] · [[equality-comparison]] · [[error-handling]] · [[generics-deep]] · [[indexers-operators]] · [[io-streams]] · [[keywords-reference]] · [[modern-features]] · [[nullable-types]] · [[numeric-types-math]] · [[serialization-deep]] · [[dapper-comparison]] · [[ef-bulk-operations]] · [[ef-loading-strategies]] · [[ef-transactions-concurrency]] · [[ef-value-converters]] · [[cicd-github-actions]] · [[lazy-eager-loading]] · [[threading-basics]] · [[result-pattern]] · [[wpf-viewmodel]]
 
-### Middle to Senior (13)
+### Middle to Senior (15)
 
-[[microservices-vs-monolith]] · [[patterns-decision-guide]] · [[real-world-scenarios]] · [[kubernetes]] · [[03_middle-to-senior]] · [[case-studies-top7]] · [[async-performance]] · [[bottleneck-analysis]] · [[caching-strategies]] · [[optimization-patterns]] · [[refactoring]] · [[indexes-deep]] · [[mocking-strategies]]
+[[microservices-vs-monolith]] · [[patterns-decision-guide]] · [[real-world-scenarios]] · [[kubernetes]] · [[03_middle-to-senior]] · [[case-studies-top7]] · [[async-performance]] · [[bottleneck-analysis]] · [[caching-strategies]] · [[optimization-patterns]] · [[refactoring]] · [[efcore-queries]] · [[mediatr-handlers]] · [[indexes-deep]] · [[mocking-strategies]]
 
 ### Senior (82)
 
 [[agent-safe-architecture]] · [[arch-tests]] · [[architecture-decisions]] · [[architecture-patterns]] · [[cqrs-mediatr]] · [[ddd]] · [[distributed-systems]] · [[eip-content-based-router]] · [[solid]] · [[system-design]] · [[twelve-factor-app]] · [[webai-csharp-architecture]] · [[api-design]] · [[auth-security]] · [[blazor-server]] · [[blazor-wasm]] · [[caching]] · [[di-configuration]] · [[graphql]] · [[hosting-background]] · [[kestrel-as-raw-host]] · [[logging-observability]] · [[native-aot]] · [[pipeline-middleware]] · [[resilience]] · [[security-practices]] · [[signalr]] · [[async-threading]] · [[cli-tools-scripting]] · [[csharp-language-design]] · [[csharp-vs-other-langs]] · [[design-patterns]] · [[desktop-frameworks]] · [[fenwick-bit]] · [[functional-csharp]] · [[gof-patterns-extended]] · [[memory-pooling]] · [[reflection-expression-trees]] · [[source-generators]] · [[types-and-memory]] · [[unsafe-pointers]] · [[basics-tracking]] · [[concurrency]] · [[ef-patterns]] · [[migrations]] · [[queries-performance]] · [[relationships]] · [[api-gateway]] · [[docker]] · [[ipc-named-pipes-grpc]] · [[llm-rag-patterns]] · [[messaging]] · [[nosql-databases]] · [[observability]] · [[project-setup]] · [[semantic-kernel]] · [[wpf-production]] · [[capacity-planning]] · [[hft-low-latency]] · [[memory-profiling]] · [[performance-budgets]] · [[performance]] · [[threadpool-starvation-hill-climbing]] · [[code-quality]] · [[static-analysis]] · [[compilation-jit]] · [[concurrency-atomics]] · [[diagnostics-tools]] · [[gc-memory]] · [[interop-pinvoke]] · [[span-layout]] · [[crud-example]] · [[eav-flexible-store-indexing]] · [[mvcc-and-locking]] · [[optimization]] · [[postgres-functions-triggers]] · [[postgresql-deep]] · [[sql-security]] · [[zero-downtime-migrations]] · [[integration-testing]] · [[mutation-load-testing]] · [[testing]]
 
-### Без уровня / All (12)
+### Без уровня / All (8)
 
-[[00_overview]] · [[01_language-map]] · [[04_interview-prep]] · [[05_topics-by-priority]] · [[09_senior-tips-cheatsheet]] · [[10_interview-behavioral]] · [[99_reading-list]] · [[code-review]] · [[efcore-queries]] · [[mediatr-handlers]] · [[result-pattern]] · [[wpf-viewmodel]]
+[[00_overview]] · [[01_language-map]] · [[04_interview-prep]] · [[05_topics-by-priority]] · [[09_senior-tips-cheatsheet]] · [[10_interview-behavioral]] · [[99_reading-list]] · [[code-review]]
 

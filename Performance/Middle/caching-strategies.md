@@ -227,204 +227,22 @@ public class RefreshAheadCache<T>
 
 ---
 
-## 3. .NET — IMemoryCache (in-process)
+## 3. Реализация в .NET — кратко
 
-```csharp
-// Setup
-builder.Services.AddMemoryCache();
+Технические детали всех механизмов — setup, опции, тонкости, production-checklist — в canonical-файле [[caching|Caching и Rate Limiting]]. Здесь — только выбор:
 
-// Usage
-public class UserService(IMemoryCache cache, AppDbContext db)
-{
-    public async Task<User?> GetAsync(int id)
-    {
-        return await cache.GetOrCreateAsync($"user_{id}", async entry =>
-        {
-            entry.SlidingExpiration = TimeSpan.FromMinutes(5);
-            entry.AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1);
-            entry.Size = 1;  // если SizeLimit set
-            
-            return await db.Users.FindAsync(id);
-        });
-    }
-}
-```
+| Механизм | Что это | Когда |
+|----------|---------|-------|
+| `IMemoryCache` | In-process, микросекунды | Single-instance, небольшие горячие данные |
+| `IDistributedCache` (Redis) | Shared между репликами, ~1-2 ms (сериализация + network) | Multi-instance, общий кэш |
+| `HybridCache` (.NET 9+) | L1 (memory) + L2 (Redis) + stampede protection одним API | Новые проекты — дефолт |
+| Output Caching (.NET 7+) | Кэш целого HTTP-ответа | Одинаковые ответы: public API, анонимные endpoints |
 
-### Eviction policies
-
-```csharp
-builder.Services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1024;  // максимум 1024 "size units"
-    options.CompactionPercentage = 0.25;  // при overflow удаляет 25%
-});
-
-// Указывать size при Set
-cache.Set("key", value, new MemoryCacheEntryOptions
-{
-    Size = 1,  // 1 entry = 1 unit
-    Priority = CacheItemPriority.High,  // last to evict
-});
-```
-
-### Expiration types
-
-```csharp
-new MemoryCacheEntryOptions
-{
-    // Absolute — точное время expiration
-    AbsoluteExpiration = DateTimeOffset.UtcNow.AddHours(1),
-    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-    
-    // Sliding — обновляется при каждом доступе
-    SlidingExpiration = TimeSpan.FromMinutes(10),
-}
-```
-
-| Тип | Когда |
-|-----|-------|
-| **Absolute** | Reference data — обновляется periodically |
-| **Sliding** | User session, recent results |
-| **Both** | Sliding для активного use, Absolute как ceiling |
+Expiration: **Absolute** — reference data (обновляется периодически), **Sliding** — сессии и recent items, оба вместе — sliding для активного использования с absolute-потолком.
 
 ---
 
-## 4. Distributed cache — Redis
-
-Для multi-instance apps — Memory cache на каждом replicas инвалидация невозможна. Нужен **shared cache**.
-
-```csharp
-// Setup
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = "localhost:6379";
-    options.InstanceName = "MyApp:";
-});
-
-// IDistributedCache — abstraction
-public class UserService(IDistributedCache cache, AppDbContext db)
-{
-    public async Task<User?> GetAsync(int id)
-    {
-        var cacheKey = $"user_{id}";
-        var cached = await cache.GetStringAsync(cacheKey);
-        if (cached != null)
-            return JsonSerializer.Deserialize<User>(cached);
-        
-        var user = await db.Users.FindAsync(id);
-        if (user != null)
-        {
-            await cache.SetStringAsync(
-                cacheKey,
-                JsonSerializer.Serialize(user),
-                new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-                });
-        }
-        return user;
-    }
-}
-```
-
-> [!warning] IDistributedCache slow для small values
-> Сериализация + JSON + network — ~1-2 ms на operation. Для tiny values — overhead больше gain. Используй MemoryCache для frequently accessed small data.
-
-### Redis-specific features
-
-```csharp
-// StackExchange.Redis — direct API для advanced
-builder.Services.AddSingleton<IConnectionMultiplexer>(
-    ConnectionMultiplexer.Connect("localhost:6379"));
-
-public class AdvancedCache
-{
-    private readonly IDatabase _db;
-    
-    public async Task IncrementCounter(string key) =>
-        await _db.StringIncrementAsync(key);
-    
-    public async Task<TimeSpan?> GetTtl(string key) =>
-        await _db.KeyTimeToLiveAsync(key);
-    
-    public async Task SetWithTags(string key, string value, params string[] tags)
-    {
-        await _db.StringSetAsync(key, value);
-        foreach (var tag in tags)
-            await _db.SetAddAsync($"tag:{tag}", key);
-    }
-}
-```
-
-См.[[postgresql-deep|PostgreSQL Deep]] и Redis docs.
-
----
-
-## 5. HybridCache (.NET 9+)
-
-Microsoft новый API — combines L1 (memory) + L2 (distributed).
-
-```bash
-dotnet add package Microsoft.Extensions.Caching.Hybrid
-```
-
-```csharp
-builder.Services.AddHybridCache();
-
-public class UserService(HybridCache cache, AppDbContext db)
-{
-    public async Task<User?> GetAsync(int id, CancellationToken ct)
-    {
-        return await cache.GetOrCreateAsync(
-            $"user_{id}",
-            async ct => await db.Users.FindAsync(id, ct),
-            new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromMinutes(5),
-                LocalCacheExpiration = TimeSpan.FromMinutes(1),
-            },
-            cancellationToken: ct);
-    }
-}
-```
-
-**Преимущества:**
-- L1 + L2 встроенный
-- Stampede protection (см. ниже)
-- Single API
-
-**Когда использовать:** новые проекты на .NET 9+.
-
----
-
-## 6. Output Caching (.NET 7+)
-
-Cache **whole HTTP response**, not just data.
-
-```csharp
-builder.Services.AddOutputCache(options =>
-{
-    options.AddBasePolicy(builder => builder.Cache());
-    options.AddPolicy("Expire5min", builder => builder.Expire(TimeSpan.FromMinutes(5)));
-});
-
-app.UseOutputCache();
-
-// Endpoint
-app.MapGet("/api/products", async (AppDbContext db) =>
-    await db.Products.ToListAsync())
-.CacheOutput("Expire5min");
-
-// Or attribute
-[OutputCache(Duration = 60)]
-public async Task<IActionResult> GetProducts() { ... }
-```
-
-**Когда:** identical responses for same params (anonymous APIs, public data).
-
----
-
-## 7. Cache invalidation — самая сложная часть
+## 4. Cache invalidation — самая сложная часть
 
 > "There are only two hard things in Computer Science: cache invalidation and naming things." — Phil Karlton
 
@@ -507,7 +325,7 @@ public void InvalidateAll()
 
 ---
 
-## 8. Cache stampede
+## 5. Cache stampede
 
 ### Проблема
 
@@ -518,141 +336,35 @@ Time T:    user_1 in cache
 Time T+5:  user_1 expires
 Time T+5:  Request 1 — cache miss, query DB
 Time T+5:  Request 2 — cache miss, query DB  ← race condition!
-Time T+5:  Request 3 — cache miss, query DB
 ...
 Time T+5:  Request 1000 — cache miss, query DB
 DB: 💀
 ```
 
-### Solution 1: Lock (single fetch)
+### Решения (реализации — в [[caching|Caching и Rate Limiting]])
 
-```csharp
-private static readonly SemaphoreSlim _lock = new(1, 1);
-
-public async Task<User?> GetAsync(int id)
-{
-    var key = $"user_{id}";
-    if (_cache.TryGetValue(key, out User? cached))
-        return cached;
-    
-    await _lock.WaitAsync();
-    try
-    {
-        // Double-check (другой request мог уже наполнить)
-        if (_cache.TryGetValue(key, out cached))
-            return cached;
-        
-        var user = await _db.Users.FindAsync(id);
-        _cache.Set(key, user, TimeSpan.FromMinutes(5));
-        return user;
-    }
-    finally { _lock.Release(); }
-}
-```
-
-Только один request загружает, остальные ждут.
-
-### Solution 2: HybridCache stampede protection
-
-```csharp
-// Built-in! Multiple concurrent requests share single fetch
-await cache.GetOrCreateAsync(key, factory, options);
-```
-
-### Solution 3: Probabilistic early refresh
-
-Refresh **до** expiration с некоторой probability:
-
-```csharp
-public async Task<User?> GetAsync(int id)
-{
-    var entry = _cache.Get<CacheEntry<User>>($"user_{id}");
-    if (entry == null)
-        return await LoadAndCache(id);
-    
-    // Probabilistically refresh если близко к expiration
-    var timeLeft = entry.Expiry - DateTime.UtcNow;
-    if (timeLeft < TimeSpan.FromMinutes(1) && Random.Shared.NextDouble() < 0.1)
-    {
-        // Refresh in background, return old value
-        _ = LoadAndCache(id);
-    }
-    
-    return entry.Value;
-}
-```
-
-Расширенная версия — **XFetch algorithm**.
+- **Один загружает, остальные ждут** — `SemaphoreSlim` с double-check, in-process SingleFlight или distributed mutex.
+- **HybridCache (.NET 9+)** — stampede protection из коробки: конкурентные запросы разделяют один fetch.
+- **Probabilistic early refresh / XFetch** — обновление до истечения TTL с вероятностью, растущей ближе к expiry; фоновый refresh, пока отдаётся старое значение.
 
 ---
 
-## 9. Cache в реальной архитектуре
+## 6. Cache в реальной архитектуре
 
-### Layer 1 — In-memory (fastest)
-
-```csharp
-IMemoryCache  // process-local
-```
-
-- Microseconds latency
-- Limited by process memory
-- Not shared between replicas
-
-### Layer 2 — Distributed (shared)
-
-```csharp
-IDistributedCache (Redis)
-```
-
-- Milliseconds latency
-- Shared across replicas
-- Persistent (Redis with persistence)
-
-### Layer 3 — CDN / Edge cache
-
-For static assets, public APIs.
+Типовая связка — несколько слоёв, каждый ловит свою долю трафика:
 
 ```
-User → CloudFlare CDN → Origin server
-        (cached)         (cache miss)
+User → CDN / edge        (static assets, public GET)
+     → L1 IMemoryCache   (микросекунды; process-local, не шарится между репликами)
+     → L2 Redis          (миллисекунды; shared, переживает рестарт процесса)
+     → DB                (последний resort, ~10-100 ms)
 ```
 
-### Combined — Hybrid pattern
-
-```csharp
-public async Task<User?> GetAsync(int id)
-{
-    var key = $"user_{id}";
-    
-    // L1 — process memory
-    if (_memoryCache.TryGetValue(key, out User? l1))
-        return l1;
-    
-    // L2 — Redis
-    var l2 = await _redis.GetStringAsync(key);
-    if (l2 != null)
-    {
-        var user = JsonSerializer.Deserialize<User>(l2);
-        _memoryCache.Set(key, user, TimeSpan.FromMinutes(1));  // populate L1
-        return user;
-    }
-    
-    // L3 — DB
-    var fromDb = await _db.Users.FindAsync(id);
-    if (fromDb != null)
-    {
-        await _redis.SetStringAsync(key, JsonSerializer.Serialize(fromDb));
-        _memoryCache.Set(key, fromDb);
-    }
-    return fromDb;
-}
-```
-
-`HybridCache` (.NET 9+) делает это automatically.
+Ручную связку L1+L2 (проверить memory → Redis → DB, наполняя кэши по пути назад) в .NET 9+ делает `HybridCache` автоматически — см. [[caching|Caching и Rate Limiting]].
 
 ---
 
-## 10. Common Pitfalls
+## 7. Common Pitfalls
 
 ### 1. Cache without TTL
 
@@ -748,7 +460,7 @@ _cache.Set("MyApp:Users:1", ...);
 
 ---
 
-## 11. Best Practices
+## 8. Best Practices
 
 - **Cache-aside default** — простой, resilient
 - **TTL обязательно** — bounded staleness
@@ -758,7 +470,7 @@ _cache.Set("MyApp:Users:1", ...);
 - **Output caching** для public APIs
 - **Stampede protection** на high-traffic items
 - **Graceful degradation** — если cache down, fallback to DB
-- **Monitor hit rate** — < 80% = cache useless для эких
+- **Monitor hit rate** — hit rate < 80% значит кэш, скорее всего, не окупается
 - **Profile cache effectiveness** — hit/miss ratio, latency
 - **Tag-based invalidation** для grouped data
 - **Pub/Sub invalidation** для distributed systems
@@ -766,7 +478,7 @@ _cache.Set("MyApp:Users:1", ...);
 
 ---
 
-## 12. Когда что — flowchart
+## 9. Когда что — flowchart
 
 ```
 Need cache?
@@ -957,10 +669,10 @@ Performance issue?
 ## См. также
 
 - [[performance-fundamentals|Performance Fundamentals]]
--[[caching|Caching в AspNetCore]]
--[[postgresql-deep|PostgreSQL]]
--[[distributed-systems|Distributed Systems]]
--[[gc-memory|GC и память]]
+- [[caching|Caching в AspNetCore]]
+- [[postgresql-deep|PostgreSQL]]
+- [[distributed-systems|Distributed Systems]]
+- [[gc-memory|GC и память]]
 
 ## Reading list
 

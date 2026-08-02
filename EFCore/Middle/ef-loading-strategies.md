@@ -847,6 +847,7 @@ Approach 4: Lazy loading (включён)
 - [[relationships|EFCore/Senior/relationships]] — entity relationships
 - [[dapper-comparison|EFCore/Middle/dapper-comparison]] — alternatives
 - [[object-mapping|AspNetCore/Middle/object-mapping]] — DTO mapping
+- [[lazy-eager-loading|Lazy vs Eager Loading]] — общие lazy/eager trade-offs за пределами EF: `Lazy<T>`, DI, cache warming
 
 ---
 

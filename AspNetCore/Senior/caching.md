@@ -843,6 +843,7 @@ Output cache по умолчанию **не** работает с `Authorization
 
 ## См. также
 
+- [[caching-strategies|Caching Strategies]] — концептуальный разбор: Cache-Aside / Write-Through / Write-Behind / Read-Through / Refresh-Ahead, стратегии инвалидации, когда кэшировать не надо
 - [Resilience](resilience.md) — Polly + cache fallback при downstream failure
 - [System Design]() — distributed cache patterns, rate limiter, hot key problem
 - [Redis Advanced](../Infrastructure/redis-advanced.md) — pub/sub, streams, Lua, cluster — глубоко

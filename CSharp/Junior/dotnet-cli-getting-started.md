@@ -1973,7 +1973,7 @@ Compiler определяет константы автоматически: `NE
 
 В новом коде, где нет .NET Framework — `netstandard2.0` устарел. Microsoft рекомендует:
 
-- Для библиотек **общего применения** — `net8.0` (текущая LTS).
+- Для библиотек **общего применения** — `net10.0` (текущая LTS с ноября 2025).
 - Для библиотек, поддерживающих **многие версии .NET** — multi-target `net6.0;net8.0;net10.0`.
 - Для библиотек, поддерживающих **.NET Framework + .NET Core** — `netstandard2.0`.
 
@@ -1982,7 +1982,7 @@ Compiler определяет константы автоматически: `NE
 Когда `MyApp` (TFM `net10.0`) подключает `MyLib` (multi-target `net6.0;net8.0;net10.0`), NuGet выбирает **самый близкий совместимый TFM** из библиотеки. В этом случае — `net10.0`. Если бы у `MyLib` был только `net6.0` — взялся бы он, при условии что .NET 10 совместим с .NET 6 (это так — runtime forward-compatible).
 
 > [!question]- Интервью: чем отличается `net10.0` от `netstandard2.0`?
-> `net10.0` — полная .NET 10, включает все API runtime (Span, Memory, Generic Math и т.д.). `netstandard2.0` — спецификация API, common subset поддерживаемый .NET Framework 4.7.2+, Mono, Xamarin, .NET Core 2+. Сборки `netstandard2.0` запускаются на любой из этих платформ. Применяй netstandard2.0, если библиотеку используют legacy .NET Framework приложения. В новом коде — обычно прямой `net8.0` или multi-target.
+> `net10.0` — полная .NET 10, включает все API runtime (Span, Memory, Generic Math и т.д.). `netstandard2.0` — спецификация API, common subset поддерживаемый .NET Framework 4.7.2+, Mono, Xamarin, .NET Core 2+. Сборки `netstandard2.0` запускаются на любой из этих платформ. Применяй netstandard2.0, если библиотеку используют legacy .NET Framework приложения. В новом коде — обычно прямой `net10.0` или multi-target.
 
 ---
 
@@ -2802,7 +2802,7 @@ CMD ["MyApi"]
 
 1. **[[csharp-basics|C# Basics]]** — первая программа после установки SDK. Теперь, когда CLI понятен, погружайся в язык.
 2. **[[debugging-basics|Debugging Basics]]** — отладка через VS Code, Rider, dotnet-trace, dotnet-dump.
-3. **[[testing-fundamentals|Testing Fundamentals]]** — `dotnet test` глубже: xUnit, Moq, FluentAssertions, integration tests.
+3. **[[testing-fundamentals|Testing Fundamentals]]** — `dotnet test` глубже: xUnit, NSubstitute, Shouldly, integration tests. (FluentAssertions с 2025 — commercial для prod use, у Moq — история со SponsorLink; де-факто стандарт сместился к NSubstitute + Shouldly.)
 4. **EF Core Basics** — миграции, `dotnet ef` подробно.
 5. **ASP.NET Core Pipeline и Middleware** — `dotnet new webapi` создал — теперь разберись, что внутри.
 6. **DI и Configuration** — IConfiguration, user-secrets, Options pattern.

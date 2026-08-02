@@ -1,3 +1,8 @@
+---
+tags: [ef-core, queries, performance, pagination, concurrency, dapper]
+level: Middle to Senior
+---
+
 # Snippets — EF Core Queries
 
 > Производительные EF Core read-паттерны: `AsNoTracking` + проекция в DTO, offset- и keyset-пагинация, `AsSplitQuery` против Cartesian explosion, optimistic concurrency, compiled queries и Dapper для отчётов.

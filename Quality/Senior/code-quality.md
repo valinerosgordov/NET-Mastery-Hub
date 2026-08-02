@@ -549,6 +549,7 @@ SonarCloud категории Security Hotspots — каждый требует 
 
 ## См. также
 
+- [[static-analysis|Static Analysis]] — Roslyn analyzers, EditorConfig, quality gates — глубокий разбор
 - [Architecture Tests]() — NetArchTest для arch rules + analyzers для code rules
 - [Source Generators]() — Roslyn API для custom analyzers
 - [Project Setup]() — Directory.Build.props глобальная конфигурация
