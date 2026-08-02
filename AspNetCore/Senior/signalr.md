@@ -773,7 +773,7 @@ public class ChatHub : Hub<IChatClient>
 }
 ```
 
-См.[Diagnostics Tools]()).
+См. [[diagnostics-tools|Diagnostics Tools]].
 
 ---
 
@@ -1142,14 +1142,14 @@ Real-time нужен?
 
 ## См. также
 
-- [Pipeline & Middleware](pipeline-middleware.md) — auth pipeline
-- [Authentication & Security](auth-security.md) — JWT для SignalR
-- [Resilience](resilience.md) — auto-reconnect patterns
-- [GraphQL](graphql.md) — subscriptions для real-time alternative
--[Distributed Systems]()) — pub/sub, MQ
--[IPC: Named Pipes & gRPC]()) — alternatives
-- [Caching](caching.md) — Redis для backplane
--[Diagnostics Tools]()) — мониторинг
+- [[pipeline-middleware|Pipeline & Middleware]] — auth pipeline
+- [[auth-security|Authentication & Security]] — JWT для SignalR
+- [[resilience|Resilience]] — auto-reconnect patterns
+- [[graphql|GraphQL]] — subscriptions для real-time alternative
+- [[distributed-systems|Distributed Systems]] — pub/sub, MQ
+- [[ipc-named-pipes-grpc|IPC: Named Pipes & gRPC]] — alternatives
+- [[caching|Caching]] — Redis для backplane
+- [[diagnostics-tools|Diagnostics Tools]] — мониторинг
 
 ## Reading list
 

@@ -387,7 +387,7 @@ var orders = GetOrdersByUser(id);
 foreach (var order in orders) { ... }  // OK даже если empty
 ```
 
-См.[[error-handling|Error Handling]] для Result\<T,E\> patterns.
+См. [[error-handling|Error Handling]] для Result\<T,E\> patterns.
 
 ---
 
@@ -969,7 +969,7 @@ public void GetUserById_returns_user_when_id_exists()
 
 ## 11. Books и resources
 
-См.[[99_reading-list|Reading List]].
+См. [[99_reading-list|Reading List]].
 
 Top-3 для clean code:
 
@@ -1145,9 +1145,9 @@ Quality issue?
 - [[static-analysis|Static Analysis]] — автоматическая проверка
 - [[refactoring|Refactoring]] — техники изменения кода
 - [[code-review|Code Review]] — как ревьюить чужой код
--[[error-handling|Error Handling]] — паттерны для ошибок
--[[oop|OOP]] — объектно-ориентированные принципы
--[[solid|SOLID]] — высокоуровневые принципы
+- [[error-handling|Error Handling]] — паттерны для ошибок
+- [[oop|OOP]] — объектно-ориентированные принципы
+- [[solid|SOLID]] — высокоуровневые принципы
 
 ## Reading list
 

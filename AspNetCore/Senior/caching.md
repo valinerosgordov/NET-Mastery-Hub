@@ -1,6 +1,7 @@
 ---
 tags: [aspnet, caching, hybrid-cache, redis, rate-limiting, output-cache, cdn]
 level: Senior
+date: 2026-08-02
 ---
 
 # Caching и Rate Limiting
@@ -650,7 +651,7 @@ public async Task<Product?> GetResilientAsync(int id, CancellationToken ct = def
 }
 ```
 
-Для **circuit breaker pattern** см. [Resilience](resilience.md).
+Для **circuit breaker pattern** см. [[resilience|Resilience]].
 
 ---
 
@@ -733,10 +734,10 @@ app.MapPost("/api/heavy-task", () => "...").RequireRateLimiting("heavy");
 ### Distributed rate limiting
 
 In-memory rate limiter — per-instance. За LB user может получить N × InstanceCount запросов. Для distributed:
-- Redis + Lua-скрипт (см. [System Design]())
+- Redis + Lua-скрипт (см. [[system-design|System Design]])
 - Гейт перед API (nginx limit_req, Cloudflare, AWS API Gateway)
 
-См. полный пример Lua-скрипта в [system-design.md / Rate Limiter](system-design.md#шаблон-1--rate-limiter).
+См. полный пример Lua-скрипта в [[system-design#Шаблон 1 — Rate Limiter|System Design — Rate Limiter]].
 
 ---
 
@@ -844,12 +845,12 @@ Output cache по умолчанию **не** работает с `Authorization
 ## См. также
 
 - [[caching-strategies|Caching Strategies]] — концептуальный разбор: Cache-Aside / Write-Through / Write-Behind / Read-Through / Refresh-Ahead, стратегии инвалидации, когда кэшировать не надо
-- [Resilience](resilience.md) — Polly + cache fallback при downstream failure
-- [System Design]() — distributed cache patterns, rate limiter, hot key problem
+- [[resilience|Resilience]] — Polly + cache fallback при downstream failure
+- [[system-design|System Design]] — distributed cache patterns, rate limiter, hot key problem
 - [Redis Advanced](../Infrastructure/redis-advanced.md) — pub/sub, streams, Lua, cluster — глубоко
-- [Performance]() — измерение cache hit ratio, профилирование
-- [PostgreSQL Deep]() — чем хороши БД-индексы (часто заменяют cache)
-- [Distributed Systems]() — eventual consistency и cache как read model
+- [[performance|Performance]] — измерение cache hit ratio, профилирование
+- [[postgresql-deep|PostgreSQL Deep]] — чем хороши БД-индексы (часто заменяют cache)
+- [[distributed-systems|Distributed Systems]] — eventual consistency и cache как read model
 
 ## Reading list
 

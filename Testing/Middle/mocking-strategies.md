@@ -299,7 +299,7 @@ time.SetUtcNow(DateTimeOffset.Parse("2024-06-01"));
 var service = new OrderService(time);
 ```
 
-См.[[csharp-language-design|C# Language Design]] — TimeProvider.
+См. [[csharp-language-design|C# Language Design]] — TimeProvider.
 
 ---
 
@@ -861,7 +861,7 @@ public class OrderRepositoryTests : IAsyncLifetime
 - [[integration-testing|Integration Testing]] — когда integration > unit + mocks
 - [[mutation-load-testing|Mutation Testing]] — проверка качества тестов
 - [[testing|Testing — practical xUnit]]
--[[clean-code|Clean Code]] — testable design
+- [[clean-code|Clean Code]] — testable design
 
 ## Reading list
 

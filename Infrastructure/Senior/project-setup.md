@@ -648,7 +648,7 @@ spec:
         property: connection_string
 ```
 
-См. [Kubernetes — Secrets]().
+См. [[kubernetes|Kubernetes — Secrets]].
 
 ---
 
@@ -1075,11 +1075,11 @@ updates:
 
 ## См. также
 
-- [Code Quality]() — analyzers deep
-- [Docker](docker.md) — Dockerfile best practices
-- [Kubernetes]() — k8s deployment
-- [Architecture Decisions]() — ADR process
-- [Observability](observability.md) — OpenTelemetry deep
+- [[code-quality|Code Quality]] — analyzers deep
+- [[docker|Docker]] — Dockerfile best practices
+- [[kubernetes|Kubernetes]] — k8s deployment
+- [[architecture-decisions|Architecture Decisions]] — ADR process
+- [[observability|Observability]] — OpenTelemetry deep
 
 ## Reading list
 

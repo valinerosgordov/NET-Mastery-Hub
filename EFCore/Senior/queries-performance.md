@@ -1,6 +1,7 @@
 ---
 tags: [ef-core, queries, performance, n-plus-1, projection, compiled-queries, bulk]
 level: Senior
+date: 2026-06-28
 ---
 
 # EF Core — Queries и Performance
@@ -374,7 +375,7 @@ await db.BulkInsertOrUpdateAsync(users);  // upsert
 
 ### Вариант 2: Npgsql BinaryImport (Postgres)
 
-См. [PostgreSQL Deep]() — `BeginBinaryImportAsync`. Это нативный COPY protocol PG, ещё быстрее `EFCore.BulkExtensions`.
+См. [[postgresql-deep|PostgreSQL Deep]] — `BeginBinaryImportAsync`. Это нативный COPY protocol PG, ещё быстрее `EFCore.BulkExtensions`.
 
 ```csharp
 await using var conn = await dataSource.OpenConnectionAsync(ct);
@@ -560,7 +561,7 @@ Connection держится открытым на время enumeration — д�
 
 ## Concurrency token
 
-См. [Concurrency](concurrency.md). Кратко — добавь rowversion / xmin для optimistic concurrency:
+См. [[concurrency|Concurrency]]. Кратко — добавь rowversion / xmin для optimistic concurrency:
 
 ```csharp
 public class Account
@@ -603,7 +604,7 @@ WHERE u.created_at > '2026-01-01'
 GROUP BY u.email;
 ```
 
-См. [PostgreSQL Deep]() — детальный разбор плана.
+См. [[postgresql-deep|PostgreSQL Deep]] — детальный разбор плана.
 
 ### Query Tags для tracing
 
@@ -640,7 +641,7 @@ Pool готовых DbContext — на request получаем reset'нутый
 
 ### `AddDbContextFactory` — для Blazor Server
 
-См. [Blazor Server](). В Blazor Server scoped DbContext = один DbContext на circuit (длинный сессионный объект). Параллельные async-методы из компонентов конфликтуют → "DbContext is not thread-safe".
+См. [[blazor-server|Blazor Server]]. В Blazor Server scoped DbContext = один DbContext на circuit (длинный сессионный объект). Параллельные async-методы из компонентов конфликтуют → "DbContext is not thread-safe".
 
 ```csharp
 // ❌ В Blazor Server — НЕ scoped DbContext
@@ -840,13 +841,13 @@ EF посылает `ORDER BY created_at DESC` — DB делает sort, воз�
 
 ## См. также
 
-- [EF Core Basics и Tracking](basics-tracking.md) — основы DbContext, change tracker
-- [EF Core Concurrency](concurrency.md) — optimistic locking, retry
-- [EF Core Patterns]() — repository, soft delete, audit
-- [PostgreSQL Deep]() — EXPLAIN ANALYZE, pg_stat_statements, индексы
-- [SQL Optimization]() — общие принципы SQL performance
-- [Blazor Server]() — DbContextFactory pattern
-- [Performance]() — BenchmarkDotNet для query benchmarks
+- [[basics-tracking|EF Core Basics и Tracking]] — основы DbContext, change tracker
+- [[concurrency|EF Core Concurrency]] — optimistic locking, retry
+- [[ef-patterns|EF Core Patterns]] — repository, soft delete, audit
+- [[postgresql-deep|PostgreSQL Deep]] — EXPLAIN ANALYZE, pg_stat_statements, индексы
+- [[optimization|SQL Optimization]] — общие принципы SQL performance
+- [[blazor-server|Blazor Server]] — DbContextFactory pattern
+- [[performance|Performance]] — BenchmarkDotNet для query benchmarks
 
 ## Reading list
 

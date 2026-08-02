@@ -843,7 +843,7 @@ Gateway собирает schemas всех subgraphs в единый supergraph:
 }
 ```
 
-См.[Distributed Systems]()).
+См. [[distributed-systems|Distributed Systems]].
 
 ---
 
@@ -1162,7 +1162,7 @@ public Task<Customer> GetCustomer([Parent] Order order, CustomerByIdDataLoader l
 
 DataLoader — must для GraphQL performance.
 
-См.[[queries-performance|EF Queries Performance]].
+См. [[queries-performance|EF Queries Performance]].
 
 
 ---
@@ -1239,13 +1239,13 @@ GraphQL или REST?
 
 ## См. также
 
-- [API Design](api-design.md) — REST patterns
-- [SignalR](signalr.md) — alternative для real-time
--[Distributed Systems]()) — federation
--[EF Core Basics & Tracking]()) — projection, tracking
-- [Authentication & Security](auth-security.md) — JWT для GraphQL
-- [Caching](caching.md) — для persisted queries
-- [Resilience](resilience.md) — retry, timeout
+- [[api-design|API Design]] — REST patterns
+- [[signalr|SignalR]] — alternative для real-time
+- [[distributed-systems|Distributed Systems]] — federation
+- [[basics-tracking|EF Core Basics & Tracking]] — projection, tracking
+- [[auth-security|Authentication & Security]] — JWT для GraphQL
+- [[caching|Caching]] — для persisted queries
+- [[resilience|Resilience]] — retry, timeout
 
 ## Reading list
 

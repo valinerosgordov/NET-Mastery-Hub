@@ -6,13 +6,13 @@ date: 2026-04-30
 
 # Performance Fundamentals — что такое производительность
 
-> **Базовое понимание perfomance**. Что такое "медленно", как мерить, почему оптимизировать преждевременно вредно. Введение перед глубоким `performance.md`.
+> **Базовое понимание performance**. Что такое "медленно", как мерить, почему оптимизировать преждевременно вредно. Введение перед глубоким `performance.md`.
 
 ---
 
 ## Что это, зачем и когда
 
-### Что такое perfomance?
+### Что такое performance?
 
 **Время и ресурсы которые код тратит на работу** — CPU, память, диск, сеть.
 
@@ -232,7 +232,7 @@ foreach (var order in orders)
 var orders = db.Orders.Include(o => o.User).ToList();
 ```
 
-См.[[queries-performance|EF Queries Performance]].
+См. [[queries-performance|EF Queries Performance]].
 
 ### 2. String concatenation в loop
 
@@ -334,7 +334,7 @@ public Settings GetSettings(string key) =>
     });
 ```
 
-См.[[caching|Caching]].
+См. [[caching|Caching]].
 
 ---
 
@@ -471,7 +471,7 @@ SLA: 99.9% uptime
 
 Если **SLO нарушен** — performance work становится приоритетом.
 
-См.[[observability|Observability]].
+См. [[observability|Observability]].
 
 ---
 
@@ -548,7 +548,7 @@ for (int i = 0; i < 1_000_000; i++)
 // ✅ Reuse через StringBuilder или Span
 ```
 
-См.[[gc-memory|GC и память]].
+См. [[gc-memory|GC и память]].
 
 ### 4. Async ради async
 
@@ -584,7 +584,7 @@ public User Get(int id)
 
 **Лечение:** TTL, invalidation events.
 
-См.[[caching|Caching]].
+См. [[caching|Caching]].
 
 ### 6. ConfigureAwait в app code
 
@@ -596,7 +596,7 @@ await OtherAsync().ConfigureAwait(false);
 
 В **library** — да. В **ASP.NET Core app code** — не нужен (нет SynchronizationContext).
 
-См.[[async-threading|Async и Threading]].
+См. [[async-threading|Async и Threading]].
 
 ---
 
@@ -731,7 +731,7 @@ public ValueTask<User> GetAsync(int id)
 // Cache hit — zero alloc
 ```
 
-См.[[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
+См. [[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
 
 
 ---
@@ -811,11 +811,11 @@ Performance issue?
 
 - [[performance|Performance — детальный гайд]]
 - [[hft-low-latency|HFT / Low Latency]]
--[[gc-memory|GC и память]]
--[[diagnostics-tools|Diagnostics Tools]]
--[[queries-performance|EF Queries Performance]]
--[[caching|Caching]]
--[[mutation-load-testing|Load Testing]]
+- [[gc-memory|GC и память]]
+- [[diagnostics-tools|Diagnostics Tools]]
+- [[queries-performance|EF Queries Performance]]
+- [[caching|Caching]]
+- [[mutation-load-testing|Load Testing]]
 
 ## Reading list
 

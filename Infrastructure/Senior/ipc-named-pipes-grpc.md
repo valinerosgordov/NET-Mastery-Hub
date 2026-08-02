@@ -1,6 +1,7 @@
 ---
 tags: [ipc, named-pipes, memory-mapped-files, grpc, shared-memory, performance]
 level: Senior
+date: 2026-06-28
 ---
 
 # Inter-Process Communication (IPC) в .NET
@@ -1001,12 +1002,12 @@ Pipe имеет ограниченный буфер (~4-64 KB). Большие �
 
 ## См. также
 
--[Async и Threading]()) — `IAsyncEnumerable`, `CancellationToken`, ThreadPool, deadlocks
--[HFT / Low-Latency]()) — где IPC встречается с latency-critical паттернами
--[Concurrency и Atomics]()) — Volatile, CAS, memory barriers (нужны для MMF ring)
--[Span, Memory, Layout]()) — `StructLayout`, `unsafe`, fixed pointers (для MMF структур)
--[Messaging](messaging.md)) — RabbitMQ/MassTransit для async IPC между сервисами
--[Resilience и HttpClient]()) — паттерны retry/timeout также применимы к gRPC
+- [[async-threading|Async и Threading]] — `IAsyncEnumerable`, `CancellationToken`, ThreadPool, deadlocks
+- [[hft-low-latency|HFT / Low-Latency]] — где IPC встречается с latency-critical паттернами
+- [[concurrency-atomics|Concurrency и Atomics]] — Volatile, CAS, memory barriers (нужны для MMF ring)
+- [[span-layout|Span, Memory, Layout]] — `StructLayout`, `unsafe`, fixed pointers (для MMF структур)
+- [[messaging|Messaging]]) — RabbitMQ/MassTransit для async IPC между сервисами
+- [[resilience|Resilience и HttpClient]] — паттерны retry/timeout также применимы к gRPC
 
 ## Reading list
 

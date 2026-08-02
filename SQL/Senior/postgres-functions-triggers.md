@@ -1,6 +1,7 @@
 ---
 tags: [postgresql, plpgsql, stored-procedures, functions, triggers, npgsql, raw-sql]
 level: Senior
+date: 2026-08-02
 ---
 
 # PostgreSQL: Функции, процедуры, триггеры и raw SQL из .NET

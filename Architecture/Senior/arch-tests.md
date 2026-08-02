@@ -1,6 +1,7 @@
 ---
 tags: [architecture, testing, netarchtest, archunit, fitness-functions]
 level: Senior
+date: 2026-08-02
 ---
 
 # Архитектурные тесты
@@ -497,7 +498,7 @@ public class ForbidGetAwaiterGetResultAnalyzer : DiagnosticAnalyzer
 }
 ```
 
-См. подробно [Source Generators]() — Roslyn API similar к analyzers.
+См. подробно [[source-generators|Source Generators]] — Roslyn API similar к analyzers.
 
 ---
 
@@ -646,13 +647,13 @@ Type из ref'нутой assembly не значит код её **использ
 
 ## См. также
 
-- [Architecture Patterns]() — Clean / Hexagonal / VSA — что проверяешь
-- [DDD на практике](ddd.md) — domain rules для arch tests
-- [SOLID + DRY/KISS/YAGNI](solid.md) — рулы которые arch tests могут проверить
-- [CQRS и Mediator](cqrs-mediatr.md) — handler naming conventions
-- [Code Quality]() — analyzers, EditorConfig, SonarCloud
-- [Architecture Decisions](architecture-decisions.md) — ADR formats
-- [Testing]() — общие подходы к тестированию
+- [[architecture-patterns|Architecture Patterns]] — Clean / Hexagonal / VSA — что проверяешь
+- [[ddd|DDD на практике]] — domain rules для arch tests
+- [[solid|SOLID + DRY/KISS/YAGNI]] — рулы которые arch tests могут проверить
+- [[cqrs-mediatr|CQRS и Mediator]] — handler naming conventions
+- [[code-quality|Code Quality]] — analyzers, EditorConfig, SonarCloud
+- [[architecture-decisions|Architecture Decisions]] — ADR formats
+- [[testing|Testing]] — общие подходы к тестированию
 
 ## Reading list
 

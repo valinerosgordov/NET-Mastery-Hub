@@ -1,6 +1,7 @@
 ---
 tags: [rabbitmq, masstransit, kafka, messaging, message-broker, outbox, distributed]
 level: Senior
+date: 2026-06-28
 ---
 
 # Очереди и Message Brokers
@@ -287,7 +288,7 @@ cfg.UseDelayedRedelivery(r => r.Intervals(
 
 ### Outbox через EntityFramework
 
-Решает dual-write problem (см.[Distributed Systems]())).
+Решает dual-write problem (См. [[distributed-systems|Distributed Systems]]).
 
 ```csharp
 builder.Services.AddMassTransit(x =>
@@ -362,7 +363,7 @@ builder.Services.AddMassTransit(x =>
 });
 ```
 
-См. подробно в[Distributed Systems]()).
+См. подробно в[[distributed-systems|Distributed Systems]].
 
 ### Scheduling
 
@@ -442,7 +443,7 @@ public class LoggingFilter<T>(ILogger<LoggingFilter<T>> logger) : IFilter<Consum
 }
 ```
 
-См. полную обвязку в [Observability](observability.md).
+См. полную обвязку в [[observability|Observability]].
 
 ### Batching
 
@@ -721,7 +722,7 @@ rabbitmqctl export_definitions /backup/rabbitmq-defs.json
 
 ### 2. Нет идемпотентности consumer
 Retry даёт duplicate side-effects (двойной charge, двойной email).
-**Решение:** inbox-таблица с message_id, см.[Distributed Systems]()).
+**Решение:** inbox-таблица с message_id, См. [[distributed-systems|Distributed Systems]].
 
 ### 3. Большие payloads в message
 Кладёшь 50MB файл в RabbitMQ → broker тормозит, все consumers медленные.
@@ -769,7 +770,7 @@ await _publisher.Publish(...);
 
 ### 10. Нет message versioning
 Изменили схему `OrderCreated` — старые сообщения в очереди ломают consumer.
-**Решение:** нumeric version в payload, upcasters для старых версий. См.[Distributed Systems / Event versioning](distributed-systems.md#versioning-events)).
+**Решение:** нumeric version в payload, upcasters для старых версий. См. [[distributed-systems|Distributed Systems / Event versioning]]).
 
 ---
 
@@ -827,7 +828,7 @@ await _publisher.Publish(...);
 - ❌ No DLQ — messages потеряются
 - ❌ Сложная routing logic в broker (move в consumer)
 
-См.[[distributed-systems|Distributed Systems]].
+См. [[distributed-systems|Distributed Systems]].
 
 
 ---
@@ -909,12 +910,12 @@ await _publisher.Publish(...);
 
 ## См. также
 
--[Distributed Systems]()) — Outbox, Inbox, Saga, идемпотентность глубоко
-- [Observability](observability.md) — OpenTelemetry для tracing through messaging
--[Resilience]()) — Polly паттерны, применимы к message handling
--[PostgreSQL Deep]()) — outbox-таблица, advisory locks
--[System Design]()) — выбор Kafka vs RabbitMQ, capacity planning
-- [Hangfire Deep](hangfire-deep.md) — альтернатива для simple background jobs
+- [[distributed-systems|Distributed Systems]] — Outbox, Inbox, Saga, идемпотентность глубоко
+- [[observability|Observability]] — OpenTelemetry для tracing through messaging
+- [[resilience|Resilience]] — Polly паттерны, применимы к message handling
+- [[postgresql-deep|PostgreSQL Deep]] — outbox-таблица, advisory locks
+- [[system-design|System Design]] — выбор Kafka vs RabbitMQ, capacity planning
+- Hangfire — альтернатива для simple background jobs (отдельного deep-dive в vault пока нет)
 
 ## Reading list
 

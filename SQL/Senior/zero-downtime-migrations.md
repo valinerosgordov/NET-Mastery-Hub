@@ -1,6 +1,7 @@
 ---
 tags: [postgresql, migrations, zero-downtime, ddl, locking, ef-core, expand-contract, dba]
 level: Senior
+date: 2026-06-28
 ---
 
 # Zero-downtime миграции схемы в PostgreSQL

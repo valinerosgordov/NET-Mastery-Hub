@@ -152,7 +152,7 @@ public async Task GetOrders_p95_under_200ms()
 }
 ```
 
-См.[[mutation-load-testing|Load Testing]].
+См. [[mutation-load-testing|Load Testing]].
 
 ### CI workflow
 
@@ -233,7 +233,7 @@ Error budget: 1% of requests can be > 500ms
     summary: "Error budget consumed 30x faster than allowed"
 ```
 
-См.[[observability|Observability]].
+См. [[observability|Observability]].
 
 ### Dashboards
 
@@ -483,7 +483,7 @@ public ValueTask<User> GetAsync(int id)
 // Cache hit — zero alloc
 ```
 
-См.[[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
+См. [[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
 
 
 ---
@@ -564,8 +564,8 @@ Performance issue?
 - [[performance-fundamentals|Performance Fundamentals]]
 - [[bottleneck-analysis|Bottleneck Analysis]]
 - [[capacity-planning|Capacity Planning]]
--[[observability|Observability]]
--[[mutation-load-testing|Load Testing]]
+- [[observability|Observability]]
+- [[mutation-load-testing|Load Testing]]
 
 ## Reading list
 

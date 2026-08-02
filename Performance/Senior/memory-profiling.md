@@ -128,7 +128,7 @@ Use cases:
 - GC analysis (почему Gen2)
 - Reference inspection
 
-См.[[diagnostics-tools|Diagnostics Tools]].
+См. [[diagnostics-tools|Diagnostics Tools]].
 
 ---
 
@@ -329,7 +329,7 @@ for (int i = 0; i < 1000; i++)
 var s = sb.ToString();
 ```
 
-См.[[gc-memory|GC и память]].
+См. [[gc-memory|GC и память]].
 
 ---
 
@@ -437,7 +437,7 @@ Prometheus rule:
     summary: "App memory > 1 GB for 10 min"
 ```
 
-См.[[observability|Observability]].
+См. [[observability|Observability]].
 
 ---
 
@@ -621,7 +621,7 @@ public ValueTask<User> GetAsync(int id)
 // Cache hit — zero alloc
 ```
 
-См.[[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
+См. [[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
 
 
 ---
@@ -701,9 +701,9 @@ Performance issue?
 
 - [[performance-fundamentals|Performance Fundamentals]]
 - [[performance|Performance Deep]]
--[[gc-memory|GC и память]]
--[[diagnostics-tools|Diagnostics Tools]]
--[[span-layout|Span — снижение allocations]]
+- [[gc-memory|GC и память]]
+- [[diagnostics-tools|Diagnostics Tools]]
+- [[span-layout|Span — снижение allocations]]
 - [[caching-strategies|Caching Strategies]]
 
 ## Reading list

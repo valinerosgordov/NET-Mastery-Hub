@@ -1,6 +1,7 @@
 ---
 tags: [hft, low-latency, performance, lock-free, channels, span, allocation-free, mt5]
 level: Senior
+date: 2026-08-02
 ---
 
 # HFT и Low-Latency .NET — production guide
@@ -950,13 +951,13 @@ public static DateTime FastUtcNow()
 
 ## См. также
 
-- [Span, Memory, Layout]() — глубже про Span/Memory/StructLayout
-- [Concurrency и Atomics]() — Volatile, CAS, memory barriers
-- [GC, LOH и POH]() — поколения, фрагментация, finalization
-- [Async и Threading]() — async overhead, ConfigureAwait, Channel
-- [IPC]() — MMF ring-buffer для market data feed
-- [Performance](performance.md) — BenchmarkDotNet, profiling
-- [WPF Production]() — UI thread vs hot-path threads
+- [[span-layout|Span, Memory, Layout]] — глубже про Span/Memory/StructLayout
+- [[concurrency-atomics|Concurrency и Atomics]] — Volatile, CAS, memory barriers
+- [[gc-memory|GC, LOH и POH]] — поколения, фрагментация, finalization
+- [[async-threading|Async и Threading]] — async overhead, ConfigureAwait, Channel
+- [[ipc-named-pipes-grpc|IPC]] — MMF ring-buffer для market data feed
+- [[performance|Performance]] — BenchmarkDotNet, profiling
+- [[wpf-production|WPF Production]] — UI thread vs hot-path threads
 
 ## Reading list
 

@@ -2,7 +2,7 @@
 
 > 9 файлов / ~253 KB. SQL fundamentals + index internals + PostgreSQL deep features + concurrency + safe migrations + security + EAV indexing.
 
-[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
+[[README|← Главный README]] · [[INDEX|Полный INDEX]]
 
 ---
 
@@ -10,14 +10,14 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Junior, только начинаю | [`sql-basics.md`](Junior/sql-basics.md) |
-| Slow queries, нужно оптимизировать | [`optimization.md`](Senior/optimization.md) → [`indexes-deep.md`](Middle/indexes-deep.md) |
-| Работаю с PostgreSQL | [`postgresql-deep.md`](Senior/postgresql-deep.md) |
-| Хранимки / триггеры / raw SQL | [`postgres-functions-triggers.md`](Senior/postgres-functions-triggers.md) |
-| Конкурентность, блокировки, очереди задач | [`mvcc-and-locking.md`](Senior/mvcc-and-locking.md) |
-| Меняю схему на проде без даунтайма | [`zero-downtime-migrations.md`](Senior/zero-downtime-migrations.md) |
-| Безопасность: инъекции, роли, привилегии | [`sql-security.md`](Senior/sql-security.md) |
-| Гибкая схема / EAV, индексы под неё | [`eav-flexible-store-indexing.md`](Senior/eav-flexible-store-indexing.md) |
+| Junior, только начинаю | [[sql-basics|`sql-basics.md`]] |
+| Slow queries, нужно оптимизировать | [[optimization|`optimization.md`]] → [[indexes-deep|`indexes-deep.md`]] |
+| Работаю с PostgreSQL | [[postgresql-deep|`postgresql-deep.md`]] |
+| Хранимки / триггеры / raw SQL | [[postgres-functions-triggers|`postgres-functions-triggers.md`]] |
+| Конкурентность, блокировки, очереди задач | [[mvcc-and-locking|`mvcc-and-locking.md`]] |
+| Меняю схему на проде без даунтайма | [[zero-downtime-migrations|`zero-downtime-migrations.md`]] |
+| Безопасность: инъекции, роли, привилегии | [[sql-security|`sql-security.md`]] |
+| Гибкая схема / EAV, индексы под неё | [[eav-flexible-store-indexing|`eav-flexible-store-indexing.md`]] |
 | Готовлюсь к Senior собесу | Все 9 файлов |
 
 ---
@@ -26,15 +26,15 @@
 
 | Файл | Уровень | Описание |
 |------|---------|----------|
-| [`sql-basics.md`](Junior/sql-basics.md) | Junior/Middle | JOIN, transactions, isolation, ACID, normalization |
-| [`indexes-deep.md`](Middle/indexes-deep.md) | Middle/Senior | B-tree, query plans, index types ⭐ |
-| [`optimization.md`](Senior/optimization.md) | Senior | Query optimization, EXPLAIN, partitioning, PgBouncer |
-| [`postgresql-deep.md`](Senior/postgresql-deep.md) | Senior | JSONB, RLS, pgvector, VACUUM, advanced PG features |
-| [`postgres-functions-triggers.md`](Senior/postgres-functions-triggers.md) | Senior | PL/pgSQL функции, процедуры, триггеры, вызов из Npgsql/EF |
-| [`mvcc-and-locking.md`](Senior/mvcc-and-locking.md) | Senior | MVCC, xmin/xmax, lock modes, SKIP LOCKED, UPSERT, LISTEN/NOTIFY ⭐ |
-| [`zero-downtime-migrations.md`](Senior/zero-downtime-migrations.md) | Senior | Безопасный DDL, lock_timeout, CONCURRENTLY, expand-contract, EF Core ⭐ |
-| [`sql-security.md`](Senior/sql-security.md) | Senior | SQL injection, roles/GRANT, least privilege, SECURITY DEFINER, TLS |
-| [`eav-flexible-store-indexing.md`](Senior/eav-flexible-store-indexing.md) | Senior | EAV-хранилище: фиксированный набор индексов, covering/partial, type-segregated UNIQUE |
+| [[sql-basics|`sql-basics.md`]] | Junior/Middle | JOIN, transactions, isolation, ACID, normalization |
+| [[indexes-deep|`indexes-deep.md`]] | Middle/Senior | B-tree, query plans, index types ⭐ |
+| [[optimization|`optimization.md`]] | Senior | Query optimization, EXPLAIN, partitioning, PgBouncer |
+| [[postgresql-deep|`postgresql-deep.md`]] | Senior | JSONB, RLS, pgvector, VACUUM, advanced PG features |
+| [[postgres-functions-triggers|`postgres-functions-triggers.md`]] | Senior | PL/pgSQL функции, процедуры, триггеры, вызов из Npgsql/EF |
+| [[mvcc-and-locking|`mvcc-and-locking.md`]] | Senior | MVCC, xmin/xmax, lock modes, SKIP LOCKED, UPSERT, LISTEN/NOTIFY ⭐ |
+| [[zero-downtime-migrations|`zero-downtime-migrations.md`]] | Senior | Безопасный DDL, lock_timeout, CONCURRENTLY, expand-contract, EF Core ⭐ |
+| [[sql-security|`sql-security.md`]] | Senior | SQL injection, roles/GRANT, least privilege, SECURITY DEFINER, TLS |
+| [[eav-flexible-store-indexing|`eav-flexible-store-indexing.md`]] | Senior | EAV-хранилище: фиксированный набор индексов, covering/partial, type-segregated UNIQUE |
 
 ---
 
@@ -51,5 +51,5 @@
 ## 🔗 Связанные папки
 
 - [`EFCore/`](../EFCore/) — ORM поверх SQL
-- [`EFCore/Middle/dapper-comparison.md`](../EFCore/Middle/dapper-comparison.md) — raw SQL alternatives
+- [[dapper-comparison|`EFCore/Middle/dapper-comparison.md`]] — raw SQL alternatives
 - [`Performance/`](../Performance/) — DB performance в общем контексте

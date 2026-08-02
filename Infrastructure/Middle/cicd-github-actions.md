@@ -302,7 +302,7 @@ steps:
 > - **Rotate** регулярно
 > - **Environment secrets** — для production (требует approval)
 
-См.[[security-practices|Security Practices]].
+См. [[security-practices|Security Practices]].
 
 ---
 
@@ -441,7 +441,7 @@ NuGet cache **обязательно** — без него каждый build з
     "
 ```
 
-См.[[static-analysis|Static Analysis]].
+См. [[static-analysis|Static Analysis]].
 
 ---
 
@@ -718,7 +718,7 @@ jobs:
 - Cache test data
 - Test categories — `--filter Category!=Slow` для CI
 
-См.[[integration-testing|Integration Testing]].
+См. [[integration-testing|Integration Testing]].
 
 ### 8. Not pinning action version
 
@@ -923,7 +923,7 @@ jobs:
 > [!warning] Никогда не коммить secrets в repo
 > Используй GitHub Secrets, environment-specific secrets, или OIDC для cloud auth.
 
-См.[[auth-security|Auth & Security]].
+См. [[auth-security|Auth & Security]].
 
 
 ---
@@ -932,9 +932,9 @@ jobs:
 
 - [[docker|Docker]] — build images в CI
 - [[kubernetes|Kubernetes]] — deploy through CI
--[[static-analysis|Static Analysis]] — analyzers в CI
--[[code-review|Code Review]] — CI checks для PR
--[[integration-testing|Integration Testing]] — tests в CI
+- [[static-analysis|Static Analysis]] — analyzers в CI
+- [[code-review|Code Review]] — CI checks для PR
+- [[integration-testing|Integration Testing]] — tests в CI
 - [[observability|Observability]] — мониторинг после deploy
 - [[project-setup|Project Setup]] — Directory.Build.props
 

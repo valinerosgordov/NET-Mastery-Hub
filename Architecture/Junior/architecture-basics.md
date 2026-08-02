@@ -1,12 +1,12 @@
 ---
 tags: [architecture, basics, junior, layers, separation-of-concerns]
 level: Junior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # Architecture Basics — основы архитектуры приложений
 
-> **Зачем структурировать код, что такое слои, separation of concerns, dependency direction.** Введение перед `Middle/patterns-decision-guide.md` и `Senior/patterns.md`.
+> **Зачем структурировать код, что такое слои, separation of concerns, dependency direction.** Введение перед [[patterns-decision-guide|Middle/patterns-decision-guide]] и [[architecture-patterns|Senior/architecture-patterns]].
 
 ---
 

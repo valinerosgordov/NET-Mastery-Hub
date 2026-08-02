@@ -1216,13 +1216,13 @@ ProcessData(rented.Span);
 
 ## См. также
 
-- [GC, LOH и POH](gc-memory.md)
-- [Concurrency и атомарность](concurrency-atomics.md)
-- [Performance]()
-- [HFT/Low-Latency]() — Channels, ring buffers, latency budgets
-- [Типы и память]()
-- [Compilation/JIT](compilation-jit.md) — SIMD intrinsics ASM-уровень
-- [IPC: Named Pipes & gRPC]() — MMF ring buffer
+- [[gc-memory|GC, LOH и POH]]
+- [[concurrency-atomics|Concurrency и атомарность]]
+- [[performance|Performance]]
+- [[hft-low-latency|HFT/Low-Latency]] — Channels, ring buffers, latency budgets
+- [[types-and-memory|Типы и память]]
+- [[compilation-jit|Compilation/JIT]] — SIMD intrinsics ASM-уровень
+- [[ipc-named-pipes-grpc|IPC: Named Pipes & gRPC]] — MMF ring buffer
 
 ## Reading list
 

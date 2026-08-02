@@ -798,7 +798,7 @@ src/MyApp.Api/
 
 **Timeline:** 12-18 months для full migration.
 
-См.[[api-gateway|API Gateway]].
+См. [[api-gateway|API Gateway]].
 
 ---
 
@@ -901,11 +901,11 @@ Architecture решение?
 
 ## См. также
 
--[Architecture Patterns]()) — Clean Architecture, VSA, Modular Monolith
-- [Distributed Systems](distributed-systems.md) — saga, CQRS как ADR-able решения
-- [System Design](system-design.md) — design docs vs ADR
-- [DDD на практике](ddd.md) — bounded contexts как ADR
-- [SOLID + DRY/KISS/YAGNI](solid.md) — принципы которые часто закрепляются в ADR
+- [[architecture-patterns|Architecture Patterns]] — Clean Architecture, VSA, Modular Monolith
+- [[distributed-systems|Distributed Systems]] — saga, CQRS как ADR-able решения
+- [[system-design|System Design]] — design docs vs ADR
+- [[ddd|DDD на практике]] — bounded contexts как ADR
+- [[solid|SOLID + DRY/KISS/YAGNI]] — принципы которые часто закрепляются в ADR
 
 ## Reading list
 

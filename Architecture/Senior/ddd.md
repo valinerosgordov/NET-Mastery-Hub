@@ -1,6 +1,7 @@
 ---
 tags: [ddd, value-objects, aggregate-root, domain-events, entity]
 level: Senior
+date: 2026-06-28
 ---
 
 # DDD — Domain-Driven Design на практике
@@ -1364,6 +1365,6 @@ public sealed class Order : AggregateRoot<Guid>
 
 ## См. также
 
-- [Architecture Patterns]() — Clean Architecture, VSA
-- [Result/CQRS](cqrs-mediatr.md) — Result Pattern детально
-- [EF Core Patterns]() — Aggregate Root в EF, Interceptors
+- [[architecture-patterns|Architecture Patterns]] — Clean Architecture, VSA
+- [[cqrs-mediatr|Result/CQRS]] — Result Pattern детально
+- [[ef-patterns|EF Core Patterns]] — Aggregate Root в EF, Interceptors

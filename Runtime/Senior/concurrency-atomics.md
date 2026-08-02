@@ -10,7 +10,7 @@ tags:
   - delegates
   - deepdive
 complexity: Senior
-date: 2026-04-30
+date: 2026-08-02
 level: Senior
 ---
 
@@ -603,7 +603,7 @@ finally { Monitor.Exit(x); }
 
 ### Sync Block
 
-Lock использует **sync block** в object header (см. [GC](gc-memory.md#object-header)). При первом lock — выделяется entry в sync block table.
+Lock использует **sync block** в object header (см. [[gc-memory|GC]]). При первом lock — выделяется entry в sync block table.
 
 ### Thin Lock vs Inflated Lock
 
@@ -828,7 +828,7 @@ async Task ConsumeAsync(CancellationToken ct)
 
 Если ты гарантируешь что reader один (или writer один) — оптимизация. Channel не использует CAS на этих путях.
 
-См. [Async и Threading]() — глубже про channels.
+См. [[async-threading|Async и Threading]] — глубже про channels.
 
 ---
 
@@ -1291,11 +1291,11 @@ ArmBase.MemoryBarrier();  // ARM DMB
 
 ## См. также
 
-- [.NET Runtime: компиляция](compilation-jit.md)
-- [GC и память](gc-memory.md)
-- [Span и Memory Layout](span-layout.md)
-- [Async и потоки]()
-- [HFT/Low-Latency]() — channels, lock-free для trading
+- [[compilation-jit|.NET Runtime: компиляция]]
+- [[gc-memory|GC и память]]
+- [[span-layout|Span и Memory Layout]]
+- [[async-threading|Async и потоки]]
+- [[hft-low-latency|HFT/Low-Latency]] — channels, lock-free для trading
 
 ## Reading list
 

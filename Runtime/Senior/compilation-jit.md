@@ -6,7 +6,7 @@ tags:
   - roslyn
   - deepdive
 complexity: Senior
-date: 2026-02-23
+date: 2026-08-02
 level: Senior
 ---
 
@@ -630,7 +630,7 @@ dotnet run -c Release | grep -i CORINFO_HELP_BOX
 
 ## См. также
 
-- [GC, LOH и POH](gc-memory.md)
-- [Span и Memory Layout](span-layout.md)
-- [Concurrency и атомарность](concurrency-atomics.md)
-- [Типы и память]()
+- [[gc-memory|GC, LOH и POH]]
+- [[span-layout|Span и Memory Layout]]
+- [[concurrency-atomics|Concurrency и атомарность]]
+- [[types-and-memory|Типы и память]]

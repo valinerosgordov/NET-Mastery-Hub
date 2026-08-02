@@ -1,6 +1,7 @@
 ---
 tags: [ai, semantic-kernel, vector-search, rag, embeddings, llm]
 level: Senior
+date: 2026-06-28
 ---
 
 # Semantic Kernel и Vector Search в .NET
@@ -1197,7 +1198,7 @@ Cache LLM responses by embedding similarity (threshold 0.95). On cache hit — r
 
 ## См. также
 
-- [Project Setup](project-setup.md)
-- [Observability](observability.md) — трассировка LLM-вызовов через OTel
+- [[project-setup|Project Setup]]
+- [[observability|Observability]] — трассировка LLM-вызовов через OTel
 - [[caching|Caching]] — кэш embedding-запросов
-- [Reading List](../Meta/reading-list.md)
+- [[99_reading-list|Reading List]]

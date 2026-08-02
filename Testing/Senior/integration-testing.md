@@ -823,9 +823,9 @@ Quality issue?
 
 - [[testing|Testing — общие principles]]
 - [[mutation-load-testing|Mutation Testing — Stryker.NET]]
--[[arch-tests|Architecture Tests]]
--[[static-analysis|Static Analysis — quality gates]]
--[[basics-tracking|EF Core for repository tests]]
+- [[arch-tests|Architecture Tests]]
+- [[static-analysis|Static Analysis — quality gates]]
+- [[basics-tracking|EF Core for repository tests]]
 
 ## Reading list
 

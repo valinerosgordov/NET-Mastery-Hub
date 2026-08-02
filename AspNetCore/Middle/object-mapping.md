@@ -360,7 +360,7 @@ Mapperly работает в Native AOT (AutoMapper — нет).
 
 ---
 
-## 4. Sравнение
+## 4. Сравнение
 
 | | Manual | AutoMapper | Mapperly |
 |--|--------|------------|----------|

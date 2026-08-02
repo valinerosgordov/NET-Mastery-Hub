@@ -1,6 +1,7 @@
 ---
 tags: [postgresql, security, sql-injection, roles, privileges, grant, least-privilege, rls, ef-core, npgsql]
 level: Senior
+date: 2026-06-28
 ---
 
 # SQL Security: инъекции, роли и привилегии

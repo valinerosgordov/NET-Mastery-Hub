@@ -1,6 +1,7 @@
 ---
 tags: [wpf, mvvm, desktop, velopack, fluent-design, community-toolkit]
 level: Senior
+date: 2026-06-28
 ---
 
 # WPF Production Guide — современный desktop на .NET
@@ -12,7 +13,7 @@ level: Senior
 ### Что такое WPF в 2026?
 **Windows Presentation Foundation** — UI-фреймворк Microsoft с 2006 года, единственный desktop-фреймворк .NET, который реально стабилен, проверен и поддерживается на нынешний момент. Не путать с WinForms (legacy), WinUI 3 (буксует), MAUI (нацелен на mobile/cross-platform), Avalonia (open-source альтернатива WPF).
 
-**Аналогия:** WPF — это надёжный пикап F-150. Не модный, не быстрый, но возит всё что нужно последние 20 лет, запчастей навалом. WinUI / MAUI — концепт-кары, фоторгафии красивые, в продакшен довезти сложнее.
+**Аналогия:** WPF — это надёжный пикап F-150. Не модный, не быстрый, но возит всё что нужно последние 20 лет, запчастей навалом. WinUI / MAUI — концепт-кары, фотографии красивые, в продакшен довезти сложнее.
 
 ### Зачем WPF в 2026
 
@@ -1021,11 +1022,11 @@ window.Show();
 
 ## См. также
 
-- [Async и Threading]() — `IProgress<T>`, `ConfigureAwait`, Dispatcher pitfalls
-- [DI и Configuration]() — Generic Host, Options pattern (применимо и к WPF)
-- [HFT / Low-Latency]() — когда WPF UI-thread vs hot-path threads (для TradingBotForex)
-- [WPF ViewModel snippet]() — короткие готовые сниппеты Toolkit'а
-- [Testing]() — как тестировать ViewModel без WPF-thread (через IDispatcher abstraction)
+- [[async-threading|Async и Threading]] — `IProgress<T>`, `ConfigureAwait`, Dispatcher pitfalls
+- [[di-configuration|DI и Configuration]] — Generic Host, Options pattern (применимо и к WPF)
+- [[hft-low-latency|HFT / Low-Latency]] — когда WPF UI-thread vs hot-path threads (для TradingBotForex)
+- [[wpf-viewmodel|WPF ViewModel snippet]] — короткие готовые сниппеты Toolkit'а
+- [[testing|Testing]] — как тестировать ViewModel без WPF-thread (через IDispatcher abstraction)
 
 ## Reading list
 

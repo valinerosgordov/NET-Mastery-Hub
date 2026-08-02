@@ -599,7 +599,7 @@ public class PerformanceBudgets
 | Goal | Capacity planning | SLO tracking |
 | Tools | NBomber, k6 | OpenTelemetry, Prometheus, Datadog |
 
-См.[[observability|Observability]] — production monitoring.
+См. [[observability|Observability]] — production monitoring.
 
 ---
 
@@ -787,10 +787,10 @@ Quality issue?
 
 - [[testing|Testing — общие principles]]
 - [[integration-testing|Integration Testing]]
--[[performance|Performance — BenchmarkDotNet]]
--[[hft-low-latency|HFT / Low Latency]]
--[[observability|Observability]] — production metrics
--[[static-analysis|Static Analysis]]
+- [[performance|Performance — BenchmarkDotNet]]
+- [[hft-low-latency|HFT / Low Latency]]
+- [[observability|Observability]] — production metrics
+- [[static-analysis|Static Analysis]]
 
 ## Reading list
 

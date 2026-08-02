@@ -1,6 +1,7 @@
 ---
 tags: [solid, srp, ocp, lsp, isp, dip, dry, kiss, yagni, architecture]
 level: Senior
+date: 2026-06-28
 ---
 
 # SOLID, DRY, KISS, YAGNI
@@ -557,7 +558,7 @@ public sealed class ExportService
 
 ## См. также
 
-- [ООП и классы]() — Наследование, интерфейсы, полиморфизм
-- [DI и Configuration]() — Dependency Injection в .NET
-- [DDD на практике](ddd.md) — SOLID в контексте Domain-Driven Design
-- [Architecture Patterns]() — Clean Architecture (применение DIP)
+- [[oop|ООП и классы]] — Наследование, интерфейсы, полиморфизм
+- [[di-configuration|DI и Configuration]] — Dependency Injection в .NET
+- [[ddd|DDD на практике]] — SOLID в контексте Domain-Driven Design
+- [[architecture-patterns|Architecture Patterns]] — Clean Architecture (применение DIP)

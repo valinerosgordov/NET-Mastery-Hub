@@ -1,7 +1,7 @@
 ---
 tags: [docker, containers, buildkit, multi-stage, distroless, docker-compose, healthchecks, cgroups, namespaces, pid1, signals, security, aspire, devcontainers]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Docker и контейнеры для .NET
@@ -231,7 +231,7 @@ ENTRYPOINT ["dotnet", "MyApp.Api.dll"]
 | `dotnet/aspnet:10.0-noble-chiseled` | 105 MB | Ubuntu chiseled, latest |
 | `dotnet/aspnet:10.0-chiseled-extra` | 130 MB | + ICU, tzdata, ca-certs |
 | `dotnet/runtime-deps:10.0-chiseled` + AOT | 25 MB | Только AOT-binary |
-| Distroless `cc-debian12` + AOT | 18 MB | См.[Native AOT]()) |
+| Distroless `cc-debian12` + AOT | 18 MB | См. [[native-aot|Native AOT]] |
 | `scratch` + statically-linked AOT | 8 MB | Maximum minification |
 
 > [!question]- **Интервью: чем chiseled отличается от alpine?**
@@ -400,7 +400,7 @@ COPY --from=build /app/publish/MyApp /
 ENTRYPOINT ["/MyApp"]
 ```
 
-См.[Native AOT]()) — distroless + AOT = 18 MB image.
+См. [[native-aot|Native AOT]] — distroless + AOT = 18 MB image.
 
 ---
 
@@ -541,7 +541,7 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-`preStop` выполняется **перед** SIGTERM. `sleep 5` даёт kube-proxy время удалить pod из endpoints. Иначе race: SIGTERM пришёл, мы перестали accept'ить, но balancer ещё шлёт. См. [Kubernetes]().
+`preStop` выполняется **перед** SIGTERM. `sleep 5` даёт kube-proxy время удалить pod из endpoints. Иначе race: SIGTERM пришёл, мы перестали accept'ить, но balancer ещё шлёт. См. [[kubernetes|Kubernetes]].
 
 ---
 
@@ -967,7 +967,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 `/health/live` — для Docker/K8s liveness (рестартить при fail).
 `/health/ready` — для readiness (не слать traffic если БД недоступна).
 
-См. [Observability](observability.md) — детальный setup health checks.
+См. [[observability|Observability]] — детальный setup health checks.
 
 ---
 
@@ -1448,7 +1448,7 @@ sleep 30  # let new container become healthy
 docker compose up -d --no-deps api  # remove old
 ```
 
-В Kubernetes — `kubectl rollout` делает это автоматически. См. [Kubernetes]().
+В Kubernetes — `kubectl rollout` делает это автоматически. См. [[kubernetes|Kubernetes]].
 
 ### Blue-Green
 
@@ -1701,7 +1701,7 @@ dotnet-trace collect -p $(pidof dotnet)
 RUN dotnet publish -c Release -o /app /p:PublishTrimmed=true /p:TrimMode=full
 ```
 
-Размер: 220 MB → 60-80 MB. **Ломает reflection**, нужны annotations. См.[Native AOT]()).
+Размер: 220 MB → 60-80 MB. **Ломает reflection**, нужны annotations. См. [[native-aot|Native AOT]].
 
 ### Native AOT — полная компиляция в native
 
@@ -1711,7 +1711,7 @@ RUN dotnet publish -c Release -o /app /p:PublishTrimmed=true /p:TrimMode=full
 </PropertyGroup>
 ```
 
-Размер: 60 MB → 20-25 MB. + быстрый cold start (10x), низкая память (3x). Подробно:[Native AOT]()).
+Размер: 60 MB → 20-25 MB. + быстрый cold start (10x), низкая память (3x). Подробно: [[native-aot|Native AOT]].
 
 ### ReadyToRun (R2R) — pre-compiled IL → native
 
@@ -1846,7 +1846,7 @@ environment:
 
 ### 13. Незакрытые TCP connections при shutdown
 Без `terminationGracePeriodSeconds` k8s убивает pod через 30s SIGKILL → недоставленные responses.
-**Решение:** в-flight request draining + pre-stop sleep + IHostApplicationLifetime. См. [Kubernetes]().
+**Решение:** в-flight request draining + pre-stop sleep + IHostApplicationLifetime. См. [[kubernetes|Kubernetes]].
 
 ### 14. Heavy reflection в trim'нутом приложении
 PublishTrimmed=true ломает reflection. Без `TrimAnalyzer` warnings → runtime crashes.
@@ -2017,7 +2017,7 @@ RUN dotnet publish -c Release -o /app --no-restore
 
 **Result:** code changes → 30 sec rebuild (не 3 min).
 
-См.[[cicd-github-actions|CI/CD]] и[[native-aot|Native AOT]].
+См. [[cicd-github-actions|CI/CD]] и[[native-aot|Native AOT]].
 
 
 ---
@@ -2102,15 +2102,15 @@ RUN dotnet publish -c Release -o /app --no-restore
 
 ## См. также
 
--[Native AOT]()) — distroless + AOT для extra-small images
-- [Kubernetes]() — orchestration, probes, graceful shutdown под .NET
-- [Observability](observability.md) — health checks, metrics, OpenTelemetry в containerized
--[Resilience]()) — что делать когда container перезапустился
-- [Project Setup](project-setup.md) — Directory.Build.props + Dockerfile setup
--[Testing]()) — Testcontainers
--[GC и память в контейнерах]()) — DATAS, cgroup awareness, heap limits
--[System Design]()) — Docker как deployment layer
--[HFT/Low-Latency]()) — почему контейнеры могут давать latency spikes (CPU throttling)
+- [[native-aot|Native AOT]] — distroless + AOT для extra-small images
+- [[kubernetes|Kubernetes]] — orchestration, probes, graceful shutdown под .NET
+- [[observability|Observability]] — health checks, metrics, OpenTelemetry в containerized
+- [[resilience|Resilience]] — что делать когда container перезапустился
+- [[project-setup|Project Setup]] — Directory.Build.props + Dockerfile setup
+- [[testing|Testing]] — Testcontainers
+- [[gc-memory|GC и память в контейнерах]] — DATAS, cgroup awareness, heap limits
+- [[system-design|System Design]] — Docker как deployment layer
+- [[hft-low-latency|HFT/Low-Latency]] — почему контейнеры могут давать latency spikes (CPU throttling)
 
 ## Reading list
 

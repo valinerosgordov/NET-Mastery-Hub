@@ -1,7 +1,7 @@
 ---
 tags: [efcore, patterns, repository, soft-delete, audit, specification, bulk-operations, multi-tenant, cqrs]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # EF Core Patterns
@@ -588,7 +588,7 @@ public class OrderListItem
 | **Shared DB + TenantId column** | Общая | Общая, фильтрация по TenantId | Maximum density, low cost |
 | **Postgres RLS** | Общая | Общая, RLS policies | Best of shared + isolation |
 
-### Stratrgy: Shared DB + TenantId + Query Filter
+### Strategy: Shared DB + TenantId + Query Filter
 
 ```csharp
 public interface ITenantProvider
@@ -638,7 +638,7 @@ public class AppDbContext(
 
 ### Strategy: Postgres Row-Level Security
 
-См. подробно[PostgreSQL Deep — RLS]()).
+См. подробно [[postgresql-deep|PostgreSQL Deep — RLS]].
 
 Кратко: filter на уровне БД, не на уровне C#:
 
@@ -709,7 +709,7 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 
 **Compliance:** для GDPR, HIPAA — иногда требуется database per tenant (full data isolation).
 
-См. также[Architecture/distributed-systems.md]()) и[Kubernetes — multi-tenant]()).
+См. также [[distributed-systems|Distributed Systems]] и [[kubernetes|Kubernetes — multi-tenant]].
 
 ---
 
@@ -786,7 +786,7 @@ foreach (var order in orders)
 await writer.CompleteAsync(ct);
 ```
 
-См.[PostgreSQL Deep — Bulk operations]()).
+См. [[postgresql-deep|PostgreSQL Deep — Bulk operations]].
 
 ---
 
@@ -867,7 +867,7 @@ public class DomainEventsInterceptor(IPublisher publisher) : SaveChangesIntercep
 
 ### Outbox Integration
 
-См.[Distributed Systems — Outbox]()).
+См. [[distributed-systems|Distributed Systems — Outbox]].
 
 Кратко: вместо прямой публикации — записываем event в `OutboxMessages` таблицу в той же транзакции:
 
@@ -982,7 +982,7 @@ modelBuilder.Entity<Order>(entity =>
 ```
 
 > [!info] Транзакционная граница = один Aggregate
-> Один SaveChanges = один aggregate. Изменения в нескольких aggregates → саги или domain events. См.[DDD на практике]()).
+> Один SaveChanges = один aggregate. Изменения в нескольких aggregates → саги или domain events. См. [[ddd|DDD на практике]].
 
 ---
 
@@ -1274,14 +1274,14 @@ catch
 
 ## См. также
 
-- [EF Core Basics & Tracking](basics-tracking.md)
-- [EF Core Migrations](migrations.md)
-- [EF Core Relationships](relationships.md)
-- [EF Core Concurrency](concurrency.md)
--[DDD на практике]()) — Aggregate roots, Domain Events
--[CQRS и MediatR]())
--[Distributed Systems — Outbox]())
--[PostgreSQL Deep — RLS, Bulk]())
+- [[basics-tracking|EF Core Basics & Tracking]]
+- [[migrations|EF Core Migrations]]
+- [[relationships|EF Core Relationships]]
+- [[concurrency|EF Core Concurrency]]
+- [[ddd|DDD на практике]] — Aggregate roots, Domain Events
+- [[cqrs-mediatr|CQRS и MediatR]]
+- [[distributed-systems|Distributed Systems — Outbox]]
+- [[postgresql-deep|PostgreSQL Deep — RLS, Bulk]]
 
 ## Reading list
 

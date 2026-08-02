@@ -1,6 +1,7 @@
 ---
 tags: [performance, benchmarkdotnet, profiling, perfview, dotmemory, dotnet-monitor, eventpipe]
 level: Senior
+date: 2026-08-02
 ---
 
 # Performance — Benchmarking, Profiling, Memory Leaks
@@ -261,7 +262,7 @@ Output:
 
 ### Привязка к Prometheus
 
-`dotnet-counters` — для ad-hoc. В prod лучше OpenTelemetry → Prometheus (см.[Observability]())).
+`dotnet-counters` — для ad-hoc. В prod лучше OpenTelemetry → Prometheus (см. [[observability|Observability]]).
 
 ---
 
@@ -623,7 +624,7 @@ Production gain — 5-15% на throughput. Используется в Bing, Off
 <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
 ```
 
-См. подробнее в[Runtime / GC and Memory]()) и [HFT / Low-Latency](hft-low-latency.md).
+См. подробнее в [[gc-memory|Runtime / GC and Memory]] и [[hft-low-latency|HFT / Low-Latency]].
 
 ### Latency mode
 
@@ -667,7 +668,7 @@ var first = span.IndexOf(';');
 var firstField = span[..first];
 ```
 
-См. подробнее в[Span, Memory, Layout]()) и [HFT / Low-Latency](hft-low-latency.md).
+См. подробнее в [[span-layout|Span, Memory, Layout]] и [[hft-low-latency|HFT / Low-Latency]].
 
 ```csharp
 // ✅ stackalloc для маленьких temp buffers
@@ -705,11 +706,11 @@ public ValueTask<int> GetAsync()
 }
 ```
 
-См. [HFT/Low-Latency](hft-low-latency.md) — детально про async overhead.
+См. [[hft-low-latency|HFT/Low-Latency]] — детально про async overhead.
 
 ### `ConfigureAwait(false)`
 
-В library code — да. В ASP.NET Core (без SyncContext) — необязательно. См.[Async и Threading]()).
+В library code — да. В ASP.NET Core (без SyncContext) — необязательно. См. [[async-threading|Async и Threading]].
 
 ---
 
@@ -939,21 +940,21 @@ Performance issue?
 - ❌ Optimize old benchmark (.NET versions меняют performance dramatically)
 - ❌ "Faster is always better" — ignoring memory / complexity costs
 
-См.[[memory-pooling|Memory Pooling]],[[types-and-memory|Types & Memory]],[[gc-memory|GC & Memory]].
+См. [[memory-pooling|Memory Pooling]], [[types-and-memory|Types & Memory]], [[gc-memory|GC & Memory]].
 
 
 ---
 
 ## См. также
 
-- [HFT / Low-Latency](hft-low-latency.md) — глубокое погружение в low-latency .NET
--[Span, Memory, Layout]()) — Span, stackalloc, struct layout
--[GC, LOH, POH]()) — поколения, фрагментация
--[Concurrency и Atomics]()) — lock-free patterns
--[Source Generators]()) — почему source-gen быстрее reflection
--[Native AOT]()) — AOT performance (cold start, memory)
--[EF Core Queries]()) — DB query optimization
--[Observability]()) — production metrics, dotnet-monitor
+- [[hft-low-latency|HFT / Low-Latency]] — глубокое погружение в low-latency .NET
+- [[span-layout|Span, Memory, Layout]] — Span, stackalloc, struct layout
+- [[gc-memory|GC, LOH, POH]] — поколения, фрагментация
+- [[concurrency-atomics|Concurrency и Atomics]] — lock-free patterns
+- [[source-generators|Source Generators]] — почему source-gen быстрее reflection
+- [[native-aot|Native AOT]] — AOT performance (cold start, memory)
+- [[queries-performance|EF Core Queries]] — DB query optimization
+- [[observability|Observability]] — production metrics, dotnet-monitor
 
 ## Reading list
 

@@ -6,7 +6,7 @@ date: 2026-05-09
 
 # Reflection и Expression Trees — runtime типы и компиляция
 
-> **`System.Reflection` — runtime introspection, dynamic invocation. Expression trees — lambda как data, foundation для LINQ providers (EF Core, Dapper).** Когда нужно (frameworks, mapping), когда избегать (hot path, AOT). Закрывает пробел: «знаю про typeof, не понимаю как написать generic mapper и почему Expression<Func<T, bool>> compiles в SQL».
+> **`System.Reflection` — runtime introspection, dynamic invocation. Expression trees — lambda как data, foundation для LINQ providers (EF Core, Dapper).** Когда нужно (frameworks, mapping), когда избегать (hot path, AOT). Закрывает пробел: «знаю про typeof, не понимаю как написать generic mapper и почему `Expression<Func<T, bool>>` compiles в SQL».
 
 ---
 

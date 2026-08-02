@@ -1,6 +1,7 @@
 ---
 tags: [aspnet, hosting, background-service, hosted-service]
 level: Senior
+date: 2026-06-28
 ---
 
 # Hosting и фоновые задачи

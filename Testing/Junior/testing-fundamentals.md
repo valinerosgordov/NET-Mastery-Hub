@@ -1320,9 +1320,9 @@ Quality issue?
 - [[integration-testing|Integration Testing]]
 - [[mocking-strategies|Mocking Strategies]]
 - [[mutation-load-testing|Mutation & Load Testing]]
--[[arch-tests|Architecture Tests]]
--[[clean-code|Clean Code]]
--[[02_junior-to-middle|Junior → Middle]] — testing phase
+- [[arch-tests|Architecture Tests]]
+- [[clean-code|Clean Code]]
+- [[02_junior-to-middle|Junior → Middle]] — testing phase
 
 ## Reading list
 

@@ -22,7 +22,7 @@ Frontend
   └─ /catalog → catalog-service.com:5004
 ```
 
-Frontend знает 10+ endpoints, ports, auth schemes. Каждый сервис открыт публично. CORS на каждом. Auth dublicated.
+Frontend знает 10+ endpoints, ports, auth schemes. Каждый сервис открыт публично. CORS на каждом. Auth duplicated.
 
 ### С gateway
 

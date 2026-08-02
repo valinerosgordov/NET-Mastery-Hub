@@ -1,6 +1,7 @@
 ---
 tags: [security, tokens, hashing, timing-safe, path-traversal, owasp]
 level: Senior
+date: 2026-06-28
 ---
 
 # Security Practices
@@ -628,6 +629,6 @@ dotnet list package --vulnerable     # по всем проектам
 
 ## См. также
 
-- [Auth и Security](auth-security.md) — JWT, Authentication, Authorization
-- [Caching](caching.md) — Rate Limiting детали
-- [API Design](api-design.md) — Problem Details для ошибок
+- [[auth-security|Auth и Security]] — JWT, Authentication, Authorization
+- [[caching|Caching]] — Rate Limiting детали
+- [[api-design|API Design]] — Problem Details для ошибок

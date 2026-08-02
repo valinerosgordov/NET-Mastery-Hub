@@ -1,6 +1,7 @@
 ---
 tags: [code-quality, analyzers, editorconfig, sonarcloud, roslyn, meziantou, global-usings]
 level: Senior
+date: 2026-08-02
 ---
 
 # Code Quality — analyzers, EditorConfig, SonarCloud
@@ -411,7 +412,7 @@ public class ForbidDateTimeNowAnalyzer : DiagnosticAnalyzer
 }
 ```
 
-См. [Source Generators]() — Roslyn API similar (analyzer и generator используют одни базовые types).
+См. [[source-generators|Source Generators]] — Roslyn API similar (analyzer и generator используют одни базовые types).
 
 ### Когда custom
 
@@ -530,7 +531,7 @@ Dev забыл обновить analyzer version → его IDE не показ�
 
 ### 6. Custom analyzer без tests
 Custom analyzer пишется несколько часов — без тестов превратится в шум через 6 месяцев.
-**Решение:** snapshot tests с Verify (см. [Testing / Verify]()).
+**Решение:** snapshot tests с Verify (см. [[testing|Testing / Verify]].
 
 ### 7. EditorConfig в проекте, но IDE не подхватывает
 Проверь IDE settings — Rider, VS, VS Code должны иметь support включён. `.editorconfig` без support = декорация.
@@ -550,11 +551,11 @@ SonarCloud категории Security Hotspots — каждый требует 
 ## См. также
 
 - [[static-analysis|Static Analysis]] — Roslyn analyzers, EditorConfig, quality gates — глубокий разбор
-- [Architecture Tests]() — NetArchTest для arch rules + analyzers для code rules
-- [Source Generators]() — Roslyn API для custom analyzers
-- [Project Setup]() — Directory.Build.props глобальная конфигурация
-- [Modern C# 8–14]() — что включено через `latest-recommended`
-- [Testing]() — Snapshot tests для custom analyzers
+- [[arch-tests|Architecture Tests]] — NetArchTest для arch rules + analyzers для code rules
+- [[source-generators|Source Generators]] — Roslyn API для custom analyzers
+- [[project-setup|Project Setup]] — Directory.Build.props глобальная конфигурация
+- [[modern-features|Modern C# 8–14]] — что включено через `latest-recommended`
+- [[testing|Testing]] — Snapshot tests для custom analyzers
 
 ## Reading list
 

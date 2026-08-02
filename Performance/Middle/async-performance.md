@@ -27,7 +27,7 @@ public async Task<int> CalculateAsync(int x)
 public int Calculate(int x) => x * x;
 ```
 
-См.[[async-threading|Async Threading]].
+См. [[async-threading|Async Threading]].
 
 ---
 
@@ -100,7 +100,7 @@ public async Task<string> GetDataAsync()
 }
 ```
 
-См.[[async-threading|Async Threading]] — async deadlock detail.
+См. [[async-threading|Async Threading]] — async deadlock detail.
 
 ---
 
@@ -227,7 +227,7 @@ public class MyBackgroundJob(IServiceProvider sp) : BackgroundService
 }
 ```
 
-См.[[hosting-background|Background Services]].
+См. [[hosting-background|Background Services]].
 
 ---
 
@@ -444,7 +444,7 @@ public ValueTask<User> GetAsync(int id)
 // Cache hit — zero alloc
 ```
 
-См.[[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
+См. [[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
 
 
 ---
@@ -524,9 +524,9 @@ Performance issue?
 
 - [[performance-fundamentals|Performance Fundamentals]]
 - [[optimization-patterns|Optimization Patterns]]
--[[async-threading|Async и Threading]]
--[[concurrency-atomics|Concurrency Atomics]]
--[[hosting-background|Background Services]]
+- [[async-threading|Async и Threading]]
+- [[concurrency-atomics|Concurrency Atomics]]
+- [[hosting-background|Background Services]]
 
 ## Reading list
 

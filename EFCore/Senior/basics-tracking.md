@@ -1033,12 +1033,12 @@ EF Core решение?
 
 ## См. также
 
-- [EF Core Migrations](migrations.md)
-- [EF Core Relationships](relationships.md)
-- [EF Core Concurrency](concurrency.md)
--[EF Core Patterns]())
-- [EF Core Queries Performance](queries-performance.md)
--[SQL Optimization]())
+- [[migrations|EF Core Migrations]]
+- [[relationships|EF Core Relationships]]
+- [[concurrency|EF Core Concurrency]]
+- [[ef-patterns|EF Core Patterns]]
+- [[queries-performance|EF Core Queries Performance]]
+- [[optimization|SQL Optimization]]
 
 ## Reading list
 

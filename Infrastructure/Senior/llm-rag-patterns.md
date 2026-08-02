@@ -1,6 +1,7 @@
 ---
 tags: [ai, llm, rag, openai, semantic-kernel, embeddings, microsoft-extensions-ai]
 level: Senior
+date: 2026-06-28
 ---
 
 # RAG и LLM Patterns в .NET — production guide
@@ -1049,11 +1050,11 @@ public async Task<EvalReport> RunEvalsAsync(IReadOnlyList<EvalCase> cases, Cance
 
 ## См. также
 
-- [Semantic Kernel и Vector Search](semantic-kernel.md) — введение в SK, vector store comparison, pgvector
-- [Resilience и HttpClient]() — Polly v8, retry/timeout/circuit breaker для LLM-вызовов
-- [PostgreSQL Deep]() — pgvector, JSONB, Row-Level Security для multi-tenant RAG
-- [API Design]() — SSE, Minimal API, Server-Sent Events
-- [Testing]() — Testcontainers для интеграционных тестов RAG-пайплайна
+- [[semantic-kernel|Semantic Kernel и Vector Search]] — введение в SK, vector store comparison, pgvector
+- [[resilience|Resilience и HttpClient]] — Polly v8, retry/timeout/circuit breaker для LLM-вызовов
+- [[postgresql-deep|PostgreSQL Deep]] — pgvector, JSONB, Row-Level Security для multi-tenant RAG
+- [[api-design|API Design]] — SSE, Minimal API, Server-Sent Events
+- [[testing|Testing]] — Testcontainers для интеграционных тестов RAG-пайплайна
 
 ## Reading list (внешнее)
 

@@ -2427,7 +2427,7 @@ var t = (X: 1, Y: 2);
 t = Modify(t);
 ```
 
-### 17.5. List<tuple> indexer — нельзя мутировать поле
+### 17.5. `List<tuple>` indexer — нельзя мутировать поле
 
 ```csharp
 var list = new List<(int X, int Y)> { (1, 2), (3, 4) };

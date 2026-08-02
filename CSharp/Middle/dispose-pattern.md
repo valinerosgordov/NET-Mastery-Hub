@@ -996,7 +996,7 @@ var service = scope.ServiceProvider.GetRequiredService<MyService>();
 
 ---
 
-## 10. Дисpose в наследовании
+## 10. Dispose в наследовании
 
 ### 10.1. Base реализует IDisposable
 

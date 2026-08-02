@@ -1,6 +1,7 @@
 ---
 tags: [wpf, mvvm, community-toolkit, viewmodel, xaml, dependency-injection]
 level: Middle
+date: 2026-08-02
 ---
 
 # Snippets — WPF ViewModels (MVVM Toolkit)

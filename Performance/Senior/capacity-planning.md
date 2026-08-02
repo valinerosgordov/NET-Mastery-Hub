@@ -247,7 +247,7 @@ Actual usage: 30% CPU, 40% RAM peak
 
 ## 9. Load testing для validation
 
-См.[[mutation-load-testing|Load Testing]].
+См. [[mutation-load-testing|Load Testing]].
 
 ```bash
 # k6 example
@@ -384,7 +384,7 @@ public ValueTask<User> GetAsync(int id)
 // Cache hit — zero alloc
 ```
 
-См.[[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
+См. [[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
 
 
 ---
@@ -464,9 +464,9 @@ Performance issue?
 
 - [[performance-fundamentals|Performance Fundamentals]]
 - [[bottleneck-analysis|Bottleneck Analysis]]
--[[mutation-load-testing|Load Testing]]
--[[distributed-systems|Distributed Systems]]
--[[observability|Observability]]
+- [[mutation-load-testing|Load Testing]]
+- [[distributed-systems|Distributed Systems]]
+- [[observability|Observability]]
 
 ## Reading list
 

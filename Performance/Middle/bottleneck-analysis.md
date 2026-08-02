@@ -104,7 +104,7 @@ LIMIT 20;
 - Connection pool exhaustion
 - High WAL writes
 
-См.[[optimization|SQL Optimization]].
+См. [[optimization|SQL Optimization]].
 
 ---
 
@@ -167,7 +167,7 @@ dotnet-stack report -p PID
 dotnet-counters monitor --counters System.Runtime[threadpool-thread-count,threadpool-queue-length]
 ```
 
-См.[[async-threading|Async Threading]].
+См. [[async-threading|Async Threading]].
 
 ### N+1 в EF Core
 
@@ -177,7 +177,7 @@ dotnet-counters monitor --counters System.Runtime[threadpool-thread-count,thread
 // Fix: Include / Select projection
 ```
 
-См.[[queries-performance|EF Performance]].
+См. [[queries-performance|EF Performance]].
 
 ---
 
@@ -365,7 +365,7 @@ public ValueTask<User> GetAsync(int id)
 // Cache hit — zero alloc
 ```
 
-См.[[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
+См. [[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
 
 
 ---
@@ -445,8 +445,8 @@ Performance issue?
 
 - [[performance-fundamentals|Performance Fundamentals]]
 - [[memory-profiling|Memory Profiling]]
--[[diagnostics-tools|Diagnostics Tools]]
--[[observability|Observability]]
+- [[diagnostics-tools|Diagnostics Tools]]
+- [[observability|Observability]]
 
 ## Reading list
 

@@ -1,6 +1,7 @@
 ---
 tags: [architecture, clean-architecture, vsa, system-design]
 level: Senior
+date: 2026-06-28
 ---
 
 # Архитектура и паттерны проектирования
@@ -1005,6 +1006,6 @@ public void Modules_Should_Only_Communicate_Through_Contracts()
 
 ## См. также
 
-- [CQRS и MediatR](cqrs-mediatr.md)
-- [Architecture Tests](arch-tests.md)
-- [EF Core Patterns]()
+- [[cqrs-mediatr|CQRS и MediatR]]
+- [[arch-tests|Architecture Tests]]
+- [[ef-patterns|EF Core Patterns]]

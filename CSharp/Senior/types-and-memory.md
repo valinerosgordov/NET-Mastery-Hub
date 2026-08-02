@@ -1482,7 +1482,7 @@ _counter.Value = 5;   // ❌ doesn't modify _counter (defensive copy для read
 
 **Фикс:** `readonly struct` + `init`-only properties.
 
-### 13.2. Struct в List<object>
+### 13.2. Struct в `List<object>`
 
 ```csharp
 struct Point { public int X, Y; }

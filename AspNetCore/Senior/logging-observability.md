@@ -1,6 +1,7 @@
 ---
 tags: [aspnet, logging, observability, opentelemetry, structured-logging]
 level: Senior
+date: 2026-06-28
 ---
 
 # Logging, Observability и диагностика

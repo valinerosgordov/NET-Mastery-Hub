@@ -1203,7 +1203,7 @@ Best of both — modern default:
 @page "/about"
 ```
 
-См. [Blazor Server](blazor-server.md).
+См. [[blazor-server|Blazor Server]].
 
 ---
 
@@ -1301,7 +1301,7 @@ Best of both — modern default:
 
 **Result:** 6 month migration без big bang.
 
-См.[[desktop-frameworks|Desktop Frameworks]] для full picture.
+См. [[desktop-frameworks|Desktop Frameworks]] для full picture.
 
 
 ---
@@ -1380,11 +1380,11 @@ Best of both — modern default:
 
 ## См. также
 
-- [Blazor Server](blazor-server.md) — server-side rendering model
-- [Desktop Frameworks]() — Avalonia / MAUI / Uno comparison
-- [Native AOT](native-aot.md) — AOT compilation для server (отличается от WASM AOT)
-- [Auth & Security](auth-security.md) — JWT для WASM
-- [Resilience](resilience.md) — retry policies для WASM HTTP
+- [[blazor-server|Blazor Server]] — server-side rendering model
+- [[desktop-frameworks|Desktop Frameworks]] — Avalonia / MAUI / Uno comparison
+- [[native-aot|Native AOT]] — AOT compilation для server (отличается от WASM AOT)
+- [[auth-security|Auth & Security]] — JWT для WASM
+- [[resilience|Resilience]] — retry policies для WASM HTTP
 
 ## Reading list
 

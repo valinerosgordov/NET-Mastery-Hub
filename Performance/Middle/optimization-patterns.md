@@ -1,7 +1,7 @@
 ---
 tags: [performance, optimization, patterns, hot-path]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Optimization Patterns — общие приёмы
@@ -92,7 +92,7 @@ var users = await _db.Users
     .ToListAsync();
 ```
 
-См.[[queries-performance|EF Queries Performance]].
+См. [[queries-performance|EF Queries Performance]].
 
 ### Pattern: Skip unchanged work
 
@@ -188,7 +188,7 @@ public byte[] Process()
 > [!info] Когда ArrayPool
 > Hot path с large temporary arrays. Если массив < 1 KB или редко — обычный `new` OK.
 
-См.[[span-layout|Span и Layout]].
+См. [[span-layout|Span и Layout]].
 
 ### Pattern: Cache instances (singleton)
 
@@ -231,7 +231,7 @@ public class MyService(IHttpClientFactory factory)
 }
 ```
 
-См.[[resilience|Resilience]].
+См. [[resilience|Resilience]].
 
 ---
 
@@ -372,7 +372,7 @@ await foreach (var task in Task.WhenEach(tasks))
 }
 ```
 
-См.[[async-threading|Async и Threading]].
+См. [[async-threading|Async и Threading]].
 
 ---
 
@@ -416,7 +416,7 @@ var order = await _db.Orders.FindAsync(id);
 await _db.Entry(order).Collection(o => o.Items).LoadAsync();
 ```
 
-См.[[queries-performance|EF Queries]].
+См. [[queries-performance|EF Queries]].
 
 ### Pattern: IEnumerable vs IList
 
@@ -549,7 +549,7 @@ public struct Point
 > - Mutable struct в LINQ — surprises
 > - Boxing если cast в interface — ещё хуже class
 
-См.[[types-and-memory|Types & Memory]].
+См. [[types-and-memory|Types & Memory]].
 
 ### Pattern: Span\<T\> для slicing без allocation
 
@@ -569,7 +569,7 @@ public bool StartsWithPrefix(string s)
 }
 ```
 
-См.[[span-layout|Span deep]].
+См. [[span-layout|Span deep]].
 
 ### Pattern: stackalloc для small temp arrays
 
@@ -643,7 +643,7 @@ public async IAsyncEnumerable<string> ReadAsync()
 
 ### Pattern: Index strategy
 
-См.[[optimization|SQL Optimization]].
+См. [[optimization|SQL Optimization]].
 
 ### Pattern: Read replicas
 
@@ -678,7 +678,7 @@ var page = await _db.Orders
     .ToListAsync();
 ```
 
-См.[[queries-performance|EF Queries]].
+См. [[queries-performance|EF Queries]].
 
 ---
 
@@ -806,9 +806,21 @@ await Parallel.ForEachAsync(
 
 ---
 
-## 14. Декision tree — какой паттерн
+## 14. Decision tree — какой паттерн
 
+### 14.1. Диагностика — где боль
+
+```text
+Performance issue?
+├── Latency (p99) → APM tools (App Insights, Datadog)
+├── Throughput (RPS limit) → load test + profiler
+├── Memory → snapshots (dotMemory, dotnet-dump)
+└── CPU → sampling profiler (dotTrace, perf)
 ```
+
+### 14.2. Выбор паттерна по bottleneck
+
+```text
 Slow code?
 ├── DB queries slow?
 │   ├── N+1 → Include/Select
@@ -832,6 +844,23 @@ Slow code?
     ├── Reflection → Source Generators
     └── Container init → Native AOT
 ```
+
+### 14.3. Сложность оптимизации и проверка
+
+```text
+Optimization сложность?
+├── Easy wins → caching, async/await, pagination
+├── Medium → query optimization, batch processing
+├── Hard → memory pooling, Span<T>, source generators
+└── Extreme → unsafe, SIMD, native AOT, custom allocator
+
+Проверка?
+├── Benchmark до/после → BenchmarkDotNet
+├── Real load test → k6, NBomber, JMeter
+└── Production canary → 5% → 50% → 100%
+```
+
+**Optimization rule:** Measure → Hypothesize → Optimize → Measure. Никогда не оптимизируй без data.
 
 ---
 
@@ -923,7 +952,7 @@ public ValueTask<User> GetAsync(int id)
 // Cache hit — zero alloc
 ```
 
-См.[[async-threading|async-threading]] и [[memory-pooling|Memory Pooling]].
+См. [[async-threading|Async и Threading]] и [[memory-pooling|Memory Pooling]].
 
 
 ---
@@ -964,51 +993,16 @@ public ValueTask<User> GetAsync(int id)
 
 ---
 
-## Decision tree
-
-```
-Performance issue?
-│
-├── Сначала — где боль?
-│   ├── Latency (p99) → APM tools (App Insights, Datadog)
-│   ├── Throughput (RPS limit) → load test + profiler
-│   ├── Memory → snapshots (dotMemory, dotnet-dump)
-│   └── CPU → sampling profiler (dotTrace, perf)
-│
-├── Bottleneck identified?
-│   ├── Database → query plan, indexes, N+1
-│   ├── Network → batching, HTTP/2, connection pooling
-│   ├── CPU → algorithmic complexity, allocations
-│   ├── Memory → object pooling, struct vs class
-│   └── Locks → ConcurrentDictionary, lock-free
-│
-├── Optimization сложность?
-│   ├── Easy wins → caching, async/await, pagination
-│   ├── Medium → query optimization, batch processing
-│   ├── Hard → memory pooling, Span<T>, source generators
-│   └── Extreme → unsafe, SIMD, native AOT, custom allocator
-│
-└── Проверка?
-    ├── Benchmark до/после → BenchmarkDotNet
-    ├── Real load test → k6, NBomber, JMeter
-    └── Production canary → 5% → 50% → 100%
-```
-
-**Optimization rule:** Measure → Hypothesize → Optimize → Measure. Никогда не оптимизируй без data.
-
-
----
-
 ## См. также
 
 - [[performance-fundamentals|Performance Fundamentals]]
 - [[caching-strategies|Caching Strategies]]
 - [[performance|Performance Deep]]
 - [[hft-low-latency|HFT / Low Latency]]
--[[gc-memory|GC и память]]
--[[span-layout|Span / Layout]]
--[[queries-performance|EF Queries Performance]]
--[[async-threading|Async и Threading]]
+- [[gc-memory|GC и память]]
+- [[span-layout|Span / Layout]]
+- [[queries-performance|EF Queries Performance]]
+- [[async-threading|Async и Threading]]
 
 ## Reading list
 

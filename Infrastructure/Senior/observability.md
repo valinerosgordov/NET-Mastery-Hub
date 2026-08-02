@@ -1,6 +1,7 @@
 ---
 tags: [observability, opentelemetry, prometheus, grafana, loki, tempo, sli, slo, alerting]
 level: Senior
+date: 2026-06-28
 ---
 
 # Observability — OpenTelemetry, метрики, traces, alerting
@@ -12,7 +13,7 @@ level: Senior
 ### Что такое observability?
 Способность **по внешним сигналам понимать что происходит внутри системы**: где тормозит, что падает, какая очередь забита, какой эндпоинт хитят. Не путай с monitoring (это только часть).
 
-**Аналогия:** Машина едет странно. Без observability ты только видишь что она тормозит. С observability у тебя bordcomputer — можешь посмотреть температуру каждого датчика, обороты, давление масла, какой цилиндр пропускает зажигание.
+**Аналогия:** Машина едет странно. Без observability ты только видишь что она тормозит. С observability у тебя бортовой компьютер — можешь посмотреть температуру каждого датчика, обороты, давление масла, какой цилиндр пропускает зажигание.
 
 ### Три pillars
 
@@ -341,7 +342,7 @@ _logger.LogInformation("User {UserId} placed order {OrderId} for {Total:C}",
 
 ### LoggerMessage source generator
 
-Production-ready logging без аллокаций (см. [Source Generators]()):
+Production-ready logging без аллокаций (см. [[source-generators|Source Generators]]:
 
 ```csharp
 public partial class OrderService
@@ -664,7 +665,7 @@ dotnet-counters monitor --process-id <pid> MyApp.Orders
 | **dotMemory / dotTrace** | Interactive UI, Windows + Mac |
 | **VS Profiler** | Dev-time |
 
-См. подробно в [Performance]().
+См. подробно в [[performance|Performance]].
 
 ---
 
@@ -713,7 +714,7 @@ dotnet-counters monitor --process-id <pid> MyApp.Orders
 
 ## Distributed tracing across messaging
 
-См. [Messaging](messaging.md) — `AddSource("MassTransit")` пробрасывает trace context через RabbitMQ messages.
+См. [[messaging|Messaging]] — `AddSource("MassTransit")` пробрасывает trace context через RabbitMQ messages.
 
 ```csharp
 // HTTP endpoint
@@ -801,13 +802,13 @@ Synchronous OTLP exporter блокирует request thread.
 
 ## См. также
 
-- [Logging и Observability (старая)]() — базовые ILogger паттерны
-- [Source Generators]() — LoggerMessage детально
-- [Messaging](messaging.md) — distributed tracing через RabbitMQ
-- [Distributed Systems]() — context propagation в saga
-- [Performance]() — profiling tools deep
-- [Resilience]() — Polly metrics, observability of failures
-- [Auth и Security]() — что **не** логировать (PII, secrets)
+- [[logging-observability|Logging и Observability (старая)]] — базовые ILogger паттерны
+- [[source-generators|Source Generators]] — LoggerMessage детально
+- [[messaging|Messaging]] — distributed tracing через RabbitMQ
+- [[distributed-systems|Distributed Systems]] — context propagation в saga
+- [[performance|Performance]] — profiling tools deep
+- [[resilience|Resilience]] — Polly metrics, observability of failures
+- [[auth-security|Auth и Security]] — что **не** логировать (PII, secrets)
 
 ## Reading list
 

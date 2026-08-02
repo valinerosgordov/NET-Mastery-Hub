@@ -1,6 +1,7 @@
 ---
 tags: [distributed-systems, outbox, idempotency, saga, masstransit, cap, eventual-consistency, tech-lead]
 level: Senior
+date: 2026-08-02
 ---
 
 # Distributed Systems Patterns в .NET — Outbox, Idempotency, Saga
@@ -1169,12 +1170,12 @@ Cluster (3 nodes минимум для quorum). Mirrored queues для крит�
 
 ## См. также
 
-- [CQRS и MediatR](cqrs-mediatr.md) — Command/Query разделение
-- [DDD на практике](ddd.md) — domain events, aggregates как boundary
-- [Messaging]() — RabbitMQ, MassTransit основы
-- [Resilience и HttpClient]() — Polly v8, circuit breaker, retry
-- [PostgreSQL Deep]() — advisory locks, row-version, transactions
-- [Logging и Observability]() — OpenTelemetry для distributed tracing
+- [[cqrs-mediatr|CQRS и MediatR]] — Command/Query разделение
+- [[ddd|DDD на практике]] — domain events, aggregates как boundary
+- [[messaging|Messaging]] — RabbitMQ, MassTransit основы
+- [[resilience|Resilience и HttpClient]] — Polly v8, circuit breaker, retry
+- [[postgresql-deep|PostgreSQL Deep]] — advisory locks, row-version, transactions
+- [[observability|Logging и Observability]] — OpenTelemetry для distributed tracing
 
 ## Reading list
 

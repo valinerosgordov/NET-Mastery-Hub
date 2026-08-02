@@ -1,6 +1,7 @@
 ---
 tags: [blazor, blazor-server, signalr, render-modes, dotnet-10, mudblazor]
 level: Senior
+date: 2026-06-28
 ---
 
 # Blazor Server — production guide
@@ -544,7 +545,7 @@ private async Task StartBackgroundUpdatesAsync(CancellationToken ct)
 }
 ```
 
-См. [LLM / RAG patterns]() — как сделать streaming endpoint, который отдаёт `IAsyncEnumerable`.
+См. [[llm-rag-patterns|LLM / RAG patterns]] — как сделать streaming endpoint, который отдаёт `IAsyncEnumerable`.
 
 ### Прямой SignalR hub без circuit
 
@@ -890,12 +891,12 @@ app.UseAntiforgery();
 
 ## См. также
 
-- [LLM / RAG patterns]() — streaming `IAsyncEnumerable` в Blazor UI (NexusAI deck generation)
-- [Pipeline и Middleware](pipeline-middleware.md) — порядок middleware для Blazor
-- [Auth и Security](auth-security.md) — JWT, claims, policies (применимо к Blazor)
-- [Resilience и HttpClient](resilience.md) — Polly для Blazor-клиентов API
-- [Performance]() — общие принципы для server-side Blazor
-- [Testing]() — bUnit как часть стека
+- [[llm-rag-patterns|LLM / RAG patterns]] — streaming `IAsyncEnumerable` в Blazor UI (NexusAI deck generation)
+- [[pipeline-middleware|Pipeline и Middleware]] — порядок middleware для Blazor
+- [[auth-security|Auth и Security]] — JWT, claims, policies (применимо к Blazor)
+- [[resilience|Resilience и HttpClient]] — Polly для Blazor-клиентов API
+- [[performance|Performance]] — общие принципы для server-side Blazor
+- [[testing|Testing]] — bUnit как часть стека
 
 ## Reading list
 

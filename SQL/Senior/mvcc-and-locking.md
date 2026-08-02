@@ -1,6 +1,7 @@
 ---
 tags: [postgresql, mvcc, locking, concurrency, deadlock, skip-locked, upsert, on-conflict, listen-notify, npgsql]
 level: Senior
+date: 2026-06-28
 ---
 
 # MVCC, блокировки и конкурентность в PostgreSQL

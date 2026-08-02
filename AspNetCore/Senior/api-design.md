@@ -1,6 +1,7 @@
 ---
 tags: [aspnet, api, controllers, minimal-api, versioning]
 level: Senior
+date: 2026-08-02
 ---
 
 # API: Model Binding, Controllers, Versioning
@@ -268,7 +269,7 @@ Features/
     ...
 ```
 
-Одна фича = одна папка. Удаление фичи = удаление папки. См. [VSA]().
+Одна фича = одна папка. Удаление фичи = удаление папки. См. [[architecture-patterns|VSA]].
 
 ### Альтернативы IEndpoint
 
@@ -306,7 +307,7 @@ Features/
 
 Атрибут — статическая метадата. В него **нельзя прокинуть зависимости через DI**. Как только нужно проверить уникальность email по базе, валидность купона через сервис или ограничения из `appsettings.json` — атрибутов не хватает.
 
-### Собственный IValidator<T> + MediatR behavior
+### Собственный `IValidator<T>` + MediatR behavior
 
 **Работает без внешних библиотек**:
 

@@ -1,6 +1,7 @@
 ---
 tags: [crud, minimal-api, handlers, ef-core, dto, full-example]
 level: Senior
+date: 2026-06-28
 ---
 
 # CRUD — полный пример от Endpoint до БД
@@ -404,7 +405,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
 ## См. также
 
-- [API Design]() — Minimal API vs Controllers, OpenAPI
-- [DDD на практике]() — Domain logic, Value Objects
-- [EF Core Queries](efcore-queries.md) — Оптимизация запросов, пагинация
-- [Result Pattern](result-pattern.md) — Result\<T\> детально
+- [[api-design|API Design]] — Minimal API vs Controllers, OpenAPI
+- [[ddd|DDD на практике]] — Domain logic, Value Objects
+- [[efcore-queries|EF Core Queries]] — Оптимизация запросов, пагинация
+- [[result-pattern|Result Pattern]] — Result\<T\> детально

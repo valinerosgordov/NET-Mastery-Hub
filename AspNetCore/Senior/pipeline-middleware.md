@@ -519,7 +519,7 @@ Native rate limiter работает **per-instance**. Для distributed (Redis
 // или собственная реализация через Redis sorted set + Lua script
 ```
 
-См.[System Design — Rate Limiter]()).
+См. [[system-design|System Design — Rate Limiter]].
 
 ---
 
@@ -751,7 +751,7 @@ static async Task HandleWebSocketAsync(WebSocket ws, CancellationToken ct)
 }
 ```
 
-Для production — лучше использовать **SignalR** (см. [SignalR](signalr.md)).
+Для production — лучше использовать **SignalR** (см. [[signalr|SignalR]]).
 
 ---
 
@@ -1266,13 +1266,13 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
 
 ## См. также
 
-- [DI и Configuration](di-configuration.md)
-- [Auth & Security](auth-security.md)
-- [API Design](api-design.md)
-- [Caching](caching.md) — Output cache vs Response cache vs Distributed cache
-- [Resilience](resilience.md) — Polly + middleware integration
-- [Logging & Observability](logging-observability.md)
--[Testing]()) — TestServer, WebApplicationFactory
+- [[di-configuration|DI и Configuration]]
+- [[auth-security|Auth & Security]]
+- [[api-design|API Design]]
+- [[caching|Caching]] — Output cache vs Response cache vs Distributed cache
+- [[resilience|Resilience]] — Polly + middleware integration
+- [[logging-observability|Logging & Observability]]
+- [[testing|Testing]] — TestServer, WebApplicationFactory
 
 ## Reading list
 

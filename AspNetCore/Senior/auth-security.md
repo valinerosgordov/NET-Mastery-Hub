@@ -1,6 +1,7 @@
 ---
 tags: [aspnet, auth, jwt, oauth2, oidc, cors, security, identityserver, keycloak, mtls]
 level: Senior
+date: 2026-06-28
 ---
 
 # Authentication, Authorization и безопасность
@@ -1058,7 +1059,7 @@ opts.AddPolicy("SameTenant", p => p.AddRequirements(new TenantRequirement()));
 app.MapGet("/api/{tenantId}/orders", (...) => ...).RequireAuthorization("SameTenant");
 ```
 
-См.[PostgreSQL Deep]()) — Row-Level Security как **нижний** слой защиты в многотенантной системе.
+См. [[postgresql-deep|PostgreSQL Deep]] — Row-Level Security как **нижний** слой защиты в многотенантной системе.
 
 ---
 
@@ -1082,7 +1083,7 @@ app.MapGet("/api/{tenantId}/orders", (...) => ...).RequireAuthorization("SameTen
 - [ ] Audit log всех auth-событий (login, logout, failed, role change)
 - [ ] Logging без чувствительных данных (никаких passwords/tokens в логах!)
 - [ ] DataProtection keys persisted (Redis / Azure / file system)
-- [ ] DataProtection — обновление до версии без [CVE-2026-40372](security-practices.md#security-advisories)
+- [ ] DataProtection — обновление до версии без [[security-practices|CVE-2026-40372]]
 
 ---
 
@@ -1093,7 +1094,7 @@ app.MapGet("/api/{tenantId}/orders", (...) => ...).RequireAuthorization("SameTen
 | **CVE-2026-40372** | DataProtection 10.0.0–10.0.6 | Update to 10.0.7+ |
 | Old IdentityServer4 | Все версии до 10/2024 | Migrate to OpenIddict |
 
-См. подробнее в [security-practices.md](security-practices.md).
+См. подробнее в [[security-practices|security-practices.md]].
 
 ---
 
@@ -1253,11 +1254,11 @@ Refresh — 30 days, в DB, revocable, one-time use.
 
 ## См. также
 
-- [Security Practices](security-practices.md) — password hashing, timing attacks, CVE-2026-40372
-- [API Design](api-design.md) — Minimal API + auth
-- [Caching](caching.md) — кэш permissions через `IClaimsTransformation`
--[PostgreSQL Deep]()) — RLS как defense-in-depth для multi-tenant
--[Distributed Systems]()) — propagation auth context между сервисами через OpenTelemetry baggage
+- [[security-practices|Security Practices]] — password hashing, timing attacks, CVE-2026-40372
+- [[api-design|API Design]] — Minimal API + auth
+- [[caching|Caching]] — кэш permissions через `IClaimsTransformation`
+- [[postgresql-deep|PostgreSQL Deep]] — RLS как defense-in-depth для multi-tenant
+- [[distributed-systems|Distributed Systems]] — propagation auth context между сервисами через OpenTelemetry baggage
 
 ## Reading list
 

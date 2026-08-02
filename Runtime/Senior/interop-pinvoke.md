@@ -280,7 +280,7 @@ using var file = CreateFileW("test.txt", ...);
 > [!info] CriticalFinalizerObject и финализация
 > SafeHandle наследует от CriticalFinalizerObject — финализатор всегда выполняется при shutdown CLR (даже после AppDomain.Unload). Гарантирует cleanup даже в катастрофических ситуациях.
 
-См. [GC и память — SafeHandle]().
+См. [[gc-memory|GC и память — SafeHandle]].
 
 ---
 
@@ -424,7 +424,7 @@ finally
 }
 ```
 
-См. [GC — GCHandle типы]().
+См. [[gc-memory|GC — GCHandle типы]].
 
 ### POH (.NET 5+) — pinned object heap
 
@@ -502,7 +502,7 @@ public partial interface IMyComObject
 
 ### COM в нашем mind: MetaTrader 5
 
-См.[HFT/Low-Latency]()) — паттерн STA-thread + COM для MT5 интеграции в .NET trading bot.
+См. [[hft-low-latency|HFT/Low-Latency]] — паттерн STA-thread + COM для MT5 интеграции в .NET trading bot.
 
 ---
 
@@ -599,7 +599,7 @@ using var view = existing.CreateViewAccessor();
 int value = view.ReadInt32(0);  // 42
 ```
 
-См.[IPC: Named Pipes & gRPC]()) — MMF для high-perf IPC.
+См. [[ipc-named-pipes-grpc|IPC: Named Pipes & gRPC]] — MMF для high-perf IPC.
 
 ---
 
@@ -883,7 +883,7 @@ public static void Main()
 }
 ```
 
-См.[HFT/Low-Latency]()) — полный паттерн STA-thread + COM для MT5 trading bot.
+См. [[hft-low-latency|HFT/Low-Latency]] — полный паттерн STA-thread + COM для MT5 trading bot.
 
 ---
 
@@ -949,13 +949,13 @@ Native interop нужен?
 
 ## См. также
 
-- [Compilation/JIT]() — как P/Invoke stubs работают
-- [GC и память]() — Pinning, SafeHandle, GCHandle
-- [Span и Memory Layout]() — Span в interop, MemoryMarshal
-- [Concurrency и Atomics]() — multithreading с native
--[HFT/Low-Latency]()) — MT5 COM, реальный case
--[IPC: Named Pipes & gRPC]()) — MMF для shared memory
--[Native AOT]()) — limitations interop в AOT
+- [[compilation-jit|Compilation/JIT]] — как P/Invoke stubs работают
+- [[gc-memory|GC и память]] — Pinning, SafeHandle, GCHandle
+- [[span-layout|Span и Memory Layout]] — Span в interop, MemoryMarshal
+- [[concurrency-atomics|Concurrency и Atomics]] — multithreading с native
+- [[hft-low-latency|HFT/Low-Latency]] — MT5 COM, реальный case
+- [[ipc-named-pipes-grpc|IPC: Named Pipes & gRPC]] — MMF для shared memory
+- [[native-aot|Native AOT]] — limitations interop в AOT
 
 ## Reading list
 

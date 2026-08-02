@@ -500,7 +500,7 @@ var orders = await _db.Orders
 
 ## Часть 4: Error handling — production strategies
 
-### Case Study #10: Result<T> vs Exceptions
+### Case Study #10: `Result<T>` vs Exceptions
 
 **Сценарий.** Validation в API. Failure — expected (user mistake), не error.
 

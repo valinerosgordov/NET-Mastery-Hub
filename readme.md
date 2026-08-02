@@ -26,13 +26,13 @@
 
 | Ты кто | Куда идти |
 |--------|-----------|
-| 🌱 **Никогда не писал на C#** | [`CSharp/Junior/csharp-basics.md`](CSharp/Junior/csharp-basics.md) |
-| 🌿 **Junior хочет в Middle** | [`LearningPath/02_junior-to-middle.md`](LearningPath/02_junior-to-middle.md) (3-6 месяцев план) |
-| 🌳 **Middle хочет в Senior** | [`LearningPath/03_middle-to-senior.md`](LearningPath/03_middle-to-senior.md) |
-| 🎤 **Готовлюсь к собесу** | [`LearningPath/04_interview-prep.md`](LearningPath/04_interview-prep.md) (1-2 недели спринт) |
-| 🏗️ **Проектирую новое приложение** | [`Architecture/Middle/real-world-scenarios.md`](Architecture/Middle/real-world-scenarios.md) — 18 сценариев с решениями |
-| 🤔 **Какой паттерн / архитектуру выбрать?** | [`Architecture/Middle/patterns-decision-guide.md`](Architecture/Middle/patterns-decision-guide.md) |
-| 📚 **Reference / lookup** | [`INDEX.md`](INDEX.md) — полное оглавление с описаниями |
+| 🌱 **Никогда не писал на C#** | [[csharp-basics|`CSharp/Junior/csharp-basics.md`]] |
+| 🌿 **Junior хочет в Middle** | [[02_junior-to-middle|`LearningPath/02_junior-to-middle.md`]] (3-6 месяцев план) |
+| 🌳 **Middle хочет в Senior** | [[03_middle-to-senior|`LearningPath/03_middle-to-senior.md`]] |
+| 🎤 **Готовлюсь к собесу** | [[04_interview-prep|`LearningPath/04_interview-prep.md`]] (1-2 недели спринт) |
+| 🏗️ **Проектирую новое приложение** | [[real-world-scenarios|`Architecture/Middle/real-world-scenarios.md`]] — 18 сценариев с решениями |
+| 🤔 **Какой паттерн / архитектуру выбрать?** | [[patterns-decision-guide|`Architecture/Middle/patterns-decision-guide.md`]] |
+| 📚 **Reference / lookup** | [[INDEX|`INDEX.md`]] — полное оглавление с описаниями |
 
 ### Как использовать
 
@@ -72,13 +72,13 @@ NET-Mastery-Hub/
 
 ## 📁 The 12 sections
 
-> Каждая папка имеет свой `README.md` с детальной навигацией внутри. Полный список файлов с описаниями — в [`INDEX.md`](INDEX.md).
+> Каждая папка имеет свой `README.md` с детальной навигацией внутри. Полный список файлов с описаниями — в [[INDEX|`INDEX.md`]].
 
 ### 🎓 [LearningPath](LearningPath/) — где начать (10 файлов)
 
 Roadmaps для роста: какие темы изучать в каком порядке + interview prep + reading list + топ-7 case studies.
 
-→ [Подробнее в LearningPath/README.md](LearningPath/README.md)
+→ [[README|Подробнее в LearningPath/README.md]]
 
 ### 💎 [CSharp](CSharp/) — язык (41 файл / ~2.4 MB) ⭐ самая большая
 
@@ -88,7 +88,7 @@ Roadmaps для роста: какие темы изучать в каком п�
 - **Middle:** modern-features, error-handling, nullable-types, generics-deep, delegates-events, equality-comparison, attributes-metadata, indexers-operators, dispose-pattern, io-streams, serialization-deep, bcl-essentials, numeric-types-math, keywords-reference
 - **Senior:** async-threading, types-and-memory, functional-csharp, design-patterns, gof-patterns-extended, reflection-expression-trees, source-generators, memory-pooling, unsafe-pointers, fenwick-bit, csharp-language-design, csharp-vs-other-langs, cli-tools-scripting, desktop-frameworks
 
-→ [Подробнее в CSharp/README.md](CSharp/README.md)
+→ [[README|Подробнее в CSharp/README.md]]
 
 ### ⚙️ [Runtime](Runtime/) — CLR internals (9 файлов)
 
@@ -96,7 +96,7 @@ Roadmaps для роста: какие темы изучать в каком п�
 - **Middle:** threading-basics
 - **Senior:** gc-memory, compilation-jit, concurrency-atomics, span-layout, interop-pinvoke, diagnostics-tools
 
-→ [Подробнее в Runtime/README.md](Runtime/README.md)
+→ [[README|Подробнее в Runtime/README.md]]
 
 ### 🌐 [AspNetCore](AspNetCore/) — web framework (23 файла / ~640 KB)
 
@@ -104,7 +104,7 @@ Roadmaps для роста: какие темы изучать в каком п�
 - **Middle:** aspnet-controllers-routing, aspnet-dependency-injection-deep, aspnet-error-handling, aspnet-rate-limiting, fluent-validation, http-client-resilience, object-mapping
 - **Senior:** api-design, auth-security, pipeline-middleware, di-configuration, caching, logging-observability, hosting-background, resilience, security-practices, signalr, graphql, blazor-server, blazor-wasm, native-aot, kestrel-as-raw-host
 
-→ [Подробнее в AspNetCore/README.md](AspNetCore/README.md)
+→ [[README|Подробнее в AspNetCore/README.md]]
 
 ### 💾 [EFCore](EFCore/) — ORM (13 файлов)
 
@@ -112,14 +112,14 @@ Roadmaps для роста: какие темы изучать в каком п�
 - **Middle:** ef-loading-strategies, ef-transactions-concurrency, ef-bulk-operations, ef-value-converters, dapper-comparison
 - **Senior:** basics-tracking, queries-performance, relationships, migrations, concurrency, ef-patterns
 
-→ [Подробнее в EFCore/README.md](EFCore/README.md)
+→ [[README|Подробнее в EFCore/README.md]]
 
 ### 🗄️ [SQL](SQL/) — relational DB (9 файлов)
 
 - **Junior:** sql-basics · **Middle:** indexes-deep
 - **Senior:** optimization, postgresql-deep, mvcc-and-locking, postgres-functions-triggers, sql-security, zero-downtime-migrations, eav-flexible-store-indexing
 
-→ [Подробнее в SQL/README.md](SQL/README.md)
+→ [[README|Подробнее в SQL/README.md]]
 
 ### 🏛️ [Architecture](Architecture/) — patterns & systems (16 файлов / ~520 KB)
 
@@ -127,7 +127,7 @@ Roadmaps для роста: какие темы изучать в каком п�
 - **Middle:** **patterns-decision-guide** (какой паттерн под задачу), **real-world-scenarios** (18 case studies), microservices-vs-monolith
 - **Senior:** architecture-patterns (N-Layer/Clean/VSA), agent-safe-architecture, solid, ddd, cqrs-mediatr, distributed-systems, system-design, architecture-decisions, arch-tests, twelve-factor-app, eip-content-based-router, webai-csharp-architecture
 
-→ [Подробнее в Architecture/README.md](Architecture/README.md)
+→ [[README|Подробнее в Architecture/README.md]]
 
 ### ✅ [Quality](Quality/) — clean code (5 файлов)
 
@@ -135,7 +135,7 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 > ⚠️ `clean-code.md` ≠ `code-quality.md` — это разные уровни одной темы (Junior принципы vs Senior tooling).
 
-→ [Подробнее в Quality/README.md](Quality/README.md)
+→ [[README|Подробнее в Quality/README.md]]
 
 ### 🧪 [Testing](Testing/) — testing strategies (5 файлов)
 
@@ -143,7 +143,7 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 > ⚠️ `testing.md` ≠ `testing-fundamentals.md` — это разные уровни (Senior tools vs Junior basics).
 
-→ [Подробнее в Testing/README.md](Testing/README.md)
+→ [[README|Подробнее в Testing/README.md]]
 
 ### ⚡ [Performance](Performance/) — производительность (12 файлов)
 
@@ -153,7 +153,7 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 > ⚠️ `performance.md` ≠ `performance-fundamentals.md` — Senior tools vs Junior basics.
 
-→ [Подробнее в Performance/README.md](Performance/README.md)
+→ [[README|Подробнее в Performance/README.md]]
 
 ### 🚢 [Infrastructure](Infrastructure/) — DevOps & deploy (14 файлов / ~470 KB)
 
@@ -161,13 +161,13 @@ Roadmaps для роста: какие темы изучать в каком п�
 - **Middle:** kubernetes, cicd-github-actions
 - **Senior:** docker, observability, messaging, api-gateway, nosql-databases, ipc-named-pipes-grpc, project-setup, wpf-production, llm-rag-patterns, semantic-kernel
 
-→ [Подробнее в Infrastructure/README.md](Infrastructure/README.md)
+→ [[README|Подробнее в Infrastructure/README.md]]
 
 ### 📋 [Snippets](Snippets/) — ready-to-copy (5 файлов)
 
 `crud-example`, `efcore-queries`, `mediatr-handlers`, `result-pattern`, `wpf-viewmodel`
 
-→ [Подробнее в Snippets/README.md](Snippets/README.md)
+→ [[README|Подробнее в Snippets/README.md]]
 
 ---
 
@@ -177,38 +177,38 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 ### Язык + Runtime (must-know internals)
 
-1. [`CSharp/Senior/async-threading.md`](CSharp/Senior/async-threading.md) — Task, async/await под капотом
-2. [`CSharp/Senior/types-and-memory.md`](CSharp/Senior/types-and-memory.md) — value vs reference, boxing, struct internals
-3. [`Runtime/Senior/gc-memory.md`](Runtime/Senior/gc-memory.md) — GC generations, regions, leaks
-4. [`Runtime/Senior/span-layout.md`](Runtime/Senior/span-layout.md) — Span\<T\>, ref struct, performance
-5. [`CSharp/Middle/generics-deep.md`](CSharp/Middle/generics-deep.md) — variance, INumber\<T\>, .NET 7+
+1. [[async-threading|`CSharp/Senior/async-threading.md`]] — Task, async/await под капотом
+2. [[types-and-memory|`CSharp/Senior/types-and-memory.md`]] — value vs reference, boxing, struct internals
+3. [[gc-memory|`Runtime/Senior/gc-memory.md`]] — GC generations, regions, leaks
+4. [[span-layout|`Runtime/Senior/span-layout.md`]] — Span\<T\>, ref struct, performance
+5. [[generics-deep|`CSharp/Middle/generics-deep.md`]] — variance, INumber\<T\>, .NET 7+
 
 ### Data + EF Core
 
-6. [`EFCore/Senior/basics-tracking.md`](EFCore/Senior/basics-tracking.md) — Change Tracker, AsNoTracking
-7. [`EFCore/Senior/queries-performance.md`](EFCore/Senior/queries-performance.md) — N+1, projections
-8. [`EFCore/Middle/dapper-comparison.md`](EFCore/Middle/dapper-comparison.md) — когда EF, когда Dapper
-9. [`SQL/Middle/indexes-deep.md`](SQL/Middle/indexes-deep.md) — query plans, B-tree internals
+6. [[basics-tracking|`EFCore/Senior/basics-tracking.md`]] — Change Tracker, AsNoTracking
+7. [[queries-performance|`EFCore/Senior/queries-performance.md`]] — N+1, projections
+8. [[dapper-comparison|`EFCore/Middle/dapper-comparison.md`]] — когда EF, когда Dapper
+9. [[indexes-deep|`SQL/Middle/indexes-deep.md`]] — query plans, B-tree internals
 
 ### Web framework
 
-10. [`AspNetCore/Senior/pipeline-middleware.md`](AspNetCore/Senior/pipeline-middleware.md) — request pipeline
-11. [`AspNetCore/Senior/auth-security.md`](AspNetCore/Senior/auth-security.md) — JWT, OAuth, OIDC
-12. [`AspNetCore/Middle/http-client-resilience.md`](AspNetCore/Middle/http-client-resilience.md) — HttpClient, IHttpClientFactory, retry/breaker
+10. [[pipeline-middleware|`AspNetCore/Senior/pipeline-middleware.md`]] — request pipeline
+11. [[auth-security|`AspNetCore/Senior/auth-security.md`]] — JWT, OAuth, OIDC
+12. [[http-client-resilience|`AspNetCore/Middle/http-client-resilience.md`]] — HttpClient, IHttpClientFactory, retry/breaker
 
 ### Архитектура
 
-13. [`Architecture/Middle/patterns-decision-guide.md`](Architecture/Middle/patterns-decision-guide.md) ⭐ — какой паттерн под какую задачу
-14. [`Architecture/Middle/real-world-scenarios.md`](Architecture/Middle/real-world-scenarios.md) ⭐ — 18 case studies
-15. [`Architecture/Senior/architecture-patterns.md`](Architecture/Senior/architecture-patterns.md) — N-Layer / Clean / VSA / Hybrid
-16. [`Architecture/Middle/microservices-vs-monolith.md`](Architecture/Middle/microservices-vs-monolith.md) — когда выбирать
-17. [`Architecture/Senior/ddd.md`](Architecture/Senior/ddd.md) — Bounded Contexts, Aggregates
+13. [[patterns-decision-guide|`Architecture/Middle/patterns-decision-guide.md`]] ⭐ — какой паттерн под какую задачу
+14. [[real-world-scenarios|`Architecture/Middle/real-world-scenarios.md`]] ⭐ — 18 case studies
+15. [[architecture-patterns|`Architecture/Senior/architecture-patterns.md`]] — N-Layer / Clean / VSA / Hybrid
+16. [[microservices-vs-monolith|`Architecture/Middle/microservices-vs-monolith.md`]] — когда выбирать
+17. [[ddd|`Architecture/Senior/ddd.md`]] — Bounded Contexts, Aggregates
 
 ### Quality + Testing + Infrastructure
 
-18. [`Testing/Junior/testing-fundamentals.md`](Testing/Junior/testing-fundamentals.md) — pyramid, FIRST principles
-19. [`Quality/code-review.md`](Quality/code-review.md) — process & culture
-20. [`Infrastructure/Senior/observability.md`](Infrastructure/Senior/observability.md) — OpenTelemetry, logs/metrics/traces
+18. [[testing-fundamentals|`Testing/Junior/testing-fundamentals.md`]] — pyramid, FIRST principles
+19. [[code-review|`Quality/code-review.md`]] — process & culture
+20. [[observability|`Infrastructure/Senior/observability.md`]] — OpenTelemetry, logs/metrics/traces
 
 ---
 
@@ -218,11 +218,11 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 | Файл | Зачем |
 |------|-------|
-| [`INDEX.md`](INDEX.md) | Полное оглавление: каждый файл + уровень + описание |
-| [`Architecture/Middle/patterns-decision-guide.md`](Architecture/Middle/patterns-decision-guide.md) | Под какую задачу — какой паттерн / архитектура |
-| [`Architecture/Middle/real-world-scenarios.md`](Architecture/Middle/real-world-scenarios.md) | 18 конкретных сценариев: меню, корзина, e-commerce, HFT, IoT |
-| [`LearningPath/00_overview.md`](LearningPath/00_overview.md) | Главная навигация по learning path |
-| [`LearningPath/05_topics-by-priority.md`](LearningPath/05_topics-by-priority.md) | Темы по приоритету value/effort |
+| [[INDEX|`INDEX.md`]] | Полное оглавление: каждый файл + уровень + описание |
+| [[patterns-decision-guide|`Architecture/Middle/patterns-decision-guide.md`]] | Под какую задачу — какой паттерн / архитектура |
+| [[real-world-scenarios|`Architecture/Middle/real-world-scenarios.md`]] | 18 конкретных сценариев: меню, корзина, e-commerce, HFT, IoT |
+| [[00_overview|`LearningPath/00_overview.md`]] | Главная навигация по learning path |
+| [[05_topics-by-priority|`LearningPath/05_topics-by-priority.md`]] | Темы по приоритету value/effort |
 
 ---
 
@@ -232,39 +232,39 @@ Roadmaps для роста: какие темы изучать в каком п�
 
 | Что | Куда |
 |-----|------|
-| Internal admin tool | [`real-world-scenarios.md` → сценарий 11](Architecture/Middle/real-world-scenarios.md) |
-| Малый интернет-магазин | [`real-world-scenarios.md` → сценарий 12](Architecture/Middle/real-world-scenarios.md) |
-| Крупный e-commerce | [`real-world-scenarios.md` → сценарий 13](Architecture/Middle/real-world-scenarios.md) |
-| Контент-портал / CMS | [`real-world-scenarios.md` → сценарий 14](Architecture/Middle/real-world-scenarios.md) |
-| SaaS B2B мульти-tenant | [`real-world-scenarios.md` → сценарий 15](Architecture/Middle/real-world-scenarios.md) |
-| HFT / Trading | [`Performance/Senior/hft-low-latency.md`](Performance/Senior/hft-low-latency.md) |
-| IoT платформа | [`real-world-scenarios.md` → сценарий 17](Architecture/Middle/real-world-scenarios.md) |
-| Desktop app (WPF) | [`CSharp/Senior/desktop-frameworks.md`](CSharp/Senior/desktop-frameworks.md) |
+| Internal admin tool | [[real-world-scenarios|`real-world-scenarios.md` → сценарий 11]] |
+| Малый интернет-магазин | [[real-world-scenarios|`real-world-scenarios.md` → сценарий 12]] |
+| Крупный e-commerce | [[real-world-scenarios|`real-world-scenarios.md` → сценарий 13]] |
+| Контент-портал / CMS | [[real-world-scenarios|`real-world-scenarios.md` → сценарий 14]] |
+| SaaS B2B мульти-tenant | [[real-world-scenarios|`real-world-scenarios.md` → сценарий 15]] |
+| HFT / Trading | [[hft-low-latency|`Performance/Senior/hft-low-latency.md`]] |
+| IoT платформа | [[real-world-scenarios|`real-world-scenarios.md` → сценарий 17]] |
+| Desktop app (WPF) | [[desktop-frameworks|`CSharp/Senior/desktop-frameworks.md`]] |
 
 ### "Мне нужно решить..."
 
 | Проблема | Куда |
 |----------|------|
-| N+1 query в EF | [`EFCore/Senior/queries-performance.md`](EFCore/Senior/queries-performance.md) |
-| Memory leak | [`Runtime/Senior/diagnostics-tools.md`](Runtime/Senior/diagnostics-tools.md) + [`Runtime/Senior/gc-memory.md`](Runtime/Senior/gc-memory.md) |
-| Slow database | [`SQL/Senior/optimization.md`](SQL/Senior/optimization.md) + [`SQL/Middle/indexes-deep.md`](SQL/Middle/indexes-deep.md) |
-| ThreadPool starvation | [`CSharp/Senior/async-threading.md`](CSharp/Senior/async-threading.md) + [`Runtime/Middle/threading-basics.md`](Runtime/Middle/threading-basics.md) |
-| Сетевые вызовы падают / ретраи | [`AspNetCore/Middle/http-client-resilience.md`](AspNetCore/Middle/http-client-resilience.md) + [`AspNetCore/Senior/resilience.md`](AspNetCore/Senior/resilience.md) |
-| JSON-контракт / сериализация | [`CSharp/Middle/serialization-deep.md`](CSharp/Middle/serialization-deep.md) |
-| Distributed transactions | [`Architecture/Senior/distributed-systems.md`](Architecture/Senior/distributed-systems.md) |
-| API versioning | [`AspNetCore/Senior/api-design.md`](AspNetCore/Senior/api-design.md) |
-| Caching strategy | [`AspNetCore/Senior/caching.md`](AspNetCore/Senior/caching.md) + [`Performance/Middle/caching-strategies.md`](Performance/Middle/caching-strategies.md) |
-| Auth / Identity | [`AspNetCore/Senior/auth-security.md`](AspNetCore/Senior/auth-security.md) |
+| N+1 query в EF | [[queries-performance|`EFCore/Senior/queries-performance.md`]] |
+| Memory leak | [[diagnostics-tools|`Runtime/Senior/diagnostics-tools.md`]] + [[gc-memory|`Runtime/Senior/gc-memory.md`]] |
+| Slow database | [[optimization|`SQL/Senior/optimization.md`]] + [[indexes-deep|`SQL/Middle/indexes-deep.md`]] |
+| ThreadPool starvation | [[async-threading|`CSharp/Senior/async-threading.md`]] + [[threading-basics|`Runtime/Middle/threading-basics.md`]] |
+| Сетевые вызовы падают / ретраи | [[http-client-resilience|`AspNetCore/Middle/http-client-resilience.md`]] + [[resilience|`AspNetCore/Senior/resilience.md`]] |
+| JSON-контракт / сериализация | [[serialization-deep|`CSharp/Middle/serialization-deep.md`]] |
+| Distributed transactions | [[distributed-systems|`Architecture/Senior/distributed-systems.md`]] |
+| API versioning | [[api-design|`AspNetCore/Senior/api-design.md`]] |
+| Caching strategy | [[caching|`AspNetCore/Senior/caching.md`]] + [[caching-strategies|`Performance/Middle/caching-strategies.md`]] |
+| Auth / Identity | [[auth-security|`AspNetCore/Senior/auth-security.md`]] |
 
 ### "Готовлюсь к интервью на..."
 
 | Уровень | Куда |
 |---------|------|
-| Junior C# | [`LearningPath/02_junior-to-middle.md`](LearningPath/02_junior-to-middle.md) |
-| Middle .NET | [`LearningPath/03_middle-to-senior.md`](LearningPath/03_middle-to-senior.md) + Top-20 список выше |
+| Junior C# | [[02_junior-to-middle|`LearningPath/02_junior-to-middle.md`]] |
+| Middle .NET | [[03_middle-to-senior|`LearningPath/03_middle-to-senior.md`]] + Top-20 список выше |
 | Senior .NET | Top-20 список + [`Architecture/`](Architecture/) полностью |
-| Behavioral / soft | [`LearningPath/10_interview-behavioral.md`](LearningPath/10_interview-behavioral.md) |
-| Final sprint (1 неделя) | [`LearningPath/04_interview-prep.md`](LearningPath/04_interview-prep.md) + [`LearningPath/09_senior-tips-cheatsheet.md`](LearningPath/09_senior-tips-cheatsheet.md) |
+| Behavioral / soft | [[10_interview-behavioral|`LearningPath/10_interview-behavioral.md`]] |
+| Final sprint (1 неделя) | [[04_interview-prep|`LearningPath/04_interview-prep.md`]] + [[09_senior-tips-cheatsheet|`LearningPath/09_senior-tips-cheatsheet.md`]] |
 
 ---
 

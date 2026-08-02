@@ -1,6 +1,7 @@
 ---
 tags: [sql, indexes, query-plans, optimization]
 level: Senior
+date: 2026-08-02
 ---
 
 # Оптимизация SQL
@@ -1189,22 +1190,6 @@ App connections idle быстро возвращаются к PgBouncer для r
 
 ---
 
-## Cleanup — sections relocations
-
-После expansion файл logically structured:
-1. Indexes (existing)
-2. Execution plans + Join algorithms (existing)
-3. Pagination, N+1, Bulk (existing)
-4. Transactions (existing)
-5. **Partitioning (NEW)**
-6. **Materialized Views (NEW)**
-7. **CTE (NEW)**
-8. **Window Functions (NEW)**
-9. **JSON queries (NEW)**
-10. **EXPLAIN deep (NEW)**
-11. **PgBouncer (NEW)**
-
----
 
 ## Reading list (extended)
 

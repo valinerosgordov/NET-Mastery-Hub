@@ -1,3 +1,9 @@
+---
+tags: [senior, tips, patterns, cheatsheet]
+level: Senior
+date: 2026-08-02
+---
+
 # C# Senior-Level Tips, Patterns & Anti-Patterns
 
 > Концентрат Senior-практик: allocation-free паттерны (`Span<T>`, `ArrayPool<T>`, `FrozenDictionary`), async-дисциплина, DI, source generators, pattern matching, тестирование и security-чеклист — с готовыми сниппетами и явными anti-patterns.
@@ -8,7 +14,7 @@
 
 ## 1. Performance & Allocation-Free Patterns
 
-### Span<T> / Memory<T> -- горячие пути
+### `Span<T>` / `Memory<T>` -- горячие пути
 
 ```csharp
 // Parsing без аллокаций
@@ -22,7 +28,7 @@ ReadOnlySpan<char> trimmed = line.AsSpan().Trim();
 if (trimmed.StartsWith("//")) return; // no string allocation
 ```
 
-### ArrayPool<T> -- переиспользование буферов
+### `ArrayPool<T>` -- переиспользование буферов
 
 ```csharp
 var buffer = ArrayPool<byte>.Shared.Rent(4096);
@@ -63,7 +69,7 @@ public ValueTask<User?> GetByIdAsync(Guid id, CancellationToken ct)
 }
 ```
 
-### params ReadOnlySpan<T> -- zero-alloc variadic
+### params `ReadOnlySpan<T>` -- zero-alloc variadic
 
 ```csharp
 // C# 14: params с Span — нет скрытой аллокации массива

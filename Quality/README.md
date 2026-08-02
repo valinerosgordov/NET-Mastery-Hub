@@ -2,7 +2,7 @@
 
 > 5 файлов / ~135 KB. Clean code (Junior принципы) + Senior tooling (analyzers, SonarCloud).
 
-[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
+[[README|← Главный README]] · [[INDEX|Полный INDEX]]
 
 ---
 
@@ -10,10 +10,10 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Junior, basics | [`clean-code.md`](Junior/clean-code.md) — naming, principles |
-| На code review | [`code-review.md`](code-review.md) |
-| Setup analyzers / SonarCloud | [`code-quality.md`](Senior/code-quality.md), [`static-analysis.md`](Senior/static-analysis.md) |
-| Refactor legacy | [`refactoring.md`](Middle/refactoring.md) |
+| Junior, basics | [[clean-code|`clean-code.md`]] — naming, principles |
+| На code review | [[code-review|`code-review.md`]] |
+| Setup analyzers / SonarCloud | [[code-quality|`code-quality.md`]], [[static-analysis|`static-analysis.md`]] |
+| Refactor legacy | [[refactoring|`refactoring.md`]] |
 
 ---
 
@@ -23,14 +23,14 @@
 
 | Файл | Описание |
 |------|----------|
-| [`clean-code.md`](Junior/clean-code.md) | Naming, principles, fundamentals (universal) |
+| [[clean-code|`clean-code.md`]] | Naming, principles, fundamentals (universal) |
 
 ### Senior — tools
 
 | Файл | Описание |
 |------|----------|
-| [`code-quality.md`](Senior/code-quality.md) | Analyzers, EditorConfig, SonarCloud |
-| [`static-analysis.md`](Senior/static-analysis.md) | Roslyn analyzers, .editorconfig |
+| [[code-quality|`code-quality.md`]] | Analyzers, EditorConfig, SonarCloud |
+| [[static-analysis|`static-analysis.md`]] | Roslyn analyzers, .editorconfig |
 
 > ⚠️ **`clean-code.md` ≠ `code-quality.md`** — это разные уровни:  
 > `clean-code` — принципы, **что** такое хороший код (Junior)  
@@ -40,13 +40,13 @@
 
 | Файл | Описание |
 |------|----------|
-| [`code-review.md`](code-review.md) | Code review process & culture |
-| [`refactoring.md`](Middle/refactoring.md) | Refactoring techniques (Fowler-style) |
+| [[code-review|`code-review.md`]] | Code review process & culture |
+| [[refactoring|`refactoring.md`]] | Refactoring techniques (Fowler-style) |
 
 ---
 
 ## 🔗 Связанные папки
 
-- [`Architecture/Senior/solid.md`](../Architecture/Senior/solid.md) — principles foundation
-- [`Architecture/Senior/arch-tests.md`](../Architecture/Senior/arch-tests.md) — automated architecture quality
+- [[solid|`Architecture/Senior/solid.md`]] — principles foundation
+- [[arch-tests|`Architecture/Senior/arch-tests.md`]] — automated architecture quality
 - [`Testing/`](../Testing/) — tests как часть quality

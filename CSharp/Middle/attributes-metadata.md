@@ -230,7 +230,7 @@ Routing, model binding, authorization — всё через атрибуты.
 
 ---
 
-## 3. Применение и synthax
+## 3. Применение и syntax
 
 ### 3.1. К чему можно применять
 

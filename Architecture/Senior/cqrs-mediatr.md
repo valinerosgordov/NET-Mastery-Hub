@@ -1,6 +1,7 @@
 ---
 tags: [cqrs, mediator, mediatr, fastendpoints, vsa, pipeline-behaviors]
 level: Senior
+date: 2026-06-28
 ---
 
 # CQRS и Mediator pattern
@@ -249,7 +250,7 @@ public sealed class CreateOrderEndpoint : IEndpoint
 public sealed record CreateOrderRequest(string Customer, decimal Total, List<OrderItemDto> Items);
 ```
 
-См. подробно в [API Design]() — `IEndpoint` pattern.
+См. подробно в [[api-design|API Design]] — `IEndpoint` pattern.
 
 ---
 
@@ -374,7 +375,7 @@ public sealed class RetryBehavior<TRequest, TResponse>(ILogger<RetryBehavior<TRe
 }
 ```
 
-См. [Resilience]() — Polly v8 deep.
+См. [[resilience|Resilience]] — Polly v8 deep.
 
 ### Caching behavior
 
@@ -481,7 +482,7 @@ services.AddMediatR(cfg =>
 ### Pitfall — exception в одном handler ломает все
 
 В default sequential — exception у первого handler stops остальных.
-**Решение:** правильно обрабатывать ошибки в каждом handler, или использовать **distributed events через message bus** (см. [Messaging]()).
+**Решение:** правильно обрабатывать ошибки в каждом handler, или использовать **distributed events через message bus** (см. [[messaging|Messaging]].
 
 Notification pattern в Mediator — для **in-process events**. Для durable events между сервисами — RabbitMQ/MassTransit.
 
@@ -512,7 +513,7 @@ Query ◄─────────────────────  Read D
 - Read RPS >> write RPS (можно scale read DB independently)
 - Сложные queries которые делать на write side дорого
 
-См. [Distributed Systems / CQRS read models](distributed-systems.md#eventual-consistency-и-read-models-cqrs) — детально.
+См. [[distributed-systems|Distributed Systems / CQRS read models]] — детально.
 
 ---
 
@@ -659,13 +660,13 @@ Query handler меняет state? Нет — read-only. AsNoTracking обяза�
 
 ## См. также
 
-- [Architecture Patterns]() — Clean, VSA, modular monolith
-- [DDD на практике](ddd.md) — domain logic в Aggregate, не в handler
-- [Distributed Systems](distributed-systems.md) — saga, outbox, event-driven CQRS
-- [Result Pattern]() — return values handlers
-- [Caching]() — caching pipeline behavior
-- [Resilience]() — retry pipeline behavior
-- [Testing]() — тесты handlers с моками
+- [[architecture-patterns|Architecture Patterns]] — Clean, VSA, modular monolith
+- [[ddd|DDD на практике]] — domain logic в Aggregate, не в handler
+- [[distributed-systems|Distributed Systems]] — saga, outbox, event-driven CQRS
+- [[result-pattern|Result Pattern]] — return values handlers
+- [[caching|Caching]] — caching pipeline behavior
+- [[resilience|Resilience]] — retry pipeline behavior
+- [[testing|Testing]] — тесты handlers с моками
 
 ## Reading list
 

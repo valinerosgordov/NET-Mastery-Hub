@@ -1109,14 +1109,14 @@ EF Core решение?
 
 ## См. также
 
-- [EF Core Basics & Tracking](basics-tracking.md)
-- [EF Core Concurrency](concurrency.md)
--[EF Core Patterns]())
--[Kubernetes — Helm pre-upgrade hooks]())
--[Docker — миграции в контейнере]())
--[PostgreSQL Deep — Advisory Locks]())
--[SQL Optimization — индексы]())
--[Distributed Systems — Outbox через миграции]())
+- [[basics-tracking|EF Core Basics & Tracking]]
+- [[concurrency|EF Core Concurrency]]
+- [[ef-patterns|EF Core Patterns]]
+- [[kubernetes|Kubernetes — Helm pre-upgrade hooks]]
+- [[docker|Docker — миграции в контейнере]]
+- [[postgresql-deep|PostgreSQL Deep — Advisory Locks]]
+- [[optimization|SQL Optimization — индексы]]
+- [[distributed-systems|Distributed Systems — Outbox через миграции]]
 
 ## Reading list
 

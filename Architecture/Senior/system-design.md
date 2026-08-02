@@ -1,6 +1,7 @@
 ---
 tags: [system-design, interview, tech-lead, rate-limiter, url-shortener, feed, cache]
 level: Senior
+date: 2026-06-28
 ---
 
 # System Design — типовые ответы для Tech Lead интервью
@@ -740,7 +741,7 @@ TF_BM25 — saturates at high frequency, normalizes by document length
 
 ### Hybrid search (BM25 + vectors)
 
-См. подробнее в [LLM/RAG patterns](). Ключ — fusion top-K через RRF (Reciprocal Rank Fusion).
+См. подробнее в [[llm-rag-patterns|LLM/RAG patterns]]. Ключ — fusion top-K через RRF (Reciprocal Rank Fusion).
 
 ### Когда что
 
@@ -798,13 +799,13 @@ TF_BM25 — saturates at high frequency, normalizes by document length
 
 ## См. также
 
-- [Distributed Systems Patterns](distributed-systems.md) — Outbox, Idempotency, Saga
-- [PostgreSQL Deep]() — RLS, JSONB, partitioning
-- [LLM / RAG patterns]() — search, embeddings, hybrid
-- [Caching]() — IMemoryCache, IDistributedCache
-- [Resilience]() — retry, circuit breaker, timeout
-- [Observability]() — OpenTelemetry, metrics, traces
-- [Behavioral](../Meta/behavioral.md) — soft skills для tech lead
+- [[distributed-systems|Distributed Systems Patterns]] — Outbox, Idempotency, Saga
+- [[postgresql-deep|PostgreSQL Deep]] — RLS, JSONB, partitioning
+- [[llm-rag-patterns|LLM / RAG patterns]] — search, embeddings, hybrid
+- [[caching|Caching]] — IMemoryCache, IDistributedCache
+- [[resilience|Resilience]] — retry, circuit breaker, timeout
+- [[observability|Observability]] — OpenTelemetry, metrics, traces
+- [[10_interview-behavioral|Behavioral]] — soft skills для tech lead
 
 ## Reading list
 

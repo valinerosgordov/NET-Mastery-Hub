@@ -242,7 +242,7 @@ var hierarchy = await context.Database
     .ToListAsync(ct);
 ```
 
-См.[PostgreSQL Deep — Recursive CTE]()).
+См. [[postgresql-deep|PostgreSQL Deep — Recursive CTE]].
 
 ---
 
@@ -784,7 +784,7 @@ var usersWithPhone = await context.Users
 - Часто фильтруется/JOIN'ится по этим полям
 - Большие JSON (KB+) — затрудняет index-only scan
 
-См.[PostgreSQL Deep — JSONB]()).
+См. [[postgresql-deep|PostgreSQL Deep — JSONB]].
 
 ---
 
@@ -941,7 +941,7 @@ modelBuilder.Entity<Order>(entity =>
 - `WHERE C = ?` ✗ (без A, B)
 - `ORDER BY B, A` ✗ (другой порядок)
 
-См.[SQL Optimization — индексы]()).
+См. [[optimization|SQL Optimization — индексы]].
 
 ---
 
@@ -1319,13 +1319,13 @@ modelBuilder.Entity<Comment>()
 
 ## См. также
 
-- [EF Core Basics & Tracking](basics-tracking.md)
-- [EF Core Migrations](migrations.md)
-- [EF Core Concurrency](concurrency.md)
--[EF Core Patterns]()) — Repository, soft delete, audit interceptors
--[DDD на практике]()) — Aggregate roots, Value Objects
--[PostgreSQL Deep — JSONB]())
--[SQL Optimization — индексы]())
+- [[basics-tracking|EF Core Basics & Tracking]]
+- [[migrations|EF Core Migrations]]
+- [[concurrency|EF Core Concurrency]]
+- [[ef-patterns|EF Core Patterns]] — Repository, soft delete, audit interceptors
+- [[ddd|DDD на практике]] — Aggregate roots, Value Objects
+- [[postgresql-deep|PostgreSQL Deep — JSONB]]
+- [[optimization|SQL Optimization — индексы]]
 
 ## Reading list
 

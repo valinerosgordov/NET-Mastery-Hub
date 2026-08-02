@@ -1,6 +1,7 @@
 ---
 tags: [di, dependency-injection, configuration, options, keyed-services, ioptions, aot]
 level: Senior
+date: 2026-08-02
 ---
 
 # Dependency Injection и Configuration
@@ -387,7 +388,7 @@ builder.Services
     .ValidateOnStart();
 ```
 
-См. [Native AOT](native-aot.md) и [Source Generators]().
+См. [[native-aot|Native AOT]] и [[source-generators|Source Generators]].
 
 ---
 
@@ -577,7 +578,7 @@ await using var scope = serviceProvider.CreateAsyncScope();
 // ↑ async dispose calls IAsyncDisposable.DisposeAsync()
 ```
 
-См. [HFT/Low-Latency]() — почему `GetAwaiter().GetResult()` в Dispose — антипаттерн.
+См. [[hft-low-latency|HFT/Low-Latency]] — почему `GetAwaiter().GetResult()` в Dispose — антипаттерн.
 
 ---
 
@@ -641,7 +642,7 @@ services.Configure<JwtOptions>(opts => opts.Key = "override");
 ```
 Может быть unexpected. Лучше один `Configure` + `IConfigureOptions<T>` для extensions.
 
-### 7. Lazy<T> capture
+### 7. `Lazy<T>` capture
 
 ```csharp
 public class Service(Lazy<IDependency> dep)
@@ -656,7 +657,7 @@ public class Service(Lazy<IDependency> dep)
 
 ### 9. Connection string в config plain text
 В `appsettings.json` хранить пароль БД — git leak.
-**Решение:** secrets manager (см. [Auth & Security / Secrets Management](auth-security.md#secrets-management)).
+**Решение:** secrets manager (см. [[auth-security|Auth & Security / Secrets Management]]).
 
 ### 10. Не использовать `IOptionsValidation`
 Невалидные options ломают app в runtime когда уже late.
@@ -681,24 +682,14 @@ public class Service(Lazy<IDependency> dep)
 
 ---
 
-## Common pitfalls (повтор как checklist)
-
-- [ ] Captive dependency — Singleton ← Scoped
-- [ ] Service Locator pattern — обнаружить и refactor
-- [ ] Mutable Singleton — добавить thread-safety или сделать immutable
-- [ ] Forgotten registration — ValidateOnBuild
-- [ ] Plain-text secrets в config
-
----
-
 ## См. также
 
-- [Auth и Security](auth-security.md) — secrets management, configuration security
-- [Hosting и Background](hosting-background.md) — `IServiceScopeFactory` в BackgroundService
-- [Native AOT](native-aot.md) — ConfigurationBindingGenerator для AOT
-- [Caching](caching.md) — `IOptionsMonitor` для hot-reload feature flags
-- [Pipeline и Middleware](pipeline-middleware.md) — middleware order, IOC integration
-- [Source Generators]() — Configuration Binding Source Generator
+- [[auth-security|Auth и Security]] — secrets management, configuration security
+- [[hosting-background|Hosting и Background]] — `IServiceScopeFactory` в BackgroundService
+- [[native-aot|Native AOT]] — ConfigurationBindingGenerator для AOT
+- [[caching|Caching]] — `IOptionsMonitor` для hot-reload feature flags
+- [[pipeline-middleware|Pipeline и Middleware]] — middleware order, IOC integration
+- [[source-generators|Source Generators]] — Configuration Binding Source Generator
 
 ## Reading list
 

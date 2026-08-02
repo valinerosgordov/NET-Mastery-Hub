@@ -1,6 +1,7 @@
 ---
 tags: [polly, resilience, httpclient, retry, circuit-breaker, timeout, hedging, observability]
 level: Senior
+date: 2026-06-28
 ---
 
 # Resilience и HttpClient
@@ -367,7 +368,7 @@ public async Task<Product?> GetResilientAsync(int id, CancellationToken ct)
 }
 ```
 
-См. [Caching](caching.md) — детали cache resilience pattern.
+См. [[caching|Caching]] — детали cache resilience pattern.
 
 ---
 
@@ -393,7 +394,7 @@ public async Task<Product?> GetResilientAsync(int id, CancellationToken ct)
 Без bulkhead: 1000 параллельных HTTP calls к slow downstream → ThreadPool starvation → весь сервис тормозит.
 С bulkhead: только 100 параллельных → быстрее fail fast для лишних → ThreadPool свободен для других операций.
 
-См. также [HFT / Low-Latency]() — `Channel<T>` как natural bulkhead.
+См. также [[hft-low-latency|HFT / Low-Latency]] — `Channel<T>` как natural bulkhead.
 
 ---
 
@@ -478,7 +479,7 @@ builder.Services.AddHttpClient<WeatherClient>(client =>
 .AddStandardResilienceHandler();
 ```
 
-См. [auth-security.md / OpenAI typed HttpClient](llm-rag-patterns.md#openai-через-typed-httpclient--addresiliencehandler) — расширенный пример с custom config.
+См. [[llm-rag-patterns|auth-security.md / OpenAI typed HttpClient]] — расширенный пример с custom config.
 
 ---
 
@@ -514,7 +515,7 @@ Smart alerts:
   severity: critical
 ```
 
-См. [Observability]() — full setup.
+См. [[observability|Observability]] — full setup.
 
 ---
 
@@ -642,12 +643,12 @@ Retry × 3 + per-attempt timeout 10s + circuit breaker delays = пользова
 
 ## См. также
 
-- [Auth и Security](auth-security.md) — typed HttpClient + auth integration
-- [Caching](caching.md) — cache как fallback
-- [Observability]() — Polly metrics, alerting
-- [Distributed Systems]() — idempotency для retry safety
-- [HFT / Low-Latency]() — Channel<T> как bulkhead
-- [System Design]() — resilience в архитектуре
+- [[auth-security|Auth и Security]] — typed HttpClient + auth integration
+- [[caching|Caching]] — cache как fallback
+- [[observability|Observability]] — Polly metrics, alerting
+- [[distributed-systems|Distributed Systems]] — idempotency для retry safety
+- [[hft-low-latency|HFT / Low-Latency]] — Channel<T> как bulkhead
+- [[system-design|System Design]] — resilience в архитектуре
 
 ## Reading list
 

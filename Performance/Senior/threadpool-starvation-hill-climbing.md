@@ -242,4 +242,4 @@ ThreadPool.SetMinThreads(prime, prime);
 - [[async-threading|Async и Threading]] — async/await, sync-over-async, ConfigureAwait
 - [[threading-basics|Threading Basics]] — Thread, ThreadPool, TPL, starvation на уровне Middle
 - [[hft-low-latency|HFT и Low-Latency]] — SetMinThreads для cold-start, dedicated threads
-- [performance](performance.md) — профилирование, dotnet-counters, диагностика
+- [[performance|performance]] — профилирование, dotnet-counters, диагностика

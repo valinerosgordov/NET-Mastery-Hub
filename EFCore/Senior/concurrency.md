@@ -420,7 +420,7 @@ scope.Complete();
 
 С .NET Core убрана поддержка `MSDTC`. Distributed transactions через `TransactionScope` работают только в .NET Framework / Windows + специальные ситуации .NET 7+.
 
-**Правильное решение в современных системах** — **Outbox pattern** для cross-service consistency. См.[Distributed Systems]()).
+**Правильное решение в современных системах** — **Outbox pattern** для cross-service consistency. См. [[distributed-systems|Distributed Systems]].
 
 ---
 
@@ -690,7 +690,7 @@ public class CronJobService(AppDbContext context, ILogger<CronJobService> log)
 
 ### Применение: prevent concurrent migration
 
-См. [EF Core Migrations](migrations.md#применение-миграций-при-старте-app--не-рекомендуется).
+См. [[migrations|EF Core Migrations]].
 
 ---
 
@@ -736,7 +736,7 @@ else
 // auto-release при Dispose
 ```
 
-См.[Distributed Systems — Distributed Locking]()).
+См. [[distributed-systems|Distributed Systems — Distributed Locking]].
 
 ---
 
@@ -1138,13 +1138,13 @@ EF Core решение?
 ## См. также
 
 - [[ef-transactions-concurrency|EF Transactions & Concurrency]] — Middle-уровень: транзакции, SaveChanges-атомарность, optimistic concurrency базово
-- [EF Core Basics & Tracking](basics-tracking.md)
-- [EF Core Migrations](migrations.md)
--[EF Core Patterns]())
--[PostgreSQL Deep — Advisory Locks, MVCC]())
--[SQL Optimization — Isolation, Deadlocks]())
--[Distributed Systems — Sagas, RedLock, Outbox]())
--[Concurrency и Atomics]()) — низкоуровневая concurrency
+- [[basics-tracking|EF Core Basics & Tracking]]
+- [[migrations|EF Core Migrations]]
+- [[ef-patterns|EF Core Patterns]]
+- [[postgresql-deep|PostgreSQL Deep — Advisory Locks, MVCC]]
+- [[optimization|SQL Optimization — Isolation, Deadlocks]]
+- [[distributed-systems|Distributed Systems — Sagas, RedLock, Outbox]]
+- [[concurrency-atomics|Concurrency и Atomics]] — низкоуровневая concurrency
 
 ## Reading list
 

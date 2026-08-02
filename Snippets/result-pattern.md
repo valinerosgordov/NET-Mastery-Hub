@@ -1,13 +1,14 @@
 ---
 tags: [result-pattern, error-handling, railway-oriented, minimal-api]
 level: Middle
+date: 2026-08-02
 ---
 
-# Snippets — Result<T> Pattern
+# Snippets — `Result<T>` Pattern
 
 > Кастомный `Result<T>` + `Error` record как замена исключениям: фабрики Ok/Fail, `Match()` для маппинга в HTTP-ответы Minimal API и railway-oriented chaining нескольких шагов.
 
-## Базовая реализация Result<T>
+## Базовая реализация `Result<T>`
 
 ```csharp
 namespace MyApp.Domain.Common;

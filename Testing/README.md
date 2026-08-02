@@ -2,7 +2,7 @@
 
 > 5 файлов / ~146 KB. Testing pyramid (Junior basics) + xUnit/TestContainers stack (Senior tools).
 
-[← Главный README](../readme.md) · [Полный INDEX](../INDEX.md)
+[[README|← Главный README]] · [[INDEX|Полный INDEX]]
 
 ---
 
@@ -10,11 +10,11 @@
 
 | Кто ты | С чего начать |
 |--------|---------------|
-| Junior, что такое tests | [`testing-fundamentals.md`](Junior/testing-fundamentals.md) |
-| Senior, нужны tools | [`testing.md`](Senior/testing.md) — xUnit, TUnit, TestContainers |
-| Делаю integration tests | [`integration-testing.md`](Senior/integration-testing.md) |
-| Mock'и vs fakes? | [`mocking-strategies.md`](Middle/mocking-strategies.md) |
-| Mutation / load testing | [`mutation-load-testing.md`](Senior/mutation-load-testing.md) |
+| Junior, что такое tests | [[testing-fundamentals|`testing-fundamentals.md`]] |
+| Senior, нужны tools | [[testing|`testing.md`]] — xUnit, TUnit, TestContainers |
+| Делаю integration tests | [[integration-testing|`integration-testing.md`]] |
+| Mock'и vs fakes? | [[mocking-strategies|`mocking-strategies.md`]] |
+| Mutation / load testing | [[mutation-load-testing|`mutation-load-testing.md`]] |
 
 ---
 
@@ -24,8 +24,8 @@
 
 | Файл | Уровень | Описание |
 |------|---------|----------|
-| [`testing-fundamentals.md`](Junior/testing-fundamentals.md) | Junior/Senior | Test pyramid, FIRST, TDD ⭐ start here |
-| [`testing.md`](Senior/testing.md) | Senior | xUnit, TUnit, TestContainers stack |
+| [[testing-fundamentals|`testing-fundamentals.md`]] | Junior/Senior | Test pyramid, FIRST, TDD ⭐ start here |
+| [[testing|`testing.md`]] | Senior | xUnit, TUnit, TestContainers stack |
 
 > ⚠️ **`testing.md` ≠ `testing-fundamentals.md`** — это разные уровни:  
 > `testing-fundamentals` — теория и подходы (Junior)  
@@ -35,14 +35,14 @@
 
 | Файл | Описание |
 |------|----------|
-| [`integration-testing.md`](Senior/integration-testing.md) | TestContainers, WebApplicationFactory |
-| [`mocking-strategies.md`](Middle/mocking-strategies.md) | Moq, NSubstitute, fakes vs mocks |
-| [`mutation-load-testing.md`](Senior/mutation-load-testing.md) | Stryker.NET, NBomber |
+| [[integration-testing|`integration-testing.md`]] | TestContainers, WebApplicationFactory |
+| [[mocking-strategies|`mocking-strategies.md`]] | Moq, NSubstitute, fakes vs mocks |
+| [[mutation-load-testing|`mutation-load-testing.md`]] | Stryker.NET, NBomber |
 
 ---
 
 ## 🔗 Связанные папки
 
-- [`Architecture/Senior/arch-tests.md`](../Architecture/Senior/arch-tests.md) — architecture-level tests
+- [[arch-tests|`Architecture/Senior/arch-tests.md`]] — architecture-level tests
 - [`Quality/`](../Quality/) — code quality в целом
-- [`Performance/Middle/bottleneck-analysis.md`](../Performance/Middle/bottleneck-analysis.md) — perf testing related
+- [[bottleneck-analysis|`Performance/Middle/bottleneck-analysis.md`]] — perf testing related

@@ -1,6 +1,7 @@
 ---
 tags: [postgresql, sql, npgsql, jsonb, row-level-security, pgvector, indexes, partitioning]
 level: Senior
+date: 2026-08-02
 ---
 
 # PostgreSQL Deep для .NET-разработчика
@@ -1054,12 +1055,12 @@ SELECT clock_timestamp(), pg_sleep(2), clock_timestamp();  -- разные
 
 ## См. также
 
-- [SQL Optimization](optimization.md) — общие принципы планов выполнения, индексы, join-алгоритмы
+- [[optimization|SQL Optimization]] — общие принципы планов выполнения, индексы, join-алгоритмы
 - [[eav-flexible-store-indexing|EAV Flexible Store Indexing]] — partial/covering индексы для гибкого хранилища атрибутов, RLS multi-tenant + EAV
-- [EF Core Queries и Performance]() — N+1, проекции, compiled queries
-- [EF Core Concurrency]() — optimistic concurrency, transactions, retry
-- [LLM / RAG patterns]() — pgvector в реальной RAG-системе
-- [Semantic Kernel]() — pgvector через Microsoft.Extensions.AI
+- [[queries-performance|EF Core Queries и Performance]] — N+1, проекции, compiled queries
+- [[concurrency|EF Core Concurrency]] — optimistic concurrency, transactions, retry
+- [[llm-rag-patterns|LLM / RAG patterns]] — pgvector в реальной RAG-системе
+- [[semantic-kernel|Semantic Kernel]] — pgvector через Microsoft.Extensions.AI
 
 ## Reading list
 

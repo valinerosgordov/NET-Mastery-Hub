@@ -12,7 +12,7 @@ tags:
   - leaks
   - deepdive
 complexity: Senior
-date: 2026-04-30
+date: 2026-08-02
 level: Senior
 ---
 
@@ -904,8 +904,8 @@ else
 
 **Ограничения:**
 - Если выйдешь за лимит — `NoGCRegion` прервётся, возможно `OutOfMemoryException`
-- Применяется только к **этому потоку** (но влияет на весь процесс — heap не собирается ни для кого)
-- Использовать **очень осторожно**. См. [HFT/Low-Latency]().
+- Режим **процессный**: GC останавливается для всего процесса, и аллокации всех потоков расходуют заявленный бюджет; поточная здесь только ответственность вызвать `GC.EndNoGCRegion()`
+- Использовать **очень осторожно**. См. [[hft-low-latency|HFT/Low-Latency]].
 
 ---
 
@@ -1311,14 +1311,14 @@ new GCEventListener();
 
 ## См. также
 
-- [.NET Runtime: компиляция](compilation-jit.md)
-- [Span и Memory Layout](span-layout.md)
-- [Concurrency и Atomics](concurrency-atomics.md)
-- [Performance и диагностика]()
-- [HFT/Low-Latency и GC tuning]()
-- [Типы и память]()
-- [Docker и .NET awareness в контейнерах]()
-- [Kubernetes resource limits для .NET]()
+- [[compilation-jit|.NET Runtime: компиляция]]
+- [[span-layout|Span и Memory Layout]]
+- [[concurrency-atomics|Concurrency и Atomics]]
+- [[performance|Performance]] и [[diagnostics-tools|диагностика]]
+- [[hft-low-latency|HFT/Low-Latency и GC tuning]]
+- [[types-and-memory|Типы и память]]
+- [[docker|Docker и .NET awareness в контейнерах]]
+- [[kubernetes|Kubernetes resource limits для .NET]]
 
 ## Reading list
 

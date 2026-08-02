@@ -1,6 +1,7 @@
 ---
 tags: [ef-core, queries, performance, pagination, concurrency, dapper]
 level: Middle to Senior
+date: 2026-08-02
 ---
 
 # Snippets — EF Core Queries

@@ -84,7 +84,7 @@ public class CleanCalculator
 - Critical paths: 95%+ нужно
 - UI: 50%+ OK (visual testing trickier)
 
-См.[[integration-testing|Integration Testing]].
+См. [[integration-testing|Integration Testing]].
 
 ---
 
@@ -726,7 +726,7 @@ IDE refactorings **гарантированно safe** для C# (понимаю
 - Прямо перед release
 - "Big rewrite" — almost always fails
 
-См.[[03_middle-to-senior|Middle → Senior]] — Senior softskill умение приоритизировать debt.
+См. [[03_middle-to-senior|Middle → Senior]] — Senior softskill умение приоритизировать debt.
 
 ---
 
@@ -961,9 +961,9 @@ Quality issue?
 - [[code-quality|Code Quality]] — quality gates
 - [[code-review|Code Review]] — как находить smells в чужом коде
 - [[static-analysis|Static Analysis]] — автоматическое обнаружение
--[[solid|SOLID]] — принципы которые помогают rеfactor
--[[integration-testing|Integration Testing]] — characterization tests
--[[design-patterns|Design Patterns]] — целевая структура
+- [[solid|SOLID]] — принципы которые помогают rеfactor
+- [[integration-testing|Integration Testing]] — characterization tests
+- [[design-patterns|Design Patterns]] — целевая структура
 
 ## Reading list
 

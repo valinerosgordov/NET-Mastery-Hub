@@ -1,7 +1,7 @@
 ---
 tags: [diagnostics, dotnet-counters, dotnet-trace, dotnet-dump, eventpipe, perfview, troubleshooting, production]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # .NET Diagnostics Tools
@@ -339,7 +339,7 @@ Console.WriteLine($"Heap size: {info.HeapSizeBytes / 1024 / 1024} MB");
 Console.WriteLine($"Memory load: {info.MemoryLoadBytes / 1024 / 1024} MB");
 ```
 
-См. [GC и память]().
+См. [[gc-memory|GC и память]].
 
 ---
 
@@ -452,7 +452,7 @@ spec:
 
 Auto-collect trace при CPU > 80%. Огонь!
 
-См.[Docker — dotnet-monitor sidecar]()).
+См. [[docker|Docker — dotnet-monitor sidecar]].
 
 ---
 
@@ -541,7 +541,7 @@ public class OrderMetrics
 
 OpenTelemetry автоматически экспортирует эти metrics → Prometheus/Datadog/Jaeger.
 
-См.[Observability]()).
+См. [[observability|Observability]].
 
 ---
 
@@ -605,7 +605,7 @@ dotnet-gcdump collect --process-id 12345
 
 ```
 
-См. [GC — паттерны утечек]().
+См. [[gc-memory|GC — паттерны утечек]].
 
 ### Workflow 3: GC pauses
 
@@ -660,7 +660,7 @@ dotnet-trace collect --process-id 12345 \
 
 ```
 
-См.[Observability]()) — OTel + traces для distributed.
+См. [[observability|Observability]] — OTel + traces для distributed.
 
 ### Workflow 6: Crash with no info
 
@@ -836,7 +836,7 @@ dotnet-counters monitor --process-id 1
 
 Лучше — sidecar `dotnet-monitor` (см. выше).
 
-См.[Kubernetes deep]()).
+См. [[kubernetes|Kubernetes deep]].
 
 ---
 
@@ -862,7 +862,7 @@ public async Task ProcessOrder(Order order)
 
 Через OpenTelemetry → Jaeger/Tempo/Zipkin → видно whole request flow через все сервисы.
 
-См.[Observability]()).
+См. [[observability|Observability]].
 
 ---
 
@@ -975,7 +975,7 @@ dotnet-dump collect --process-id <pid>
 
 **Fix:** заменить на `MemoryCache` с size limit + TTL.
 
-См.[[memory-profiling|Memory Profiling]].
+См. [[memory-profiling|Memory Profiling]].
 
 ---
 
@@ -1016,7 +1016,7 @@ dotnet-trace collect --process-id <pid> --providers Microsoft-DotNETCore-SampleP
 - struct vs class
 - ServerGC (если background workload)
 
-См.[[gc-memory|GC & Memory]].
+См. [[gc-memory|GC & Memory]].
 
 
 ---
@@ -1118,14 +1118,14 @@ dotnet tool install -g dotnet-symbol
 
 ## См. также
 
-- [GC и память]() — counters для GC, heap dumps анализ
-- [Compilation/JIT]() — JIT events, tiered compilation observability
-- [Concurrency и Atomics]() — deadlock detection
-- [Span и Memory Layout]() — allocation profiling
--[Observability]()) — OpenTelemetry, Prometheus, Jaeger
--[Performance]()) — BenchmarkDotNet integration
--[Docker]()) — dotnet-monitor sidecar
--[Kubernetes]()) — k8s diagnostics
+- [[gc-memory|GC и память]] — counters для GC, heap dumps анализ
+- [[compilation-jit|Compilation/JIT]] — JIT events, tiered compilation observability
+- [[concurrency-atomics|Concurrency и Atomics]] — deadlock detection
+- [[span-layout|Span и Memory Layout]] — allocation profiling
+- [[observability|Observability]] — OpenTelemetry, Prometheus, Jaeger
+- [[performance|Performance]] — BenchmarkDotNet integration
+- [[docker|Docker]] — dotnet-monitor sidecar
+- [[kubernetes|Kubernetes]] — k8s diagnostics
 
 ## Reading list
 

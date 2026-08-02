@@ -1165,7 +1165,7 @@ List<ReadOnlySpan<char>> list = new();   // CS0306
 
 Все ограничения из-за `ref struct` природы Span. Для long-lived storage — `ReadOnlyMemory<char>`.
 
-### 9.8. ReadOnlyMemory<char>
+### 9.8. `ReadOnlyMemory<char>`
 
 ```csharp
 // Memory — heap-friendly альтернатива Span
