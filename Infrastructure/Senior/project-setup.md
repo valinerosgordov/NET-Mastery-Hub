@@ -1,12 +1,12 @@
 ---
 tags: [project-setup, ci-cd, github-actions, dotnet, secrets, analyzers, cpm]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Setup нового .NET проекта в 2026
 
-> Полный гайд по starting up .NET проекта с production-grade defaults. Закрывает: Directory.Build.props, .editorconfig, Central Package Management, analyzers (SonarAnalyzer/Meziantou/Roslynator), .NET Aspire, secrets management (user-secrets, Vault, Infisical), GitHub Actions CI/CD, .gitignore, repository structure, environments.
+> Полный гайд по starting up .NET проекта с production-grade defaults. Закрывает: Directory.Build.props, .editorconfig, Central Package Management, analyzers (SonarAnalyzer/Meziantou/Roslynator), Aspire, secrets management (user-secrets, Vault, Infisical), GitHub Actions CI/CD, .gitignore, repository structure, environments.
 
 ---
 
@@ -207,13 +207,15 @@ my-app/
   
   <ItemGroup Label="Database">
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <!-- EFCore.BulkExtensions: с 2024 dual license — free только personal/non-profit/выручка < $1M.
+         Коммерчески — MIT-форк EFCore.BulkExtensions.MIT или нативный ExecuteUpdate/ExecuteDelete -->
     <PackageVersion Include="EFCore.BulkExtensions" Version="10.0.0" />
   </ItemGroup>
   
-  <ItemGroup Label="Validation, Mediator, Mapping">
+  <ItemGroup Label="Validation, Mapping, Resilience">
     <PackageVersion Include="FluentValidation" Version="11.10.0" />
-    <PackageVersion Include="MediatR" Version="13.0.0" />
     <PackageVersion Include="Mapperly" Version="4.0.0" />
+    <PackageVersion Include="Polly" Version="8.5.0" />
   </ItemGroup>
   
   <ItemGroup Label="Observability">
@@ -652,142 +654,47 @@ spec:
 
 ---
 
-## 9. .NET Aspire (.NET 9+)
+## 9. Aspire
 
-Cloud-native orchestration для local dev и production deploy.
+**Aspire** (бывший «.NET Aspire»; с v13, ноябрь 2025, — просто Aspire, платформа polyglot) — композиция distributed-приложения в коде, observability из коробки и генерация деплой-артефактов. Здесь конспект места в структуре решения; canonical deep-dive (AppHost, ServiceDefaults, CLI, integrations, decision tree) — [[aspire|Aspire]].
 
-### Структура
+### Место в структуре solution
 
 ```
 src/
-├── MyApp.AppHost/          # Оркестратор (точка входа для dev)
-├── MyApp.ServiceDefaults/  # Общая конфигурация для всех сервисов
+├── MyApp.AppHost/          # Граф ресурсов — точка входа для dev (aspire run)
+├── MyApp.ServiceDefaults/  # OTel + resilience + health + discovery одной строкой
 ├── MyApp.Api/              # Web API
 └── MyApp.Worker/           # Background Worker
 ```
 
-### AppHost
+### Минимум кода
 
 ```csharp
 // MyApp.AppHost/Program.cs
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Postgres
-var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume()              // Persist data
-    .WithPgAdmin();                // UI
+var db = builder.AddPostgres("postgres").WithDataVolume().AddDatabase("appdb");
+var rabbit = builder.AddRabbitMQ("rabbitmq");
 
-var db = postgres.AddDatabase("appdb");
-
-// Redis
-var redis = builder.AddRedis("cache")
-    .WithRedisCommander();
-
-// RabbitMQ
-var rabbitmq = builder.AddRabbitMQ("rabbitmq")
-    .WithManagementPlugin();
-
-// Services
-var api = builder.AddProject<Projects.MyApp_Api>("api")
-    .WithReference(db)             // Auto-inject connection string!
-    .WithReference(redis)
-    .WithReference(rabbitmq)
+builder.AddProject<Projects.MyApp_Api>("api")
+    .WithReference(db)          // connection string инжектится сама
+    .WithReference(rabbit)
+    .WaitFor(db)                // старт после готовности БД
     .WithExternalHttpEndpoints();
-
-builder.AddProject<Projects.MyApp_Worker>("worker")
-    .WithReference(db)
-    .WithReference(rabbitmq);
 
 builder.Build().Run();
 ```
 
-### ServiceDefaults
-
 ```csharp
-// MyApp.ServiceDefaults/Extensions.cs
-public static class Extensions
-{
-    public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
-    {
-        builder.ConfigureOpenTelemetry();
-        builder.AddDefaultHealthChecks();
-        
-        builder.Services.ConfigureHttpClientDefaults(http =>
-        {
-            http.AddStandardResilienceHandler();  // Retry + CB + Timeout
-        });
-        
-        builder.Services.AddServiceDiscovery();
-        return builder;
-    }
-    
-    public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
-    {
-        builder.Logging.AddOpenTelemetry(logging =>
-        {
-            logging.IncludeFormattedMessage = true;
-            logging.IncludeScopes = true;
-        });
-        
-        builder.Services.AddOpenTelemetry()
-            .WithMetrics(metrics =>
-            {
-                metrics.AddAspNetCoreInstrumentation()
-                       .AddHttpClientInstrumentation()
-                       .AddRuntimeInstrumentation();
-            })
-            .WithTracing(tracing =>
-            {
-                tracing.AddSource(builder.Environment.ApplicationName)
-                       .AddAspNetCoreInstrumentation()
-                       .AddHttpClientInstrumentation();
-            });
-        
-        var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
-        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
-        {
-            builder.Services.AddOpenTelemetry().UseOtlpExporter();
-        }
-        
-        return builder;
-    }
-}
+// В каждом сервисе
+builder.AddServiceDefaults();                       // OTel + StandardResilienceHandler + discovery + health
+builder.AddNpgsqlDbContext<AppDbContext>("appdb");  // client-интеграция находит строку по имени ресурса
 ```
 
-### В каждом сервисе
+`aspire run` — весь граф + dashboard (traces/logs/metrics). `aspire publish` — docker-compose/k8s-манифесты/Bicep из той же модели; `aspire deploy` — деплой в ACA/AKS (обе команды на 13.4 в preview).
 
-```csharp
-// MyApp.Api/Program.cs
-var builder = WebApplication.CreateBuilder(args);
-
-builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<AppDbContext>("appdb");  // Уже знает connection string!
-builder.AddRedisDistributedCache("cache");
-
-// ... rest of configuration
-```
-
-### Aspire Dashboard
-
-При запуске AppHost автоматически:
-- **Traces** — distributed tracing всех сервисов
-- **Metrics** — CPU, memory, HTTP requests
-- **Logs** — structured logs всех сервисов
-- **Resources** — статус каждого container/project
-
-http://localhost:17221
-
-### Publish
-
-```bash
-# Aspire 9+ — генерация k8s/docker-compose
-aspire publish --output-path ./deploy
-```
-
-Альтернативы Aspire:
-- Docker Compose — простой, без авто-конфигурации
-- Tilt — для dev в k8s
-- Skaffold — для dev в k8s
+Альтернативы: docker-compose (проще, без авто-конфигурации), Tilt/Skaffold (dev в k8s).
 
 ---
 
@@ -1069,13 +976,15 @@ updates:
 - **Dependabot** — auto-update, group updates чтобы PRs не множились
 - **Pre-commit hooks** — auto-format
 - **global.json** — pinning SDK для reproducibility
-- **Aspire** — для local dev orchestration с .NET 9+ проектов
+- **Aspire** — оркестрация local dev + генерация деплой-артефактов; см. [[aspire|Aspire]]
 
 ---
 
 ## См. также
 
 - [[code-quality|Code Quality]] — analyzers deep
+- [[choosing-dependencies|Choosing Dependencies]] — какие пакеты брать в baseline и лицензионные риски (MediatR 13+, MassTransit v9, FluentAssertions 8+)
+- [[aspire|Aspire]] — canonical deep-dive: AppHost, ServiceDefaults, CLI, publish/deploy
 - [[docker|Docker]] — Dockerfile best practices
 - [[kubernetes|Kubernetes]] — k8s deployment
 - [[architecture-decisions|Architecture Decisions]] — ADR process
@@ -1087,7 +996,7 @@ updates:
 - **Andrew Lock — .NET 8/9/10 series** — andrewlock.net
 - **Tim Heuer — Microsoft .NET blog** — devblogs.microsoft.com/dotnet
 - **Microsoft Docs — Central Package Management** — learn.microsoft.com/nuget/consume-packages/Central-Package-Management
-- **Microsoft Docs — .NET Aspire** — learn.microsoft.com/dotnet/aspire
+- **Aspire docs** — aspire.dev (canonical с ноября 2025)
 - **GitHub Actions for .NET** — docs.github.com/en/actions
 - **External Secrets Operator** — external-secrets.io
 - **Infisical docs** — infisical.com/docs

@@ -1,7 +1,7 @@
 ---
 tags: [performance, bottleneck, analysis, troubleshooting]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Bottleneck Analysis — поиск узких мест
@@ -432,7 +432,7 @@ Performance issue?
 │
 └── Проверка?
     ├── Benchmark до/после → BenchmarkDotNet
-    ├── Real load test → k6, NBomber, JMeter
+    ├── Real load test → k6, NBomber (v5 коммерческий), JMeter
     └── Production canary → 5% → 50% → 100%
 ```
 

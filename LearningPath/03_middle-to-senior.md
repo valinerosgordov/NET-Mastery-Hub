@@ -1,7 +1,7 @@
 ---
 tags: [learning-path, middle, senior, roadmap, advanced]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # 🚀 Middle → Senior .NET
@@ -98,7 +98,7 @@ Senior не достигается просто чтением — нужен **
 |---|------|------|-------|
 | 12 | Architecture Patterns deep | [[architecture-patterns\|architecture-patterns]] | 8-10 ч |
 | 13 | DDD на практике | [[ddd\|ddd]] | 7-8 ч |
-| 14 | CQRS + MediatR глубоко | [[cqrs-mediatr\|cqrs-mediatr]] | 5-6 ч |
+| 14 | CQRS + mediator-паттерн глубоко (MediatR 13+ коммерческий — см. [[choosing-dependencies\|Choosing Dependencies]]) | [[cqrs-mediatr\|cqrs-mediatr]] | 5-6 ч |
 | 15 | Distributed Systems | [[distributed-systems\|distributed-systems]] | 8-10 ч |
 | 16 | System Design | [[system-design\|system-design]] | 6-8 ч |
 | 17 | Architecture Tests | [[arch-tests\|arch-tests]] | 2-3 ч |

@@ -1,7 +1,7 @@
 ---
 tags: [architecture, clean-architecture, vsa, system-design]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Архитектура и паттерны проектирования
@@ -41,6 +41,9 @@ date: 2026-06-28
 
 > [!question]- **Интервью: Идемпотентность — HTTP и Message broker?**
 > **HTTP:** POST с `Idempotency-Key` → сервер кеширует результат. **Message broker:** дедупликация по MessageId. Без идемпотентности retry может создать дубликат. Outbox pattern — гарантия exactly-once delivery.
+
+> [!warning]- License: MediatR 13+ — коммерческий
+> Далее в файле MediatR упоминается как классика CQRS-pipelines в срезах. С июля 2025 (Lucky Penny Software) MediatR 13+ — dual-license (RPL-1.5 / commercial; Community edition — при выручке до $5M и капитале до $10M), ≤12.x — свободен навсегда. Дефолт для новых проектов — свой in-process dispatcher (~50 строк) или Mediator (source-gen). Разбор и линия замен — [[choosing-dependencies|Choosing Dependencies]].
 
 ---
 
@@ -356,7 +359,7 @@ public class Shipment
 ### Митигация недостатков
 
 - **Много файлов** — выбор структуры (см. раздел 5): один файл на срез или разбиение по папкам.
-- **Consistency** — MediatR pipelines для логирования, валидации, обработки ошибок; общие базовые классы.
+- **Consistency** — mediator pipelines (MediatR 13+ коммерческий — [[choosing-dependencies|см.]]) для логирования, валидации, обработки ошибок; общие базовые классы.
 - **Duplication** — shared-папки внутри bounded context, вынос общей логики в отдельные модули.
 
 ---
@@ -434,7 +437,7 @@ Use case в срезе вызывает методы домена, а не ду�
 
 ### Сложные vs простые срезы
 
-**Сложный срез** — MediatR, Command/Query, Handler, валидация, маппинг:
+**Сложный срез** — mediator (MediatR 13+ коммерческий — [[choosing-dependencies|см.]]), Command/Query, Handler, валидация, маппинг:
 
 ```csharp
 // CreateShipmentCommandHandler
@@ -450,7 +453,7 @@ var response = shipment.Dispatch();  // Доменная логика в entity
 await unitOfWork.SaveChangesAsync(cancellationToken);
 ```
 
-Прагматизм: не везде нужен MediatR. Для простых операций достаточно endpoint + домен.
+Прагматизм: не везде нужен mediator (тем более MediatR — 13+ коммерческий, [[choosing-dependencies|см.]]). Для простых операций достаточно endpoint + домен.
 
 ---
 
@@ -664,7 +667,7 @@ public class CreateShipmentEndpoint : IEndpoint
 | **Онбординг** | Новым разработчикам нужно время, чтобы освоить и Clean, и VSA |
 | **Overhead** | Domain и Infrastructure — отдельные проекты. Больше структуры, чем в «чистом» VSA |
 | **Не для простых проектов** | Для простого CRUD или микросервиса без сложного домена — избыточно |
-| **Баланс** | Нужно находить баланс: где MediatR, где прямой вызов; где репозиторий, где DbContext |
+| **Баланс** | Нужно находить баланс: где mediator (MediatR 13+ коммерческий — [[choosing-dependencies\|см.]]), где прямой вызов; где репозиторий, где DbContext |
 
 ---
 

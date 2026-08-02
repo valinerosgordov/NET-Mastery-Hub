@@ -1,7 +1,7 @@
 ---
 tags: [csharp, reflection, expression-trees, senior, runtime-types, codegen, linq-providers]
 level: Senior
-date: 2026-05-09
+date: 2026-08-02
 ---
 
 # Reflection и Expression Trees — runtime типы и компиляция
@@ -406,7 +406,7 @@ public static T DeepClone<T>(T source) where T : new()
 }
 ```
 
-(Не handles nested objects properly — для real production use library like AutoMapper.)
+(Не handles nested objects properly — для real production use source-generated mapper: **Mapperly** (Apache 2.0) — или пиши руками; AutoMapper 15+ — коммерческий, см. [[choosing-dependencies|Choosing Dependencies]].)
 
 ### 4.3. Configuration mapping
 
@@ -1066,16 +1066,18 @@ public T Resolve<T>()
 
 (Production version uses compiled expression trees / source generators.)
 
-### 10.2. AutoMapper
+### 10.2. AutoMapper / Mapperly
 
 ```csharp
-// Maps based on convention + configuration
+// AutoMapper: maps based on convention + configuration
 var config = new MapperConfiguration(cfg => cfg.CreateMap<User, UserDto>());
 var mapper = config.CreateMapper();
 var dto = mapper.Map<UserDto>(user);
 
 // Internally — compiled expression trees
 ```
+
+AutoMapper — классика runtime-подхода: строит expression tree по конфигурации и компилирует его. Но AutoMapper 15+ — коммерческий (Lucky Penny Software, 2025; ≤14.x свободен). Современный дефолт — **Mapperly** (Apache 2.0, source generator): маппинг генерируется как обычный C#-код на этапе компиляции, expression trees в runtime не нужны вовсе — быстрее и AOT-friendly. См. [[choosing-dependencies|Choosing Dependencies]].
 
 ### 10.3. Dapper
 
@@ -1547,7 +1549,7 @@ var users = ctx.Users.Where(spec.ToExpression()).ToList();
 1. **[[source-generators|Source Generators]]** — replace reflection.
 2. **[[attributes-metadata|Attributes]]** — base для reflection.
 3. **EF Core internals — query translation**.
-4. **AutoMapper / Mapster source code**.
+4. **AutoMapper source code** — как runtime expression trees используются в production mapper (сам пакет 15+ коммерческий, код читать всё равно полезно).
 5. **Native AOT documentation**.
 
 ---
@@ -1575,5 +1577,5 @@ var users = ctx.Users.Where(spec.ToExpression()).ToList();
 - **Jon Skeet — Reflection chapter** "C# in Depth"
 - **Jeffrey Richter — CLR via C#** (book) — reflection internals
 - **Bart de Smet — Expression trees** blog series
-- **AutoMapper documentation** — automapper.org
-- **Mapster** — github.com/MapsterMapper/Mapster
+- **Mapperly** — github.com/riok/mapperly — source-gen mapper, современный дефолт
+- **AutoMapper documentation** — automapper.org (15+ коммерческий, ≤14.x свободен — см. [[choosing-dependencies|Choosing Dependencies]])

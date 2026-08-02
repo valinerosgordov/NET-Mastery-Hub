@@ -1,7 +1,7 @@
 ---
 tags: [architecture, twelve-factor, cloud-native, devops, configuration, deployment, senior]
 level: Senior
-date: 2026-05-01
+date: 2026-08-02
 ---
 
 # 12-Factor App — стандарты cloud-native приложений
@@ -121,7 +121,7 @@ RUN apt-get install some-tool  # system-wide
 <ItemGroup>
   <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
   <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
-  <PackageReference Include="MediatR" Version="13.0.0" />
+  <PackageReference Include="Polly" Version="8.5.0" />
 </ItemGroup>
 ```
 
@@ -613,7 +613,7 @@ services:
 
 Dev — same Postgres / Redis / Linux containers как prod.
 
-### .NET Aspire — dev/prod parity tool
+### Aspire — dev/prod parity tool
 
 ```csharp
 // Aspire AppHost
@@ -629,9 +629,7 @@ builder.AddProject<Projects.MyApp_Api>("api")
 builder.Build().Run();
 ```
 
-Запускаешь `dotnet run` → стартует Postgres + Redis + API. Same environment как prod.
-
-См. Aspire (TBD).
+Запускаешь `aspire run` → стартует Postgres + Redis + API. Same environment как prod (а `aspire publish` генерирует из той же модели compose/k8s-артефакты для прода). См. [[aspire|Aspire]].
 
 ---
 
@@ -1294,9 +1292,9 @@ Production config — env vars или secret manager.
 | VII. Port binding | Self-hosted Kestrel |
 | VIII. Concurrency | Replicas + HPA, не bigger VM |
 | IX. Disposability | Native AOT для startup, graceful shutdown |
-| X. Dev/prod parity | Docker Compose / .NET Aspire с same backing services |
+| X. Dev/prod parity | Docker Compose / Aspire с same backing services |
 | XI. Logs | Serilog → stdout, Loki/ELK collects |
-| XII. Admin processes | dotnet MyApp.dll admin <command>, k8s Jobs |
+| XII. Admin processes | `dotnet MyApp.dll admin <command>`, k8s Jobs |
 
 ---
 
@@ -1344,7 +1342,7 @@ Production config — env vars или secret manager.
 - [[auth-security|Auth & Security]] — secrets management
 - [[hosting-background|Hosting Background]] — workers, graceful shutdown
 - [[migrations|EF Migrations]] — admin tasks
-- Aspire (TBD) — dev/prod parity tool
+- [[aspire|Aspire]] — dev/prod parity tool: одна модель для dev и деплой-артефактов
 
 ## Reading list
 

@@ -1,12 +1,12 @@
 ---
 tags: [cqrs, mediator, mediatr, fastendpoints, vsa, pipeline-behaviors]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # CQRS и Mediator pattern
 
-> Разделение Command/Query и развязка sender'а от handler'а через mediator с pipeline behaviors (validation, logging, transaction). Учитывает commercial license MediatR с 2024 и open-source альтернативы (`Mediator`, FastEndpoints).
+> Разделение Command/Query и развязка sender'а от handler'а через mediator с pipeline behaviors (validation, logging, transaction). Учитывает лицензионный сдвиг MediatR 13+ (dual-license с июля 2025) и альтернативы: свой dispatcher, `Mediator` (source-gen), FastEndpoints.
 
 ## Что это, зачем и когда
 
@@ -60,24 +60,29 @@ Sender не знает о Handler. Mediator смотрит тип Request → н
 
 ---
 
-## ⚠️ MediatR commercial fork (2024-2025)
+## ⚠️ MediatR — лицензионный сдвиг (2025)
 
-В **2024** автор MediatR (Jimmy Bogard) объявил commercial license для production use. Аналогично его другим библиотекам (AutoMapper).
+**2 апреля 2025** Jimmy Bogard анонсировал переход MediatR и AutoMapper под коммерческую модель (компания **Lucky Penny Software**); **2 июля 2025** — коммерческий запуск. Это **не форк** — сами библиотеки сменили модель: **MediatR 13+** и **AutoMapper 15+** распространяются под dual-license (RPL-1.5 или commercial).
 
-| | До 2024 | С 2024+ |
-|--|---------|---------|
-| Лицензия | Apache 2.0 (free) | Commercial для production |
-| OSS, личное | Free | Free |
-| Production / commercial | Free | Платная (per-developer) |
-| Обновления security | Free | Commercial only после версии 12 |
+| | MediatR ≤ 12.x | MediatR 13+ |
+|--|----------------|-------------|
+| Лицензия | Apache 2.0 — навсегда | Dual-license: RPL-1.5 или commercial |
+| Community edition | — | Бесплатно при выручке < $5M **и** привлечённом капитале < $10M |
+| Платные тиры | — | По размеру команды (не per-developer) |
+| Новые features | Нет — версия заморожена | Только здесь |
+
+Примеры кода ниже валидны для MediatR ≤ 12.x (и для одноимённых абстракций альтернатив).
 
 ### Что делать
 
 **Стратегии для existing projects:**
 
-1. **Заплатить** — если bizproject и MediatR уже глубоко embedded. Не дорого ($200-500/dev/year).
-2. **Оставаться на старой версии** (≤ 12.x) — последняя Apache 2.0. Минус: нет security updates / новых features.
-3. **Мигрировать на open-source альтернативу**.
+1. **Проверить Community edition** — при выручке < $5M и капитале < $10M MediatR 13+ бесплатен. Зафиксировать в ADR: порог можно перерасти.
+2. **Остаться на 12.x** (Apache 2.0 навсегда) — работает, но новых фич и активной разработки не будет.
+3. **Мигрировать на альтернативу** — свой dispatcher, `Mediator` (source-gen), Wolverine, FastEndpoints.
+4. **Заплатить** — тиры по команде; иногда дешевле миграции, если MediatR глубоко embedded.
+
+Позиция этого vault — см. [[choosing-dependencies|Choosing Dependencies]]: дефолт — **свой in-process dispatcher (~50 строк) или прямые вызовы handler'а из endpoint'а**; mediator-абстракция нужна реже, чем кажется.
 
 ### Open-source alternatives
 
@@ -146,13 +151,14 @@ services.AddMediator();  // source-generated registrations + handlers
 
 API почти идентичен MediatR — миграция простая. Performance лучше (source-gen, no reflection).
 
-> [!question]- **Интервью: что делать если у тебя проект на MediatR и заявлен commercial fork?**
-> Три опции:
-> 1. Заплатить (если уже embedded и bizproject) — простейший путь
-> 2. Остаться на 12.x (Apache 2.0 last) — пока работает, security risks через 2-3 года
-> 3. Мигрировать на open-source: `Mediator` (Martin Othamar) — самая близкая по API замена, source-gen, free
+> [!question]- **Интервью: что делать, если проект на MediatR, а 13+ стал коммерческим?**
+> Это не форк — сама библиотека сменила модель (dual-license с июля 2025). Четыре опции:
+> 1. Проверить Community edition — при выручке < $5M **и** привлечённом капитале < $10M MediatR 13+ бесплатен; зафиксировать порог в ADR
+> 2. Остаться на 12.x (Apache 2.0 навсегда) — работает, но версия заморожена: через 2-3 года это security-долг
+> 3. Мигрировать на open-source: `Mediator` (Martin Othamar) — самая близкая по API замена, source-gen, MIT; либо свой dispatcher ~50 строк
+> 4. Заплатить (тиры по размеру команды, не per-developer) — если MediatR глубоко embedded, иногда дешевле миграции
 >
-> Главное — **принять решение явно** в ADR, не игнорировать. Это license risk и technical debt.
+> Главное — **принять решение явно** в ADR, не игнорировать. Это license risk и technical debt. Подробно — [[choosing-dependencies|Choosing Dependencies]].
 
 ---
 
@@ -482,7 +488,7 @@ services.AddMediatR(cfg =>
 ### Pitfall — exception в одном handler ломает все
 
 В default sequential — exception у первого handler stops остальных.
-**Решение:** правильно обрабатывать ошибки в каждом handler, или использовать **distributed events через message bus** (см. [[messaging|Messaging]].
+**Решение:** правильно обрабатывать ошибки в каждом handler, или использовать **distributed events через message bus** (см. [[messaging|Messaging]]).
 
 Notification pattern в Mediator — для **in-process events**. Для durable events между сервисами — RabbitMQ/MassTransit.
 
@@ -672,7 +678,7 @@ Query handler меняет state? Нет — read-only. AsNoTracking обяза�
 
 - **Vertical Slice Architecture** — Jimmy Bogard talks
 - **Mediator (Martin Othamar)** — github.com/martinothamar/Mediator
-- **MediatR docs** — github.com/jbogard/MediatR (даже если migration — паттерны полезны)
+- **MediatR docs** — github.com/LuckyPennySoftware/MediatR (даже если migration — паттерны полезны)
 - **FastEndpoints docs** — fast-endpoints.com
 - **Brighter** — brighter.readthedocs.io
 - **Wolverine** — wolverine.netlify.app (full microservices framework)

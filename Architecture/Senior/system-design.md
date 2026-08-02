@@ -1,7 +1,7 @@
 ---
 tags: [system-design, interview, tech-lead, rate-limiter, url-shortener, feed, cache]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # System Design — типовые ответы для Tech Lead интервью
@@ -793,7 +793,7 @@ TF_BM25 — saturates at high frequency, normalizes by document length
 | Logs | Loki / Elasticsearch / OpenSearch |
 | Identity | OAuth2 / OIDC через Keycloak / IdentityServer / Auth0 |
 | Background jobs | Hangfire / native BackgroundService / Quartz.NET |
-| Workflow / Saga | MassTransit Saga / Temporal |
+| Workflow / Saga | MassTransit Saga (v9 коммерческий → Wolverine) / Temporal |
 
 ---
 
@@ -805,6 +805,7 @@ TF_BM25 — saturates at high frequency, normalizes by document length
 - [[caching|Caching]] — IMemoryCache, IDistributedCache
 - [[resilience|Resilience]] — retry, circuit breaker, timeout
 - [[observability|Observability]] — OpenTelemetry, metrics, traces
+- [[choosing-dependencies|Choosing Dependencies]] — коммерциализация MassTransit v9 / MediatR 13+ / AutoMapper 15+, свободные замены (Wolverine, Mapperly)
 - [[10_interview-behavioral|Behavioral]] — soft skills для tech lead
 
 ## Reading list

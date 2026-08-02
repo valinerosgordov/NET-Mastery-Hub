@@ -650,7 +650,7 @@ public class Service(Lazy<IDependency> dep)
     public void DoSomething() => dep.Value.X();  // resolved on first access
 }
 ```
-Полезно для circular dependencies или tail-loaded deps. Pitfall: scope — Lazy<T> capture'ит в момент создания scope, не на каждом access.
+Полезно для circular dependencies или tail-loaded deps. Pitfall: scope — `Lazy<T>` capture'ит в момент создания scope, не на каждом access.
 
 ### 8. EnableSensitiveDataLogging в Production через config override
 Случайно выкатил `appsettings.Production.json` с включённым sensitive logging → PII в логах. Всегда review configs перед deploy.

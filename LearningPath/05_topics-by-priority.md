@@ -1,7 +1,7 @@
 ---
 tags: [learning-path, topics, priority, value]
 level: All
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # 📊 Topics by Priority — что учить first
@@ -38,12 +38,12 @@ date: 2026-04-30
 | # | Тема | Файл | Effort | ROI |
 |---|------|------|--------|-----|
 | 11 | GC и память | [[gc-memory\|gc-memory]] | High | ⭐⭐⭐⭐ |
-| 12 | Span<T> и Layout | [[span-layout\|span-layout]] | High | ⭐⭐⭐⭐ |
+| 12 | `Span<T>` и Layout | [[span-layout\|span-layout]] | High | ⭐⭐⭐⭐ |
 | 13 | Concurrency atomics | [[concurrency-atomics\|concurrency-atomics]] | High | ⭐⭐⭐⭐ |
 | 14 | Modern C# features | [[modern-features\|modern-features]] | Medium | ⭐⭐⭐⭐ |
 | 15 | Functional C# | [[functional-csharp\|functional-csharp]] | Medium | ⭐⭐⭐⭐ |
 | 16 | DDD | [[ddd\|ddd]] | High | ⭐⭐⭐⭐ |
-| 17 | CQRS + MediatR | [[cqrs-mediatr\|cqrs-mediatr]] | Medium | ⭐⭐⭐⭐ |
+| 17 | CQRS / mediator-паттерн (сам паттерн знать обязательно; MediatR 13+ коммерческий — см. [[choosing-dependencies\|Choosing Dependencies]]) | [[cqrs-mediatr\|cqrs-mediatr]] | Medium | ⭐⭐⭐⭐ |
 | 18 | Distributed Systems | [[distributed-systems\|distributed-systems]] | High | ⭐⭐⭐⭐ |
 | 19 | EF Migrations | [[migrations\|migrations]] | Medium | ⭐⭐⭐⭐ |
 | 20 | EF Patterns | [[ef-patterns\|ef-patterns]] | High | ⭐⭐⭐⭐ |
@@ -160,7 +160,7 @@ Critical + High + Medium = почти весь vault.
 
 1. **EF Change Tracker** — почему DetectChanges медленный, как избежать
 2. **GC generations behavior** — почему long-lived объекты в Gen2
-3. **Span<T>** для строк — zero-allocation parsing
+3. **`Span<T>`** для строк — zero-allocation parsing
 4. **ConfigureAwait** — когда нужен в библиотеках
 5. **DI captive dependency** — Scoped в Singleton = leak
 6. **PostgreSQL EXPLAIN** — чтение plans

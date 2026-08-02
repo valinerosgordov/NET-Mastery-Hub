@@ -347,7 +347,7 @@ public T Sum<T>(IEnumerable<T> values) where T : INumber<T>
 `static abstract` interface members + `INumber<T>` — generic math possible. **Невозможно в Java** (no operator overloading, no static abstract).
 
 > [!question]- Интервью: чем generics в C# лучше Java?
-> 1) **Reification** — runtime types preserved (Java erasure → `List<String>` runtime `List<Object>`). 2) **No boxing** для value types — List<int> stores int directly (Java `List<Integer>` boxes int → Integer). 3) **Specialization** — JIT generates separate machine code per value T (Java один classfile). 4) **Explicit variance** через `in`/`out` (declaration site cleaner чем Java wildcards use site). 5) **Constraints** — class/struct/notnull/unmanaged/`INumber<T>` (Java только interface constraints). 6) **Generic Math** (.NET 7+) с `static abstract` members — impossible в Java. Trade-offs: bigger binary footprint при много специализаций.
+> 1) **Reification** — runtime types preserved (Java erasure → `List<String>` runtime `List<Object>`). 2) **No boxing** для value types — `List<int>` stores int directly (Java `List<Integer>` boxes int → Integer). 3) **Specialization** — JIT generates separate machine code per value T (Java один classfile). 4) **Explicit variance** через `in`/`out` (declaration site cleaner чем Java wildcards use site). 5) **Constraints** — class/struct/notnull/unmanaged/`INumber<T>` (Java только interface constraints). 6) **Generic Math** (.NET 7+) с `static abstract` members — impossible в Java. Trade-offs: bigger binary footprint при много специализаций.
 
 ---
 

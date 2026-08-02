@@ -768,6 +768,8 @@ await context.AuditLogs
 
 ### EFCore.BulkExtensions — для миллионов записей
 
+Лицензия: с января 2024 — cFOSS (free только personal / non-profit / выручка < $1M в год); есть MIT-форк `EFCore.BulkExtensions.MIT`. Детали, decision tree и нативные альтернативы (`ExecuteUpdate`, PG `COPY`) — [[ef-bulk-operations|EF Bulk Operations]].
+
 ```csharp
 // NuGet: EFCore.BulkExtensions
 
@@ -881,7 +883,7 @@ public class DomainEventsInterceptor(IPublisher publisher) : SaveChangesIntercep
         foreach (var entity in entitiesWithEvents)
             entity.ClearDomainEvents();
 
-        // Publish (через MediatR / IPublisher)
+        // Publish через in-process dispatcher (IPublisher — абстракция)
         foreach (var domainEvent in domainEvents)
             await publisher.Publish(domainEvent, ct);
 
@@ -889,6 +891,9 @@ public class DomainEventsInterceptor(IPublisher publisher) : SaveChangesIntercep
     }
 }
 ```
+
+> [!warning]- License: чем публиковать — MediatR 13+ коммерческий
+> `IPublisher` в примере — абстракция диспетчера: свой in-process dispatcher (~20 строк поверх DI, дефолт этого vault), Mediator (source-gen, martinothamar) или MediatR ≤12.x (свободный навсегда; 13+ — dual-license Lucky Penny Software, 2025). Если нужен durable messaging / saga / outbox одним инструментом — **Wolverine** (MIT). Разбор — [[choosing-dependencies|Choosing Dependencies]].
 
 > [!warning] Publish после SaveChanges — at-most-once
 > Если SaveChanges прошёл, но publisher упал → событие потеряно. Для at-least-once → Outbox pattern.
@@ -1260,8 +1265,8 @@ catch
 
 **Best in class libraries:**
 - **Ardalis.Specification** — Specification pattern
-- **MediatR** — CQRS handlers
-- **EFCore.BulkExtensions** — bulk ops до EF Core 7
+- **Свой dispatcher / Mediator (source-gen)** — CQRS handlers; MediatR 13+ коммерческий — [[choosing-dependencies|Choosing Dependencies]]
+- **EFCore.BulkExtensions** — bulk ops до EF Core 7 (cFOSS с 2024, есть MIT-форк — [[ef-bulk-operations|EF Bulk Operations]])
 
 
 ---
@@ -1289,11 +1294,11 @@ catch
 │
 ├── Distributed transactions?
 │   ├── Простые (2 services) → Saga choreography
-│   └── Сложные → Saga orchestration (MassTransit)
+│   └── Сложные → Saga orchestration (Wolverine; MassTransit v9 коммерческий, v8 EOL конец 2026)
 │
 └── Bulk operations?
     ├── EF Core 7+ → ExecuteUpdate / ExecuteDelete (built-in)
-    ├── Старые версии → EFCore.BulkExtensions
+    ├── Старые версии → EFCore.BulkExtensions (лицензия! см. [[ef-bulk-operations|EF Bulk Operations]])
     └── Очень large data → raw SQL или Dapper
 ```
 
@@ -1310,13 +1315,14 @@ catch
 - [[cqrs-mediatr|CQRS и MediatR]]
 - [[distributed-systems|Distributed Systems — Outbox]]
 - [[postgresql-deep|PostgreSQL Deep — RLS, Bulk]]
+- [[choosing-dependencies|Choosing Dependencies]] — лицензии: MediatR, MassTransit, EFCore.BulkExtensions
 
 ## Reading list
 
 - **Microsoft Docs — Interceptors** — learn.microsoft.com/ef/core/logging-events-diagnostics/interceptors
 - **Microsoft Docs — Global Query Filters** — learn.microsoft.com/ef/core/querying/filters
 - **Ardalis Specification** — github.com/ardalis/Specification
-- **EFCore.BulkExtensions** — github.com/borisdj/EFCore.BulkExtensions
+- **EFCore.BulkExtensions** — github.com/borisdj/EFCore.BulkExtensions (cFOSS с 2024 — см. [[ef-bulk-operations|EF Bulk Operations]])
 - **Andrew Lock — Multi-tenant с EF Core** — andrewlock.net
 - **Vladimir Khorikov — DDD blog series** — enterprisecraftsmanship.com
 - **Jon P Smith — DDD with EF Core** — github.com/JonPSmith/EfCore.GenericServices

@@ -71,7 +71,7 @@ date: 2026-08-02
 | **Stryker.NET** | Mutation testing | `dotnet-stryker` (CLI) | ✅ OSS |
 | **FsCheck** | Property-based tests | `FsCheck.Xunit` | ✅ OSS |
 | **Playwright** | E2E browser tests | `Microsoft.Playwright` | ✅ Microsoft |
-| **NBomber** | Load testing на C# | `NBomber` | ✅ OSS |
+| **NBomber** | Load testing на C# | `NBomber` | ⚠️ v5 коммерческая для организаций (v4 Apache 2.0); серьёзный load — k6 |
 
 > [!warning] **FluentAssertions с 2025 — платная для commercial use**
 > Автор перешёл на коммерческую лицензию (V8+). OSS и личные проекты — условно бесплатно. Production commercial — нужна лицензия.
@@ -801,7 +801,7 @@ public async Task FlakyTest()
 
 ## NBomber — load testing
 
-C#-native альтернатива k6/JMeter.
+C#-native альтернатива k6/JMeter. ⚠️ С v5 (май 2024) — closed source, для организаций платно; v4 остаётся Apache 2.0. Для серьёзного load testing OSS-дефолт — k6, см. [[mutation-load-testing|Mutation & Load Testing]].
 
 ```csharp
 var scenario = Scenario.Create("api_load", async ctx =>
@@ -1013,7 +1013,7 @@ public async Task Test() => await DoSomethingAsync();
 - [ ] Stryker.NET periodic для critical bizlogic
 - [ ] Property-based (FsCheck) для парсеров / алгоритмов
 - [ ] Playwright для critical E2E user flows
-- [ ] NBomber для load tests перед launches
+- [ ] Load tests перед launches: k6 (OSS, Grafana) или NBomber (⚠️ v5 коммерческая для организаций; v4 Apache 2.0)
 - [ ] CI запускает all tests на каждый PR
 - [ ] Coverage report в PR (Codecov / SonarQube Cloud)
 - [ ] Architecture tests (NetArchTest) для слоёв

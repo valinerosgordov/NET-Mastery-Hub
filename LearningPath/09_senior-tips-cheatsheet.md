@@ -80,7 +80,7 @@ public static void Log(params ReadOnlySpan<string> messages)
 }
 ```
 
-### SearchValues<T> (.NET 8+) -- быстрый поиск символов
+### `SearchValues<T>` (.NET 8+) -- быстрый поиск символов
 
 ```csharp
 private static readonly SearchValues<char> Vowels =
@@ -220,7 +220,7 @@ builder.Services.Decorate<IOrderRepository, CachedOrderRepository>();
 
 ```csharp
 // Генерация маппинга DTO -> Entity в compile-time
-// Используй: Mapperly, AutoMapper.Extensions.EnumMapping
+// Используй: Mapperly (Apache 2.0, source-gen); AutoMapper 15+ коммерческий
 [Mapper]
 public static partial class OrderMapper
 {
@@ -287,8 +287,8 @@ var result = numbers switch
 ### ПРАВИЛЬНО
 1. **Rich Domain Model** -- Entity содержит бизнес-логику и инварианты
 2. **Vertical Slices** -- feature folder вместо layer folder
-3. **Result<T>** -- все ошибки как значения
-4. **Domain Events** -- реакции через MediatR notifications
+3. **`Result<T>`** -- все ошибки как значения
+4. **Domain Events** -- реакции через in-process notifications: свой dispatcher или Mediator (source-gen); MediatR 13+ коммерческий -- [[choosing-dependencies|Choosing Dependencies]]
 5. **Specification Pattern** -- сложные запросы инкапсулируются
 
 ### Agent-Safe Architecture -- границы, переживающие AI-codegen
@@ -316,9 +316,9 @@ public sealed class OrderApiTests(WebAppFactory factory) : IClassFixture<WebAppF
         var response = await client.PostAsJsonAsync("/api/orders", command);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
-        body!.Id.Should().NotBeEmpty();
+        body!.Id.ShouldNotBe(Guid.Empty);
     }
 }
 ```
@@ -334,7 +334,7 @@ public void Domain_ShouldNotReference_Infrastructure()
         .HaveDependencyOn("MyApp.Infrastructure")
         .GetResult()
         .IsSuccessful
-        .Should().BeTrue();
+        .ShouldBeTrue();
 }
 ```
 
@@ -358,15 +358,15 @@ public Task OrderDto_Serialization_MatchesSnapshot()
 | **Mapperly** | Compile-time mapping (source generator) |
 | **Polly** | Resilience: retry, circuit breaker, timeout |
 | **Scrutor** | DI decoration, assembly scanning |
-| **FluentResults** | Production-ready Result<T> |
+| **FluentResults** | Production-ready `Result<T>` |
 | **BenchmarkDotNet** | Micro-benchmarking |
 | **Bogus** | Fake data generation for tests |
 | **Verify** | Snapshot testing |
 | **Refit** | Type-safe HTTP client from interfaces |
 | **Serilog** | Structured logging (alternative to built-in) |
-| **MassTransit** | Message bus abstraction |
+| **MassTransit** | Message bus abstraction (v9 коммерческий, v8 EOL конец 2026 -> Wolverine/Rebus, см. [[choosing-dependencies\|Choosing Dependencies]]) |
 | **Aspire** | Cloud-native orchestration |
-| **Wolverine** | Alternative to MediatR (command bus + messaging) |
+| **Wolverine** | Command bus + durable messaging, MIT (замена MediatR 13+ / MassTransit v9) |
 
 ---
 

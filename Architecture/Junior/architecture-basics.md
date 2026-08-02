@@ -760,7 +760,8 @@ public User ToDomain(UserEntity entity) =>
 public UserDto ToDto(User user) =>
     new UserDto(user.Id, user.Name, user.Email);
 
-// Используй AutoMapper / Mapster если много mappings (Senior уровень)
+// Много однотипных mappings — Mapperly (source generator) или ручной;
+// AutoMapper 15+ коммерческий — см. Senior/choosing-dependencies.md
 ```
 
 ### 6.3. Зачем разделять
@@ -797,7 +798,7 @@ public IActionResult Get(int id)
 ```
 
 > [!question]- Интервью: зачем DTO если есть Entity?
-> 1) **Security** — Entity может содержать sensitive поля (PasswordHash, InternalNotes), DTO выбирает только публичные. 2) **Versioning** — изменение БД не ломает API. 3) **Aggregation** — DTO может combine несколько Entity (UserDto с Address inline). 4) **Independent evolution** — API contract меняется отдельно от DB schema. 5) **Network optimization** — DTO содержит только нужное. **Cost**: дополнительный mapping. **Tools**: AutoMapper, Mapster для compile-time mapping.
+> 1) **Security** — Entity может содержать sensitive поля (PasswordHash, InternalNotes), DTO выбирает только публичные. 2) **Versioning** — изменение БД не ломает API. 3) **Aggregation** — DTO может combine несколько Entity (UserDto с Address inline). 4) **Independent evolution** — API contract меняется отдельно от DB schema. 5) **Network optimization** — DTO содержит только нужное. **Cost**: дополнительный mapping. **Tools**: Mapperly (source generator, compile-time) или ручной маппинг; AutoMapper 15+ — коммерческий, см. [[choosing-dependencies|Choosing Dependencies]].
 
 ---
 

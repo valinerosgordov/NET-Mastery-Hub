@@ -576,7 +576,10 @@ public class CreateUserHandler : IRequestHandler<CreateUserCommand, int>
 var userId = await mediator.Send(new CreateUserCommand("a@x.com", "Alice"));
 ```
 
-MediatR — modern Command pattern + CQRS.
+MediatR — request/handler-реализация Command pattern поверх DI.
+
+> [!warning]- License: MediatR 13+ — коммерческий
+> С 2025 MediatR перешёл к Lucky Penny Software: 13+ — dual-license (RPL-1.5 / commercial), ≤12.x остаётся свободным навсегда — код выше валиден. Дефолт для новых проектов — **свой in-process dispatcher** (~50 строк) или **Mediator** (source-gen, martinothamar) как drop-in с той же `IRequest`-семантикой. Разбор — [[choosing-dependencies|Choosing Dependencies]].
 
 ### 6.4. Iterator — `IEnumerable<T>` + `yield`
 
@@ -625,6 +628,8 @@ public class EmailHandler : INotificationHandler<OrderCreated>
 // All handlers automatically receive
 await mediator.Publish(new OrderCreated(orderId));
 ```
+
+Про лицензию MediatR 13+ и альтернативы (свой dispatcher, Mediator source-gen) — caveat в 6.3.
 
 ### 6.6. Template Method — abstract + virtual
 
@@ -754,7 +759,7 @@ public class CustomMiddleware
 ```
 
 > [!question]- Интервью: какие GoF patterns остаются актуальны в современном C#?
-> 1) **Template Method** — abstract base + virtual overrides. Still common (ReportGenerator с abstract LoadData/FormatOutput). 2) **Decorator** — wrap interface implementations (logging/caching/retry around repositories, ASP.NET middleware). 3) **Composite** — recursive structures (file system trees, UI hierarchies). 4) **Specification** — composable query predicates (DDD). 5) **Mediator** — decoupling через MediatR (CQRS, domain events). 6) **Chain of Responsibility** — ASP.NET middleware pipeline. 7) **Adapter** — wrapping third-party APIs. **Replaced by language**: Iterator (yield), Observer (event), Strategy (`Func<T>`), Singleton (DI), Factory Method (DI), Visitor (pattern matching), State (pattern matching). Pattern thinking важно, GoF reference часто означает не использовать language features.
+> 1) **Template Method** — abstract base + virtual overrides. Still common (ReportGenerator с abstract LoadData/FormatOutput). 2) **Decorator** — wrap interface implementations (logging/caching/retry around repositories, ASP.NET middleware). 3) **Composite** — recursive structures (file system trees, UI hierarchies). 4) **Specification** — composable query predicates (DDD). 5) **Mediator** — decoupling через in-process dispatcher (CQRS, domain events; MediatR — классическая реализация, 13+ коммерческий). 6) **Chain of Responsibility** — ASP.NET middleware pipeline. 7) **Adapter** — wrapping third-party APIs. **Replaced by language**: Iterator (yield), Observer (event), Strategy (`Func<T>`), Singleton (DI), Factory Method (DI), Visitor (pattern matching), State (pattern matching). Pattern thinking важно, GoF reference часто означает не использовать language features.
 
 ---
 
@@ -930,7 +935,7 @@ var userId = await mediator.Send(new CreateUserCommand("a@x.com", "Alice"));
 var user = await mediator.Send(new GetUserByIdQuery(userId));
 ```
 
-CQRS — separate read и write paths. Used с MediatR. Скейлится — отдельные DBs, projections.
+CQRS — separate read и write paths. Dispatch — свой dispatcher / Mediator (source-gen) / MediatR ≤12.x (13+ коммерческий, см. [[choosing-dependencies|Choosing Dependencies]]). Скейлится — отдельные DBs, projections.
 
 > [!question]- Интервью: чем Entity отличается от Value Object?
 > **Entity** — has **identity** (Id), distinct existence over time. Two Users с same Name — different entities (different Ids). Mutable state (within aggregate). **Value Object** — defined by **attributes**, no identity. Two Money(100, "USD") — equal. Immutable. **Examples**: Entity — User, Order, Product. Value Object — Money, Address, Coordinates. **C# implementation**: Entity — class с Id, Equals overridden by Id. Value Object — `record` (auto value equality). **DDD principle**: identify Entities, treat Value Objects as immutable. Aggregate Root maintains consistency boundary.
@@ -1283,7 +1288,7 @@ public class AppDbContext : DbContext
 ├── Communication
 │   ├── Notifications → event / EventHandler<T>
 │   ├── Strategy → Func<T>
-│   ├── Command/Query → MediatR
+│   ├── Command/Query → свой dispatcher / Mediator (source-gen); MediatR 13+ коммерческий
 │   ├── Iteration → IEnumerable<T> + yield
 │   ├── State transitions → pattern matching switch
 │   ├── Type dispatch → pattern matching switch (replaces Visitor)
@@ -1295,8 +1300,8 @@ public class AppDbContext : DbContext
 │   ├── Aggregate Root → enforce invariants
 │   ├── Repository → specific (IOrderRepository), not generic
 │   ├── Specification → composable Expression<Func<T, bool>>
-│   ├── Domain Event → MediatR INotification
-│   └── CQRS → MediatR Commands + Queries
+│   ├── Domain Event → свой dispatcher / Mediator INotification (source-gen)
+│   └── CQRS → Commands + Queries через свой dispatcher; MediatR 13+ коммерческий
 │
 └── Anti-pattern check
     ├── God class → split by SRP
@@ -1376,7 +1381,7 @@ public class IsAdult : Specification<User>
     public override Expression<Func<User, bool>> ToExpression() => u => u.Age >= 18;
 }
 
-// CQRS / MediatR
+// CQRS — IRequest-семантика (MediatR <=12.x / Mediator source-gen; MediatR 13+ commercial)
 public record CreateUserCommand(string Email) : IRequest<int>;
 public class Handler : IRequestHandler<CreateUserCommand, int>
 {
@@ -1632,6 +1637,8 @@ services.Decorate<IDataService, RetryDataService>();
 
 ### 14.3. CQRS с MediatR
 
+Код ниже — MediatR ≤12.x (остаётся свободным); для новых проектов та же семантика доступна через свой dispatcher или Mediator (source-gen) — [[choosing-dependencies|Choosing Dependencies]].
+
 ```csharp
 // Command
 public record PlaceOrderCommand(int CustomerId, List<OrderLineRequest> Lines) : IRequest<int>;
@@ -1697,7 +1704,7 @@ public class UpdateInventoryHandler : INotificationHandler<OrderPlaced>
 
 1. **[[gof-patterns-extended|GoF Patterns Extended]]** — все 23 patterns с code.
 2. **[[functional-csharp|Functional C#]]** — functional alternatives.
-3. **MediatR** documentation.
+3. **Mediator (source-gen)** — github.com/martinothamar/Mediator — свободная drop-in замена MediatR.
 4. **Vladimir Khorikov — DDD lectures** (Pluralsight).
 5. **Eric Evans — Domain-Driven Design** (book — original).
 6. **Robert Martin — Clean Architecture** (book).
@@ -1711,7 +1718,8 @@ public class UpdateInventoryHandler : INotificationHandler<OrderPlaced>
 - [[functional-csharp|Functional C#]]
 - [[reflection-expression-trees|Reflection]] — Specification pattern
 - [[csharp-language-design|Language Design]] — features replace patterns
-- MediatR — github.com/jbogard/MediatR
+- MediatR — github.com/LuckyPennySoftware/MediatR (13+ коммерческий; ≤12.x свободный) — см. [[choosing-dependencies|Choosing Dependencies]]
+- Mediator (source-gen) — github.com/martinothamar/Mediator
 - Scrutor — github.com/khellang/Scrutor
 
 ---

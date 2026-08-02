@@ -1,7 +1,7 @@
 ---
 tags: [csharp, delegates, events, middle, func, action, eventhandler, observer]
 level: Middle
-date: 2026-05-07
+date: 2026-08-02
 ---
 
 # Delegates и Events — функции как объекты
@@ -742,10 +742,10 @@ public async Task PlaceOrderAsync(Order order)
 }
 ```
 
-Or **MediatR** library — explicit async handlers.
+Или mediator-style dispatch с explicit async handlers: свой in-process dispatcher / Mediator (source-gen); MediatR 13+ — коммерческий, см. [[choosing-dependencies|Choosing Dependencies]].
 
 > [!question]- Интервью: проблема `async void` в event handlers?
-> `async void` — exceptions становятся **unobserved** — terminate process в .NET Core 2.1+. **Cannot be awaited** — caller не знает completion. UI frameworks (WinForms, WPF) **требуют** void signature, поэтому unavoidable. Best practice: wrap body в try/catch, log all exceptions. Для new patterns — async events через `Func<TArgs, Task>` invocation list, или MediatR-style. **Никогда `async void`** в methods кроме event handlers + entry points.
+> `async void` — exceptions становятся **unobserved** — terminate process в .NET Core 2.1+. **Cannot be awaited** — caller не знает completion. UI frameworks (WinForms, WPF) **требуют** void signature, поэтому unavoidable. Best practice: wrap body в try/catch, log all exceptions. Для new patterns — async events через `Func<TArgs, Task>` invocation list, или mediator-style dispatch. **Никогда `async void`** в methods кроме event handlers + entry points.
 
 ---
 
@@ -834,11 +834,11 @@ static int Add(int a, int b) => a + b;
 ├── Notification pattern (Observer)
 │   ├── Public class API → event EventHandler<T>
 │   ├── Internal callback → Action<...> field или property
-│   └── Strong-typed many handlers → MediatR / Reactive
+│   └── Strong-typed many handlers → свой dispatcher / Mediator (source-gen) / Reactive; MediatR 13+ коммерческий
 │
 ├── Async-aware events
 │   ├── Простой → Func<T, Task> + manual invocation list
-│   └── Production → MediatR
+│   └── Production → свой dispatcher / Mediator (source-gen); MediatR 13+ коммерческий
 │
 ├── Performance
 │   ├── No capture → static lambda
@@ -1169,7 +1169,7 @@ await service.PlaceOrderAsync(new Order { Id = 1 });
 2. **[[generics-deep|Generics deep]]** — Func/Action variance.
 3. **[[error-handling|Error Handling]]** — async void exceptions.
 4. **[[dispose-pattern|Dispose Pattern]]** — IDisposable + unsubscribe.
-5. **MediatR** — async events / commands library.
+5. **Mediator (source-gen)** — github.com/martinothamar/Mediator — async events / commands (свободная замена MediatR).
 6. **Reactive Extensions (Rx)** — `IObservable<T>`.
 
 ---
@@ -1181,7 +1181,7 @@ await service.PlaceOrderAsync(new Order { Id = 1 });
 - [[iterators-yield|yield]] — IEnumerable + delegates
 - [[error-handling|Error Handling]] — async void
 - [[dispose-pattern|Dispose Pattern]] — unsubscribe
-- MediatR library
+- [[choosing-dependencies|Choosing Dependencies]] — mediator-библиотеки и лицензии
 - ReactiveUI / Rx.NET
 
 ---
@@ -1195,5 +1195,5 @@ await service.PlaceOrderAsync(new Order { Id = 1 });
 - **Jon Skeet — C# in Depth** — delegates and lambdas chapters
 - **Stephen Cleary — async events** — blog.stephencleary.com
 - **Jeffrey Richter — CLR via C#** — delegates internals
-- **MediatR** — github.com/jbogard/MediatR
+- **Mediator (source-gen)** — github.com/martinothamar/Mediator; MediatR (github.com/LuckyPennySoftware/MediatR) — 13+ коммерческий, ≤12.x свободный
 - **Reactive Extensions** — github.com/dotnet/reactive

@@ -8,6 +8,9 @@ date: 2026-08-02
 
 > WPF на CommunityToolkit.Mvvm: `ObservableObject` с `[ObservableProperty]`/`[RelayCommand]`, async-safe загрузка из View.Loaded, DI через `IHostBuilder`, навигация и glassmorphism-стили в XAML.
 
+> [!info] `IMediator` / `AddMediatR` ниже — MediatR 12.x
+> MediatR 13+ коммерческий (community edition — только при выручке < $5M) — детали в [[choosing-dependencies|Choosing Dependencies]]. Сам MVVM-паттерн от библиотеки не зависит: замените `IMediator` на свой `IDispatcher` с тем же `Send(command, ct)` — [[vertical-slice-handler|Vertical Slice без MediatR]] — и ViewModel не изменится.
+
 ## Базовый ViewModel
 
 ```csharp

@@ -1,7 +1,7 @@
 ---
 tags: [architecture, microservices, monolith, modular-monolith, decision]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Microservices vs Monolith — выбор архитектуры
@@ -312,8 +312,13 @@ src/
 
 ### Inter-module communication
 
+Публичные contracts модуля (events, commands) выносятся в отдельную **contracts-assembly**; доставка in-process — **свой dispatcher** (~50 строк) или **Wolverine**; для гарантированной cross-module доставки — **integration events через outbox** (см. [[distributed-systems|Distributed Systems]]).
+
+> [!warning] MediatR 13+ — коммерческий (dual-license с июля 2025)
+> Код ниже использует интерфейсы `INotification`/`IRequestHandler` — API валиден для MediatR ≤12.x (Apache 2.0 навсегда) и для `Mediator` (source-gen, MIT). Линия замен — [[choosing-dependencies|Choosing Dependencies]].
+
 ```csharp
-// Module Users — публичный contract
+// Module Users — публичный contract (contracts-assembly)
 public record UserCreatedEvent(Guid UserId, string Email) : INotification;
 
 // Module Users — internal implementation
@@ -338,7 +343,7 @@ internal class UserCreatedHandler : INotificationHandler<UserCreatedEvent>
 }
 ```
 
-Через MediatR. Другой модуль **не знает** internals — только `INotification` contract.
+Другой модуль **не знает** internals — только event-contract из contracts-assembly.
 
 ### Architecture tests enforce правила
 
@@ -366,7 +371,7 @@ public void Users_module_should_not_reference_Orders_internals()
 1. Identify bounded contexts (domain analysis)
 2. Move classes в module folders (`Modules/Users/`, etc.)
 3. Mark internal — `internal` modifier
-4. Replace direct calls с MediatR commands/queries
+4. Replace direct calls с commands/queries через in-process dispatcher
 5. Add architecture tests
 
 Можно **в течение года** при работе над feature requests, не "большой rewrite".
@@ -575,7 +580,7 @@ Service C ──┘
 ### Modular Monolith
 
 - Modules = bounded contexts
-- Public API через MediatR commands/queries/events
+- Public API через commands/queries/events — contracts-assembly + in-process dispatcher
 - Internal types — `internal` modifier
 - Architecture tests (NetArchTest)
 - Per-module DB schema если возможно

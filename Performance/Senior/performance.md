@@ -737,6 +737,8 @@ public ValueTask<int> GetAsync()
 
 ### Load testing — NBomber / k6
 
+> [!warning] NBomber v5 — коммерческий для организаций (v4 — Apache 2.0). Для серьёзного load testing — k6. См. [[choosing-dependencies|Choosing Dependencies]].
+
 ```csharp
 // NBomber — на C#, integrates with xunit
 var scenario = Scenario.Create("api_load", async ctx =>
@@ -892,7 +894,7 @@ Performance issue?
 │
 └── Проверка?
     ├── Benchmark до/после → BenchmarkDotNet
-    ├── Real load test → k6, NBomber, JMeter
+    ├── Real load test → k6, NBomber (v5 коммерческий), JMeter
     └── Production canary → 5% → 50% → 100%
 ```
 

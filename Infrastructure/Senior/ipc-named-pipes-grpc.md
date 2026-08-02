@@ -1,7 +1,7 @@
 ---
 tags: [ipc, named-pipes, memory-mapped-files, grpc, shared-memory, performance]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Inter-Process Communication (IPC) в .NET
@@ -826,7 +826,7 @@ catch (RpcException ex) when (ex.StatusCode == StatusCode.Unavailable)
 | Между микросервисами в Docker | **gRPC (TCP)** |
 | Cross-language (C# ↔ Python ↔ Rust) | **gRPC (proto)** |
 | Из browser/JS клиента | **REST или SignalR (для streaming)** |
-| Async messaging "fire and forget" между сервисами | **RabbitMQ / MassTransit** |
+| Async messaging "fire and forget" между сервисами | **RabbitMQ / MassTransit** (v9 коммерческий → Wolverine) |
 | Pub-Sub в реалтайме одной машины | **Channels + worker (внутри процесса)** или **Redis** (между процессами) |
 
 ---
@@ -1006,7 +1006,8 @@ Pipe имеет ограниченный буфер (~4-64 KB). Большие �
 - [[hft-low-latency|HFT / Low-Latency]] — где IPC встречается с latency-critical паттернами
 - [[concurrency-atomics|Concurrency и Atomics]] — Volatile, CAS, memory barriers (нужны для MMF ring)
 - [[span-layout|Span, Memory, Layout]] — `StructLayout`, `unsafe`, fixed pointers (для MMF структур)
-- [[messaging|Messaging]]) — RabbitMQ/MassTransit для async IPC между сервисами
+- [[messaging|Messaging]] — RabbitMQ/MassTransit для async IPC между сервисами
+- [[choosing-dependencies|Choosing Dependencies]] — MassTransit v9 коммерческий, свободная замена Wolverine
 - [[resilience|Resilience и HttpClient]] — паттерны retry/timeout также применимы к gRPC
 
 ## Reading list

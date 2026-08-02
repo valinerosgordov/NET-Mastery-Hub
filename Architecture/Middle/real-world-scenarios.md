@@ -1,12 +1,15 @@
 ---
 tags: [architecture, scenarios, real-world, decision-making, e-commerce, performance, senior]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Real-World Scenarios — какая архитектура для какой задачи
 
 > **Сценарий → решение**. От меню навигации до микросервисного e-commerce. От чего зависит выбор архитектуры, как она влияет на нагрузку, plus/minus каждого подхода. Companion к [[patterns-decision-guide|Patterns Decision Guide]] — там framework, тут конкретные case studies.
+
+> [!warning] Лицензии дефолтного стека (2025-2026)
+> Дефолт сценариев — Vertical Slices: endpoint → handler напрямую (или свой in-process dispatcher) + FluentValidation. Код с `IRequest`/`IPipelineBehavior`/`INotification` валиден для MediatR ≤12.x (Apache 2.0 навсегда) и для `Mediator` (source-gen, MIT); **MediatR 13+ и MassTransit v9 — коммерческие**. Карта и линия замен — [[choosing-dependencies|Choosing Dependencies]].
 
 ---
 
@@ -60,11 +63,12 @@ date: 2026-04-30
 
 Customer-facing SaaS, 5-15 dev, домен сложный?
   → Clean Architecture + Feature folders
-  → MediatR + FluentValidation + Result pattern
+  → Vertical Slices: endpoint → handler напрямую
+    (или свой dispatcher) + FluentValidation + Result pattern
 
 Multi-team large product?
   → Modular Monolith с DDD
-  → Modules через MediatR + outbox для cross-module events
+  → Modules через in-process dispatcher + outbox для cross-module events
 
 Independent teams, scale, polyglot stack?
   → Microservices (carefully)
@@ -90,7 +94,7 @@ Independent teams, scale, polyglot stack?
 | Pattern | Performance impact | Когда оправдан |
 |---------|--------------------|----------------|
 | **Repository поверх EF** | 0% (просто wrapper) | Только если несколько data sources |
-| **MediatR pipeline** | +5–10% overhead на reflection | Decoupling > performance |
+| **Mediator pipeline (reflection-based, MediatR ≤12)** | +5–10% overhead на reflection | Decoupling > performance; source-gen `Mediator` — почти 0% |
 | **CQRS с одной БД** | 0% sync, +10% сложность | Чёткая разница read/write |
 | **CQRS с разными БД** | Read scale × 10 | Read-heavy app |
 | **Event Sourcing** | Write 2–5x slower, read fast (projections) | Audit, replay, time-travel |
@@ -169,7 +173,7 @@ public IEnumerable<MenuNode> Filter(IEnumerable<MenuNode> nodes, UserContext use
 
 **Задача:** Регистрация пользователя — много полей, разные правила.
 
-**Решение: FluentValidation + MediatR pipeline**
+**Решение: FluentValidation + pipeline behavior** (код — API MediatR ≤12 / `Mediator` source-gen; в стеке без mediator'а — endpoint filter)
 
 ```csharp
 public record RegisterUserCommand(string Email, string Password, int Age) : IRequest<Result>;
@@ -241,7 +245,7 @@ public class WizardService
 | Подход | Когда |
 |--------|-------|
 | State через discriminated union (records) | Modern .NET 6+, типобезопасно |
-| Workflow engine (Elsa, MassTransit Saga) | Очень сложные wizards |
+| Workflow engine (Elsa, Wolverine saga; MassTransit v9 — коммерческий) | Очень сложные wizards |
 | Хранить в session / cookies | Простой UI без backend state |
 
 **Plus/minus state pattern:**
@@ -601,7 +605,7 @@ public async Task ImportAsync(Stream csvStream, CancellationToken ct)
 **Patterns:**
 - **Streaming** (`IAsyncEnumerable`) — не загружай весь файл в память
 - **Batching** — `SaveChanges` каждые 1000 rows
-- **Bulk insert** — для очень больших → `EFCore.BulkExtensions` или Dapper + COPY (Postgres)
+- **Bulk insert** — для очень больших → `EFCore.BulkExtensions.MIT` (оригинал с 2024 — cFOSS, free только personal/non-profit) или Dapper + COPY (Postgres)
 
 **Под нагрузкой:**
 - Малый файл (< 10K rows) → синхронно
@@ -649,7 +653,7 @@ Deploy:      IIS / single Linux VM
 ```
 src/
 ├── Shop.Web/                    # ASP.NET Core, controllers
-├── Shop.Application/             # MediatR handlers, DTOs
+├── Shop.Application/             # Handlers (vertical slices), DTOs
 ├── Shop.Domain/                  # Entities, value objects
 ├── Shop.Infrastructure/          # EF Core, external APIs
 ├── Shop.Modules.Catalog/         # Каталог товаров
@@ -663,7 +667,7 @@ src/
 **Стек:**
 ```
 Frontend:    React / Vue / Blazor
-Backend:     ASP.NET Core, MediatR, FluentValidation
+Backend:     ASP.NET Core, vertical slices (свой dispatcher), FluentValidation
 Database:    PostgreSQL (main) + Redis (cart, sessions, cache)
 Search:      PostgreSQL FTS (для < 100K товаров)
 Payment:     Stripe / CloudPayments
@@ -995,7 +999,7 @@ public class Account
 
 **Стек:**
 ```
-Event store:   EventStoreDB / Marten / самодельный поверх Postgres
+Event store:   KurrentDB (ex-EventStoreDB — ребрендинг Kurrent 2024-2025, KurrentDB 25.0) / Marten / самодельный поверх Postgres
 Read models:   Postgres (current balances), Elasticsearch (search transactions)
 Compliance:    Append-only logs, retention policies
 Encryption:    At-rest (TDE) + in-transit (TLS)
@@ -1035,7 +1039,7 @@ Month 2-6: Product-market fit
 
 Month 6-18: Growth (10K users)
 ├── Clean Architecture lite
-├── MediatR + FluentValidation
+├── Vertical slices (handler напрямую / свой dispatcher) + FluentValidation
 ├── Domain Events
 ├── Background services (BackgroundService)
 ├── Application Insights / Serilog
@@ -1097,7 +1101,7 @@ Modular Monolith → Microservices:
 |---------|-------------|------------------|-------|
 | **Внутренний tool** | Single project | DI, EF Core | ASP.NET Core + Postgres |
 | **Прототип / MVP** | Minimal API | None | ASP.NET Core + SQLite |
-| **B2B SaaS** | Clean Architecture | MediatR, FluentValidation, Result | + Redis + Kafka if needed |
+| **B2B SaaS** | Clean Architecture + Vertical Slices | Свой dispatcher, FluentValidation, Result | + Redis + Kafka if needed |
 | **Малый магазин** | Modular Monolith lite | Domain Events, Outbox, Saga | + Stripe + S3 |
 | **Большой e-commerce** | Microservices | CQRS, Saga, Circuit Breaker | + Kafka + ES + K8s |
 | **Контент-сайт / CMS** | Monolith + cache | Cache-aside, CDN | + Redis + CDN + ES |
@@ -1106,7 +1110,7 @@ Modular Monolith → Microservices:
 | **Real-time chat** | Specialized | SignalR / WebSocket | + Redis pub/sub |
 | **Trading / HFT** | Single process, hot-path | Object pooling, lock-free | C#/C++ + bare metal |
 | **IoT** | Event-driven | Stream processing | + Kafka + TimescaleDB |
-| **Финтех / банки** | Event Sourcing + CQRS + DDD | Audit, append-only | + EventStoreDB |
+| **Финтех / банки** | Event Sourcing + CQRS + DDD | Audit, append-only | + KurrentDB (ex-EventStoreDB) |
 | **Game backend** | Microservices + WebSocket | Real-time, state sync | + Redis + UDP |
 
 ### По нагрузке
@@ -1129,7 +1133,7 @@ Modular Monolith → Microservices:
 | Задача | Паттерн | Где почитать |
 |--------|---------|--------------|
 | Меню навигации с ролями | Composite + Specification | [[patterns-decision-guide]] |
-| Форма с валидацией | FluentValidation + MediatR pipeline | [[cqrs-mediatr]] |
+| Форма с валидацией | FluentValidation + pipeline behavior | [[cqrs-mediatr]] |
 | Multi-step wizard | State pattern (records) |[[design-patterns]] |
 | Notifications через email/SMS/push | Strategy + Mediator |[[messaging]] |
 | Undo/redo в UI | Command pattern |[[design-patterns]] |

@@ -1,7 +1,7 @@
 ---
 tags: [aspnet, hosting, background-service, hosted-service]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Hosting и фоновые задачи
@@ -28,7 +28,7 @@ date: 2026-06-28
 | `BackgroundService` + `Channel<T>` | Очередь задач внутри одного приложения |
 | `BackgroundService` + `PeriodicTimer` | Задача по расписанию (каждые N минут) |
 | **Hangfire / Quartz.NET** | Сложное расписание, retry, dashboard, персистентность |
-| **RabbitMQ / MassTransit** | Задачи между РАЗНЫМИ сервисами |
+| **RabbitMQ / MassTransit** (v9 коммерческий → Wolverine) | Задачи между РАЗНЫМИ сервисами |
 
 ---
 
@@ -472,7 +472,7 @@ RecurringJob.AddOrUpdate("monthly", () => Job(), "0 0 1 * *");      // 1-го ч
 ```
 
 > [!question]- **Интервью: BackgroundService vs Hangfire?**
-> **BackgroundService** — built-in, simple, in-process. **Хорошо для**: continuous loops (queue consumers, periodic checks). **Плохо для**: scheduled jobs, retries with backoff, persistent across restarts. **Hangfire** — full job scheduler с persistence (DB), automatic retries, cron scheduling, dashboard. **Production**: combine — BackgroundService для real-time consumers, Hangfire для scheduled/retryable work. **Alternatives**: Quartz.NET (similar, более complex API), Coravel (lightweight), MassTransit Scheduling.
+> **BackgroundService** — built-in, simple, in-process. **Хорошо для**: continuous loops (queue consumers, periodic checks). **Плохо для**: scheduled jobs, retries with backoff, persistent across restarts. **Hangfire** — full job scheduler с persistence (DB), automatic retries, cron scheduling, dashboard. **Production**: combine — BackgroundService для real-time consumers, Hangfire для scheduled/retryable work. **Alternatives**: Quartz.NET (similar, более complex API), Coravel (lightweight), MassTransit Scheduling (v9 коммерческий → Wolverine, см. [[choosing-dependencies|Choosing Dependencies]]).
 
 ---
 

@@ -1,12 +1,16 @@
 ---
 tags: [rabbitmq, masstransit, kafka, messaging, message-broker, outbox, distributed]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Очереди и Message Brokers
 
 > Асинхронная коммуникация через message brokers: RabbitMQ vs Kafka, MassTransit, Outbox pattern и Dead Letter Queue — когда брать очередь ради loose coupling, retry и устойчивости к падению консьюмера.
+
+> [!warning] Лицензия MassTransit — v9 коммерческий (2026)
+> MassTransit v9 (Q1 2026, компания Massient) — коммерческий: ~$400/мес SMB, ~$1200/мес enterprise; для организаций с выручкой < $1M/год есть 100%-discount тир. **v8 остаётся Apache 2.0**, но получает только security-патчи — EOL конец 2026. Все примеры кода в этом файле валидны для v8.
+> Альтернативы: **Wolverine** (MIT, ядро OSS — mediator + messaging + saga + outbox одним инструментом; платный только аддон CritterWatch), **Rebus**, **Brighter**, **NServiceBus** (давно коммерческий) или raw-клиенты брокеров (`RabbitMQ.Client`, `Confluent.Kafka`). Как принимать такие решения системно — [[choosing-dependencies|Choosing Dependencies]].
 
 ## Что это, зачем и когда
 
@@ -156,7 +160,7 @@ channel.QueueDeclare("orders", durable: true, exclusive: false, autoDelete: fals
 
 ## MassTransit — основной .NET-фреймворк
 
-Абстракция над RabbitMQ, Azure Service Bus, Amazon SQS, Kafka. Mediator-подобный API.
+Абстракция над RabbitMQ, Azure Service Bus, Amazon SQS, Kafka. Mediator-подобный API. ⚠️ v9 — коммерческий (см. callout в начале файла); примеры ниже — v8 (Apache 2.0).
 
 ### Setup
 
@@ -843,7 +847,8 @@ await _publisher.Publish(...);
 | **AWS SQS** | Managed, simple | AWS-native simple queue |
 | **Redis Streams** | Lightweight, fast | Simple event log, in cache infra |
 | **NATS** | Cloud-native, JetStream | Modern microservices |
-| **MassTransit** | Library — abstracts brokers | .NET dev productivity |
+| **MassTransit** | Library — abstracts brokers (v9 коммерческий; v8 Apache 2.0 до EOL 2026) | .NET dev productivity |
+| **Wolverine** | Library — MIT: mediator + messaging + saga + outbox | OSS-замена MassTransit |
 
 | Pattern | Use |
 |---------|-----|
@@ -901,8 +906,9 @@ await _publisher.Publish(...);
 │
 └── .NET library?
     ├── Vendor-specific clients → low-level control
-    ├── MassTransit → abstraction, multi-broker support
-    └── NServiceBus → enterprise, transactional features
+    ├── Wolverine → MIT: mediator + messaging + saga + outbox
+    ├── MassTransit → multi-broker abstraction; v9 коммерческий (v8 Apache 2.0, EOL 2026)
+    └── NServiceBus → enterprise, давно коммерческий
 ```
 
 
@@ -915,11 +921,13 @@ await _publisher.Publish(...);
 - [[resilience|Resilience]] — Polly паттерны, применимы к message handling
 - [[postgresql-deep|PostgreSQL Deep]] — outbox-таблица, advisory locks
 - [[system-design|System Design]] — выбор Kafka vs RabbitMQ, capacity planning
+- [[choosing-dependencies|Choosing Dependencies]] — лицензионные риски зависимостей (MassTransit v9, MediatR 13+, FluentAssertions 8+), критерии выбора
 - Hangfire — альтернатива для simple background jobs (отдельного deep-dive в vault пока нет)
 
 ## Reading list
 
-- **MassTransit docs** — masstransit.io (особенно Configuration, Sagas, Outbox, RetryPolicy)
+- **MassTransit docs** — masstransit.io (особенно Configuration, Sagas, Outbox, RetryPolicy) — ⚠️ v9 коммерческий, v8 EOL конец 2026
+- **Wolverine docs** — wolverinefx.net (MIT-альтернатива: messaging + saga + outbox)
 - **RabbitMQ in Depth** — Gavin M. Roy (главное о брокере)
 - **Kafka: The Definitive Guide** — Confluent (про Kafka + Kafka Streams)
 - **Designing Event-Driven Systems** — Ben Stopford (бесплатная книга от Confluent)

@@ -32,6 +32,9 @@ date: 2026-08-02
 
 Когда **не нужно**: монолит с одной БД, один процесс, синхронные вызовы.
 
+> [!warning]- MassTransit v9 — коммерческий (Q1 2026)
+> Примеры в этом файле написаны на MassTransit **v8 (Apache 2.0)** — код валиден. Но **v9** (компания Massient) — платный: ~$400/мес SMB, ~$1200/мес enterprise; есть 100%-discount тир для организаций с выручкой < $1M/год. v8 получает только security-патчи, **EOL — конец 2026**. Альтернативы: **Wolverine** (MIT, ядро OSS — mediator + saga + outbox + брокеры одним инструментом), Rebus, Brighter, raw-клиенты брокеров. Карта решений — [[choosing-dependencies|Choosing Dependencies]].
+
 ---
 
 ## CAP-теорема и её практическое применение
@@ -1161,7 +1164,7 @@ Forgot edge case или event-loss → saga в state PendingPayment навсег
 Cluster (3 nodes минимум для quorum). Mirrored queues для критичных. И backup стратегия.
 
 ### 7. Кафка/RabbitMQ как event store
-Они — transport, не storage. Если нужен event sourcing — выделенное решение (Marten, EventStoreDB).
+Они — transport, не storage. Если нужен event sourcing — выделенное решение (Marten, KurrentDB — ex-EventStoreDB).
 
 ### 8. Дубликаты "одинаковые но не идентичные"
 Внутри сообщения timestamp `DateTime.UtcNow` — каждый retry имеет другой timestamp → различия в payload, но семантически одно. Hash по бизнес-полям, не по всему JSON.
@@ -1182,7 +1185,8 @@ Cluster (3 nodes минимум для quorum). Mirrored queues для крит�
 - **Designing Data-Intensive Applications** — Martin Kleppmann (must-read для distributed systems)
 - **Microservices Patterns** — Chris Richardson (Saga, Outbox, CQRS на пальцах)
 - **Release It!** — Michael Nygard (паттерны устойчивости — bulkhead, circuit breaker, timeouts)
-- **MassTransit docs** — masstransit.io (особенно Saga state machines, Outbox, RetryPolicy)
+- **MassTransit docs** — masstransit.io (особенно Saga state machines, Outbox, RetryPolicy) — ⚠️ v9 коммерческий, v8 Apache 2.0 security-only до конца 2026
+- **Wolverine docs** — wolverine.netlify.app (MIT-альтернатива: mediator + saga + outbox)
 - **Distributed Systems for Fun and Profit** — book.mixu.net/distsys/ (короткая бесплатная книга)
 - **Jepsen reports** — jepsen.io (как реальные БД ломаются под partitions)
 - **Event Sourcing на C#** — github.com/oskardudycz/EventSourcing.NetCore (примеры)

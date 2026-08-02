@@ -8,6 +8,9 @@ date: 2026-08-02
 
 > CQRS-обвязка на MediatR: Command/Query handlers, возвращающие `Result<T>`, FluentValidation validator и `IPipelineBehavior<TRequest, TResponse>` для валидации и логирования, плюс регистрация в Program.cs.
 
+> [!warning] MediatR 13+ — коммерческая лицензия
+> С июля 2025 MediatR (Lucky Penny Software) на dual-license: RPL-1.5 или платная коммерческая; community edition бесплатна только при выручке < $5M И привлечённом капитале < $10M. Сниппеты ниже валидны для MediatR 12.x — прежняя свободная лицензия остаётся навсегда. Современная альтернатива — [[vertical-slice-handler|Vertical Slice без MediatR]]; критерии выбора зависимостей — [[choosing-dependencies|Choosing Dependencies]].
+
 ## Command Handler (с `Result<T>`)
 
 ```csharp
@@ -150,3 +153,5 @@ builder.Services.AddValidatorsFromAssembly(typeof(CreateOrderCommandValidator).A
 ## См. также
 
 - [[result-pattern|Result Pattern + CQRS]]
+- [[vertical-slice-handler|Vertical Slice без MediatR]] — тот же слайс без mediator-библиотеки
+- [[choosing-dependencies|Choosing Dependencies]] — лицензии и критерии выбора зависимостей

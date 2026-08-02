@@ -912,4 +912,4 @@ RuleFor(x => x.Phone).Matches(PhoneRegex);
 - **Jeremy Skinner blog** (FluentValidation creator) — jeremyskinner.co.uk
 - **Domain-Driven Design** — Eric Evans (где validation располагать)
 - **Microsoft Docs — Model Validation in ASP.NET Core** — learn.microsoft.com/aspnet/core/mvc/models/validation
-- **MediatR + FluentValidation** — github.com/jbogard/MediatR/wiki
+- **MediatR + FluentValidation** — github.com/LuckyPennySoftware/MediatR/wiki

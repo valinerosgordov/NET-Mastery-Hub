@@ -122,14 +122,11 @@ var users = await db.Users
 
 EF транслирует это в **один SQL** с подзапросом для `OrderCount`. Возвращает только 4 поля, не вся entity.
 
-### AutoMapper / Mapperly + Project
+### Mapperly / AutoMapper + Project
+
+Дефолт для projection через mapper — **Mapperly** (Apache 2.0, source generator): `Select` генерируется в compile-time.
 
 ```csharp
-// AutoMapper
-var users = await db.Users
-    .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
-    .ToListAsync();
-
 // Mapperly
 [Mapper]
 public partial class UserMapper
@@ -140,7 +137,16 @@ public partial class UserMapper
 var users = await mapper.ProjectToDto(db.Users).ToListAsync();
 ```
 
-`ProjectTo` транслируется в SQL — никаких `.ToList()` потом `.Select()` в памяти.
+AutoMapper `ProjectTo` делает то же через runtime expression trees, но AutoMapper 15+ — коммерческий (≤14.x свободен) — см. [[choosing-dependencies|Choosing Dependencies]]:
+
+```csharp
+// AutoMapper <=14.x
+var users = await db.Users
+    .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
+    .ToListAsync();
+```
+
+Оба варианта транслируются в SQL — никаких `.ToList()` потом `.Select()` в памяти.
 
 ---
 

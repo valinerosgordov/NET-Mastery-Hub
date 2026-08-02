@@ -1,7 +1,7 @@
 ---
 tags: [architecture, patterns, decision-guide, design-patterns, integration, senior]
 level: Middle to Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Patterns & Architecture — Decision Guide
@@ -217,7 +217,7 @@ public class Order
     public event EventHandler<OrderPlacedEventArgs> Placed;
 }
 
-// Domain: MediatR + INotification
+// Domain: in-process events — свой dispatcher или Mediator (source-gen)
 public class OrderPlaced : INotification { /* ... */ }
 public class SendEmailHandler : INotificationHandler<OrderPlaced> { /* ... */ }
 
@@ -227,10 +227,10 @@ await bus.Publish(new OrderPlaced(...));
 
 **Когда что:**
 - **Events** — same process, tight coupling OK
-- **Mediator** — same process, decoupled (handlers regstrируются автоматом)
+- **Mediator** — same process, decoupled (handlers regstrируются автоматом). Дефолт — свой dispatcher (~50 строк) или `Mediator` (source-gen, MIT); MediatR 13+ — коммерческий, см. [[choosing-dependencies|Choosing Dependencies]]
 - **Message bus** — между процессами / services
 
-См. [[cqrs-mediatr|CQRS & MediatR]] и [[messaging|Messaging]].
+См. [[cqrs-mediatr|CQRS & Mediator]] и [[messaging|Messaging]].
 
 ### Adapter — incompatible interfaces
 
@@ -496,14 +496,14 @@ public class UserRepository : IUserRepository
 Cross-cutting     │ Где
 ──────────────────┼─────────────────────────────────────
 Logging           │ Decorator + ILogger DI
-                  │ Или MediatR pipeline behavior
-Validation        │ FluentValidation + MediatR pipeline
+                  │ Или mediator pipeline behavior
+Validation        │ FluentValidation + pipeline behavior
                   │ Или DataAnnotations + ModelState
 Authorization     │ ASP.NET filters / [Authorize] attribute
-                  │ Или MediatR pipeline behavior
+                  │ Или mediator pipeline behavior
 Caching           │ Decorator (CachingUserService)
                   │ Или output caching middleware
-Transactions      │ MediatR pipeline (BeginTransaction/Commit)
+Transactions      │ Pipeline behavior (BeginTransaction/Commit)
                   │ Или decorator
 Retry / circuit   │ Polly через DelegatingHandler
                   │ Или Polly в HttpClientFactory
@@ -511,7 +511,9 @@ Audit             │ EF SaveChanges interceptor
                   │ Или decorator
 ```
 
-### MediatR pipeline behaviors — best для CQRS
+### Pipeline behaviors — best для CQRS
+
+Код ниже валиден для MediatR ≤12.x и для `Mediator` (source-gen) — API идентичен; MediatR 13+ — коммерческий (dual-license с июля 2025), дефолт vault — свой dispatcher, см. [[choosing-dependencies|Choosing Dependencies]].
 
 ```csharp
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
@@ -547,7 +549,7 @@ services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>
 
 ```
 Same process, tight:    Method call
-Same process, loose:    Mediator (MediatR)
+Same process, loose:    Mediator (свой dispatcher / Mediator source-gen)
 Same machine, decouple: Named pipes / gRPC
 ```
 
@@ -569,7 +571,7 @@ Federated query:        GraphQL (один endpoint, flexible)
 ```
 Fire-and-forget:        Message queue (RabbitMQ / SQS / Kafka)
 Event-driven:           Pub/Sub (Kafka / Azure Service Bus)
-Workflow / saga:        MassTransit / Dapr
+Workflow / saga:        Wolverine (MIT) / Dapr; MassTransit v9 — коммерческий
 Reliable retry:         Outbox pattern (DB + bus)
 ```
 
@@ -588,7 +590,9 @@ Reliable retry:         Outbox pattern (DB + bus)
 └── No → Queue (RabbitMQ)
 
 Workflow с steps?
-├── Saga (compensation) → MassTransit / NServiceBus
+├── Saga (compensation) → Wolverine (MIT, ядро OSS);
+│     MassTransit v9 (Q1 2026) и NServiceBus — коммерческие,
+│     MassTransit v8 — Apache 2.0, но security-only до EOL конец 2026
 └── Sequential → Outbox + handlers
 
 Real-time UI?
@@ -606,7 +610,7 @@ Real-time UI?
 | **Throw exceptions** | Critical errors, invariant violations, unexpected |
 | **Result\<T, E\>** | Expected failures (validation, not found, conflict) |
 | **`Maybe<T>` / nullable** | "Может быть нет значения" — без error context |
-| **OneOf<T1, T2, T3>** | Discriminated union — multiple result types |
+| **`OneOf<T1, T2, T3>`** | Discriminated union — multiple result types |
 
 ### Pattern by layer
 
@@ -731,7 +735,7 @@ TCC (Try-Confirm-Cancel) → если нужен
 Level 1: Command/Query метод separation в одном service
   → Просто convention, easy
 
-Level 2: Отдельные Command/Query handlers (MediatR)
+Level 2: Отдельные Command/Query handlers (прямой вызов или свой dispatcher)
   → Single DB, разные models — стандарт большинства проектов
 
 Level 3: Разные read/write databases
@@ -775,8 +779,8 @@ DI:              + Scrutor для assembly scanning
 Data:            EF Core + DbContext + Specifications
 Patterns:        Strategy, Decorator, Specification, Result
 Error handling:  Result<T> в Application, exceptions в Infra
-Communication:   Mediator (MediatR) + REST API
-Validation:      FluentValidation в pipeline behavior
+Communication:   Vertical slices — handler напрямую (или свой dispatcher) + REST API
+Validation:      FluentValidation в pipeline behavior / endpoint filter
 Tests:           Unit + integration (TestContainers)
 ```
 
@@ -790,7 +794,8 @@ DI:              Per-module registration
 Data:            EF Core per module, separate schemas
 Patterns:        Aggregate, Value Object, Domain Events
 Error handling:  Result<T> + Domain exceptions
-Communication:   Modules через MediatR + outbox для cross-module
+Communication:   Modules через contracts-assembly + in-process dispatcher,
+                 outbox для cross-module integration events
 Validation:      FluentValidation
 Tests:           Unit + integration + arch tests
 Observability:   OpenTelemetry, Serilog structured
@@ -932,7 +937,8 @@ public async Task Test()
 ├── SaaS / B2B product?
 │   ├── Domain простой? → Clean Architecture lite
 │   └── Domain сложный? → Clean + DDD
-│   → MediatR + FluentValidation + Result pattern
+│   → Vertical slices: handler напрямую или свой dispatcher
+│     (MediatR 13+ коммерческий) + FluentValidation + Result pattern
 │   → EF Core + Specifications
 │
 ├── Multi-team large product?
@@ -979,7 +985,7 @@ public async Task Test()
 **Decision:**
 1. **Modular monolith** (не microservices) — single deploy
 2. **Clean Architecture** — Domain / App / Infrastructure / Web
-3. **CQRS через MediatR** — command/query separation, но одна DB
+3. **CQRS Light** — command/query separation через прямые handler-вызовы или свой dispatcher (MediatR 13+ коммерческий, см. [[choosing-dependencies|Choosing Dependencies]]), одна DB
 4. **PostgreSQL + EF Core** — proven, no premature NoSQL
 5. **Vertical Slice внутри Application** — feature folders
 6. **Docker compose для dev** — Postgres + Redis локально
@@ -1008,23 +1014,11 @@ public async Task Test()
 
 ---
 
-### Case Study #3 — Multi-tenant SaaS architecture
+### Case Study #3 — Multi-tenant SaaS architecture (конспект)
 
-**Сценарий:** B2B SaaS — 100 tenants, нужна **isolation**.
+B2B SaaS с isolation по tenant: три стратегии — shared schema + TenantId (дёшево), schema-per-tenant (middle ground), database-per-tenant (full isolation, дорого). Порог выбора — количество tenants и regulations; типовой путь — start shared, критичных tenants выносить в dedicated DBs.
 
-**Three options:**
-1. **Shared schema + TenantId column** — самое дешёвое, less isolation
-2. **Schema-per-tenant** — middle ground
-3. **Database-per-tenant** — full isolation, expensive
-
-**Decision:**
-- < 50 tenants → shared schema (TenantId везде)
-- 50-500 → schema-per-tenant
-- > 500 или enterprise (regulations) → DB-per-tenant
-
-**Common pattern:** start с shared, migrate critical tenants to dedicated DBs.
-
-См. [[real-world-scenarios|Real-World Scenarios]] (Scenario 15).
+Полный разбор — [[architecture-decisions|ADRs / Case Study #3]]; реализация с EF Global Query Filter и RLS — [[real-world-scenarios|Real-World Scenarios]] (Scenario 15).
 
 
 ---
@@ -1121,7 +1115,8 @@ Strategy pattern: IPriceCalculator with multiple implementations.
 - [[architecture-patterns|Architecture Patterns]] — N-Layer / Clean / VSA / Hybrid
 - [[solid|SOLID]] — основы
 - [[ddd|DDD]] — Domain-Driven Design
-- [[cqrs-mediatr|CQRS & MediatR]]
+- [[cqrs-mediatr|CQRS & Mediator]]
+- [[choosing-dependencies|Choosing Dependencies]] — лицензии зависимостей, линия замен (MediatR/AutoMapper/MassTransit)
 - [[microservices-vs-monolith|Microservices vs Monolith]]
 - [[distributed-systems|Distributed Systems]]
 - [[system-design|System Design]]

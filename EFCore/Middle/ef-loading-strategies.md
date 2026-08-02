@@ -335,27 +335,43 @@ EF Core translates это в **один efficient SQL** с subqueries.
 - Domain logic operations
 ```
 
-### 3.5. AutoMapper / Mapster — ProjectTo
+### 3.5. Mapperly — source-gen projection
 
-Если используешь AutoMapper:
+Дефолт для projection через mapper — **Mapperly** (Apache 2.0, source generator): `Select` генерируется на этапе компиляции, никакой runtime-магии.
 
 ```csharp
+using Riok.Mapperly.Abstractions;
+
+[Mapper]
+public static partial class UserMapper
+{
+    // Source generator создаёт .Select(u => new UserDto { ... }) в compile-time
+    public static partial IQueryable<UserDto> ProjectToDto(this IQueryable<User> source);
+}
+```
+
+```csharp
+var dtos = await _db.Users
+    .Where(u => u.IsActive)
+    .ProjectToDto()        // → SQL SELECT только колонок, нужных UserDto
+    .ToListAsync();
+```
+
+Из БД читаются только поля, присутствующие в `UserDto` — как ручной `Select`, но без boilerplate; сгенерированный код можно открыть и прочитать. Ограничение: projection-маппинг внутри — `Expression<T>`, поэтому object factories, reference handling и enum-маппинг `ByName` в нём не работают.
+
+AutoMapper `ProjectTo` делает то же через runtime expression trees, но AutoMapper 15+ — коммерческий (≤14.x свободен навсегда) — см. [[choosing-dependencies|Choosing Dependencies]]:
+
+```csharp
+// AutoMapper <=14.x
 var dtos = await _db.Users
     .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
     .ToListAsync();
-// Translates AutoMapper config в SQL projection
 ```
 
-Mapster аналогично:
-
-```csharp
-var dtos = await _db.Users
-    .ProjectToType<UserDto>()
-    .ToListAsync();
-```
+Mapster (`ProjectToType<T>()`) — фактически не поддерживается; для новых проектов не брать.
 
 > [!question]- **Интервью: Include vs Select для read API?**
-> Для read-only paths **Select лучше**. **Include** загружает все колонки entities + tracks их (memory + GC pressure). **Select** загружает только нужные поля + automatic no-tracking (anonymous/DTO types). Performance: Select на read-heavy endpoints **2-5x быстрее** чем Include + manual mapping. **Когда Include**: CRUD operations где нужны полные entities для modify+save. **Best practice 2024+**: 1) `_db.Users.AsNoTracking().Where(...).Select(...)` для read APIs. 2) `_db.Users.Include(...).Where(...)` для CRUD. 3) `ProjectTo` (AutoMapper) или `ProjectToType` (Mapster) если уже используешь mapper.
+> Для read-only paths **Select лучше**. **Include** загружает все колонки entities + tracks их (memory + GC pressure). **Select** загружает только нужные поля + automatic no-tracking (anonymous/DTO types). Performance: Select на read-heavy endpoints **2-5x быстрее** чем Include + manual mapping. **Когда Include**: CRUD operations где нужны полные entities для modify+save. **Best practice**: 1) `_db.Users.AsNoTracking().Where(...).Select(...)` для read APIs. 2) `_db.Users.Include(...).Where(...)` для CRUD. 3) Mapperly `ProjectToDto` (source-gen) как дефолт для mapper-projection; AutoMapper `ProjectTo` — если уже на нём (15+ коммерческий).
 
 ---
 

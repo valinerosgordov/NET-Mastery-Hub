@@ -1,7 +1,7 @@
 ---
 tags: [performance, profiling, memory-leaks, gcdump, dotmemory]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Memory Profiling — поиск утечек и проблем с памятью
@@ -688,7 +688,7 @@ Performance issue?
 │
 └── Проверка?
     ├── Benchmark до/после → BenchmarkDotNet
-    ├── Real load test → k6, NBomber, JMeter
+    ├── Real load test → k6, NBomber (v5 коммерческий), JMeter
     └── Production canary → 5% → 50% → 100%
 ```
 

@@ -1,6 +1,6 @@
 # Architecture — паттерны и системы
 
-> 16 файлов / ~548 KB. SOLID, DDD, CQRS, microservices, EIP, agent-safe + decision guides и 18 real-world сценариев.
+> 17 файлов / ~620 KB. SOLID, DDD, CQRS, microservices, EIP, agent-safe, выбор зависимостей + decision guides и 18 real-world сценариев.
 
 [[README|← Главный README]] · [[INDEX|Полный INDEX]]
 
@@ -22,7 +22,7 @@
 
 ---
 
-## 📚 Все 16 файлов
+## 📚 Все 17 файлов
 
 ### 🌱 Junior
 
@@ -45,7 +45,8 @@
 | [[architecture-patterns|`architecture-patterns.md`]] | N-Layer / Clean / VSA / Hybrid ⭐ |
 | [[solid|`solid.md`]] | SOLID + DRY/KISS/YAGNI |
 | [[ddd|`ddd.md`]] | Bounded Contexts, Aggregates, Value Objects |
-| [[cqrs-mediatr|`cqrs-mediatr.md`]] | CQRS, MediatR, pipeline behaviors |
+| [[cqrs-mediatr|`cqrs-mediatr.md`]] | CQRS, mediator, pipeline behaviors + лицензионный сдвиг MediatR 2025 и альтернативы |
+| [[choosing-dependencies|`choosing-dependencies.md`]] ⭐ NEW | Лицензионный разлом .NET OSS 2023-2026: framework выбора зависимостей, карта замен (MediatR / AutoMapper / MassTransit / FluentAssertions) |
 | [[distributed-systems|`distributed-systems.md`]] | Saga, outbox, CAP, consistency |
 | [[system-design|`system-design.md`]] | System design process & interview |
 | [[architecture-decisions|`architecture-decisions.md`]] | ADRs — документирование решений |

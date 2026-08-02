@@ -1,7 +1,7 @@
 ---
 tags: [learning-path, junior, middle, roadmap]
 level: Junior to Middle
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # 🎓 Junior → Middle .NET Backend
@@ -72,14 +72,14 @@ date: 2026-04-30
 
 - Async file processor (читать файлы parallel)
 - Web scraper (Task.WhenAll + SemaphoreSlim)
-- Producer-consumer через Channel<T>
+- Producer-consumer через `Channel<T>`
 
 ### Чек-лист
 
 - [ ] Никогда не пишу `.Result` / `.Wait()` (deadlock!)
 - [ ] CancellationToken прокидываю везде
 - [ ] Понимаю ConfigureAwait(false) — когда нужен
-- [ ] Использую Result<T,E> вместо exceptions для business logic
+- [ ] Использую `Result<T,E>` вместо exceptions для business logic
 
 ---
 
@@ -184,16 +184,18 @@ date: 2026-04-30
 |---|------|------|-------|
 | 29 | SOLID | [[solid\|solid]] | 3-4 ч |
 | 30 | Architecture Patterns | [[architecture-patterns\|architecture-patterns]] | 6-7 ч |
-| 31 | CQRS + MediatR | [[cqrs-mediatr\|cqrs-mediatr]] | 4-5 ч |
+| 31 | CQRS + Mediator pattern | [[cqrs-mediatr\|cqrs-mediatr]] | 4-5 ч |
 | 32 | DDD intro | [[ddd\|ddd]] | 5-6 ч |
 | 33 | Design Patterns | [[design-patterns\|design-patterns]] | 4-5 ч |
 
 ### Practice
 
 - Перестроить pet-project в Vertical Slices
-- MediatR для command/query
+- CQRS-структура: свой dispatcher или Mediator (source-gen)
 - Один DDD aggregate с invariants
 - Один Saga / state machine
+
+> MediatR 13+ коммерческий с июля 2025 (≤12.x — свободный навсегда): паттерн знать обязательно, конкретная библиотека — вопрос лицензии. Линия замен: [[choosing-dependencies|Choosing Dependencies]].
 
 ### Чек-лист
 
@@ -211,9 +213,9 @@ date: 2026-04-30
 1. ✅ REST API на ASP.NET Core 10
 2. ✅ EF Core + PostgreSQL (Testcontainers для тестов)
 3. ✅ JWT auth с refresh tokens
-4. ✅ MediatR для Commands/Queries
+4. ✅ CQRS: Commands/Queries через свой dispatcher или Mediator (source-gen)
 5. ✅ FluentValidation для requests
-6. ✅ Result<T,E> вместо exceptions
+6. ✅ `Result<T,E>` вместо exceptions
 7. ✅ Serilog с structured logging
 8. ✅ OpenTelemetry traces
 9. ✅ xUnit + Testcontainers (>50% coverage)

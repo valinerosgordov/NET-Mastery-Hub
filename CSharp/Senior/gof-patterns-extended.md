@@ -1,7 +1,7 @@
 ---
 tags: [csharp, gof, design-patterns, senior, creational, structural, behavioral, encyclopedia]
 level: Senior
-date: 2026-05-10
+date: 2026-08-02
 ---
 
 # GoF Patterns Extended — все 23 паттерна с примерами
@@ -1035,6 +1035,9 @@ var result = await mediator.Send(new GetUserQuery(42));
 await mediator.Publish(new OrderPlaced(orderId));
 ```
 
+> [!warning]- License: MediatR 13+ — коммерческий
+> С июля 2025 (Lucky Penny Software) MediatR 13+ — dual-license (RPL-1.5 / commercial), ≤12.x — свободен навсегда, код выше валиден. Паттерн от библиотеки не зависит: свой in-process dispatcher (~50 строк) или Mediator (source-gen, martinothamar) дают ту же `IRequest`-семантику. Разбор — [[choosing-dependencies|Choosing Dependencies]].
+
 **When apply**:
 - Many objects interact in complex ways.
 - Want to decouple.
@@ -1537,7 +1540,7 @@ Expression<Func<int, int>> expr = x => x + 5;
 **Real .NET**: LINQ Expression Trees, regex engine, Roslyn syntax trees.
 
 > [!question]- Интервью: какие behavioral patterns остались актуальны?
-> 1) **Chain of Responsibility** — ASP.NET Core middleware (perfect example). 2) **Mediator** — MediatR библиотека (CQRS, domain events). 3) **Command** — MediatR `IRequest<T>`, WPF `ICommand`. 4) **Template Method** — abstract base + virtual methods (BackgroundService, Controller). 5) **Strategy** — `Func<T>` для simple cases, interface для complex. 6) **Observer** — `event` keyword + `INotifyPropertyChanged`, Reactive Extensions. **Replaced by language**: Iterator (`yield return`), State (pattern matching switch), Visitor (pattern matching switch), Memento (records + `with`). **Real .NET examples** every behavioral pattern имеет.
+> 1) **Chain of Responsibility** — ASP.NET Core middleware (perfect example). 2) **Mediator** — MediatR библиотека (CQRS, domain events; 13+ коммерческий — [[choosing-dependencies|см.]]). 3) **Command** — MediatR `IRequest<T>`, WPF `ICommand`. 4) **Template Method** — abstract base + virtual methods (BackgroundService, Controller). 5) **Strategy** — `Func<T>` для simple cases, interface для complex. 6) **Observer** — `event` keyword + `INotifyPropertyChanged`, Reactive Extensions. **Replaced by language**: Iterator (`yield return`), State (pattern matching switch), Visitor (pattern matching switch), Memento (records + `with`). **Real .NET examples** every behavioral pattern имеет.
 
 ---
 
@@ -1590,8 +1593,8 @@ Need to compose objects?
 
 Need to communicate?
 ├── One-to-many notifications → Observer (event)
-├── Decouple components → Mediator (MediatR)
-├── Encapsulate request → Command (MediatR IRequest)
+├── Decouple components → Mediator (MediatR — 13+ коммерческий)
+├── Encapsulate request → Command (MediatR IRequest — 13+ коммерческий)
 ├── Algorithm variation → Strategy (Func<T>)
 ├── Algorithm template → Template Method (abstract + virtual)
 ├── State machine → State (pattern matching)
@@ -1601,6 +1604,8 @@ Need to communicate?
 ├── Snapshot/undo → Memento (records)
 └── DSL/grammar → Interpreter (Expression Trees)
 ```
+
+*MediatR 13+ коммерческий — паттерны Mediator/Command не требуют именно этой библиотеки: [[choosing-dependencies|Choosing Dependencies]].*
 
 ### 4.3. Pattern frequency в production .NET
 
@@ -1612,7 +1617,7 @@ Used часто:
 ✅ Template Method (BackgroundService, Controller)
 ✅ Builder (HostBuilder, StringBuilder)
 ✅ Strategy (IComparer, Func<T>)
-✅ Mediator (MediatR, SignalR)
+✅ Mediator (MediatR — 13+ коммерческий, SignalR)
 ✅ Chain of Responsibility (middleware)
 ✅ Adapter (legacy wrapping)
 ✅ Proxy (Lazy<T>, EF Core lazy)
@@ -2071,7 +2076,7 @@ public class OrderProcessor
 - [[functional-csharp|Functional C#]]
 - [[reflection-expression-trees|Reflection]] — Specification, Expression Trees
 - [[modern-features|Modern Features]] — pattern matching
-- MediatR — github.com/jbogard/MediatR
+- MediatR — github.com/LuckyPennySoftware/MediatR
 - Scrutor — github.com/khellang/Scrutor
 
 ---

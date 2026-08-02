@@ -241,6 +241,9 @@ INSERT INTO Users (Name, Email) VALUES (@p84, @p85), ...
 
 ### 4.2. EFCore.BulkExtensions — для миллионов
 
+> [!warning]- License: EFCore.BulkExtensions — cFOSS с января 2024
+> Dual license (cFOSS): бесплатно только personal use, non-profit и компании с выручкой < $1M/год — остальным платная лицензия. На NuGet есть MIT-форк **EFCore.BulkExtensions.MIT** с тем же API. И прежде чем брать библиотеку вообще — проверь, не закрывает ли кейс нативный `ExecuteUpdate`/`ExecuteDelete` (§2) или PG binary `COPY` (§4.4): бесплатно и без зависимости. Framework выбора — [[choosing-dependencies|Choosing Dependencies]].
+
 ```bash
 dotnet add package EFCore.BulkExtensions
 ```
@@ -333,7 +336,7 @@ await bulkCopy.WriteToServerAsync(dataTable);
 │
 ├── < 100 → AddRange + SaveChanges
 ├── 100 - 10,000 → AddRange + SaveChanges (batched)
-├── 10,000 - 100,000 → EFCore.BulkExtensions (BulkInsertAsync)
+├── 10,000 - 100,000 → EFCore.BulkExtensions (BulkInsertAsync; лицензия — см. 4.2)
 └── 100,000+ → 
     ├── PostgreSQL → COPY (Npgsql binary import)
     └── SQL Server → SqlBulkCopy
@@ -676,7 +679,7 @@ await _db.Products
 // Some forks deprecated / unmaintained
 ```
 
-Используй официальный `EFCore.BulkExtensions` от **borisdj**.
+Основной пакет — `EFCore.BulkExtensions` от **borisdj**, но с января 2024 он cFOSS (см. §4.2): для коммерческого использования при выручке ≥ $1M нужна платная лицензия. Свободная альтернатива с тем же API — MIT-форк **EFCore.BulkExtensions.MIT**; перед добавлением любого из них проверь publisher и активность репозитория ([[choosing-dependencies|Choosing Dependencies]]).
 
 ### 6.9. ExecuteUpdate с related entities
 
@@ -848,13 +851,14 @@ User uploaded CSV file с 5M rows of products. Реализуй:
 - [[ef-transactions-concurrency|EFCore/Middle/ef-transactions-concurrency]] — transactions
 - [[queries-performance|EFCore/Senior/queries-performance]] — performance
 - [[dapper-comparison|EFCore/Middle/dapper-comparison]] — alternatives
+- [[choosing-dependencies|Choosing Dependencies]] — лицензии зависимостей (EFCore.BulkExtensions cFOSS и др.)
 
 ---
 
 ## 12. Reading list
 
 - **Microsoft Docs — ExecuteUpdate/ExecuteDelete** — learn.microsoft.com/ef/core/saving/execute-insert-update-delete
-- **EFCore.BulkExtensions** — github.com/borisdj/EFCore.BulkExtensions
+- **EFCore.BulkExtensions** — github.com/borisdj/EFCore.BulkExtensions (cFOSS с 2024 — см. §4.2; MIT-форк: EFCore.BulkExtensions.MIT)
 - **Npgsql Binary Copy** — npgsql.org/doc/copy.html
 - **SqlBulkCopy** — learn.microsoft.com/dotnet/api/system.data.sqlclient.sqlbulkcopy
 - **Andrew Lock — Bulk operations EF Core** — andrewlock.net

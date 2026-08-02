@@ -1,7 +1,7 @@
 ---
 tags: [eip, integration, content-based-router, routing, messaging, pipeline, dsl, architecture]
 level: Senior
-date: 2026-06-19
+date: 2026-08-02
 ---
 
 # EIP: Content-Based Router в C#
@@ -324,8 +324,7 @@ app.MapPost("/quote", (QuoteRequest req, IBackgroundQueue queue) =>
 Разбор pipeline, порядка слоёв и `MapWhen`/`UseWhen` — в [[pipeline-middleware|Pipeline, Middleware и Routing]]. Место CBR среди архитектурных паттернов — в [[architecture-patterns|Архитектура и паттерны проектирования]].
 
 > [!info] Practical note
-
-в .NET не пишут CBR с нуля для прода — берут Apache Camel-аналоги (NServiceBus/MassTransit routing, Rebus, или Camel напрямую через Kamelets). Самописный `ChoiceRouter` оправдан внутри модульного монолита, где не хочется тащить шину ради трёх веток маршрутизации.
+> В .NET не пишут CBR с нуля для прода — берут Apache Camel-аналоги (NServiceBus и MassTransit routing — оба коммерческие: NServiceBus давно, MassTransit с v9; свободные MIT-альтернативы — Rebus, Wolverine; или Camel напрямую через Kamelets). Самописный `ChoiceRouter` оправдан внутри модульного монолита, где не хочется тащить шину ради трёх веток маршрутизации.
 
 ---
 
@@ -347,3 +346,4 @@ app.MapPost("/quote", (QuoteRequest req, IBackgroundQueue queue) =>
 - [[pipeline-middleware|Pipeline, Middleware и Routing]]
 - [[solid|SOLID]]
 - [[distributed-systems|Distributed Systems Patterns]]
+- [[choosing-dependencies|Choosing Dependencies]] — лицензии NServiceBus/MassTransit, свободные замены (Rebus, Wolverine)

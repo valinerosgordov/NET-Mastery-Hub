@@ -1,7 +1,7 @@
 ---
 tags: [architecture, adr, decision-records, documentation, process]
 level: Senior
-date: 2026-04-30
+date: 2026-08-02
 ---
 
 # Architecture Decision Records (ADR)
@@ -773,7 +773,7 @@ src/MyApp.Api/
 **Decision:**
 1. **Modular monolith** (не microservices) — single deploy
 2. **Clean Architecture** — Domain / App / Infrastructure / Web
-3. **CQRS через MediatR** — command/query separation, но одна DB
+3. **CQRS через свой dispatcher** (или Mediator source-gen; MediatR 13+ коммерческий — [[choosing-dependencies|Choosing Dependencies]]) — command/query separation, но одна DB
 4. **PostgreSQL + EF Core** — proven, no premature NoSQL
 5. **Vertical Slice внутри Application** — feature folders
 6. **Docker compose для dev** — Postgres + Redis локально

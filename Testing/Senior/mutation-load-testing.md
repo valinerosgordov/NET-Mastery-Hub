@@ -236,6 +236,9 @@ jobs:
 
 [nbomber.com](https://nbomber.com)
 
+> [!warning] Лицензия NBomber — v5 платная для организаций
+> С v5 (лицензия 2.0, май 2024) NBomber — closed source: бесплатен только для personal use, организациям нужна платная лицензия. **v4 остаётся Apache 2.0.** OSS-альтернатива для серьёзного load testing — **k6** от Grafana (раздел 3). Сравнение стека — [[testing|Testing]], системный подход к выбору зависимостей — [[choosing-dependencies|Choosing Dependencies]].
+
 ```bash
 dotnet add package NBomber
 dotnet add package NBomber.Http
@@ -451,6 +454,7 @@ export const options = {
 | | NBomber | k6 |
 |--|---------|-----|
 | Язык | C# | JavaScript |
+| Лицензия | ⚠️ v5 closed source, организациям платно (v4 Apache 2.0) | ✅ OSS (AGPL-3.0), Grafana |
 | Reuse существующих C# DTOs | ✅ | ❌ Нужно дублировать |
 | Maturity | Growing | ✅ Industry standard |
 | Distributed | Limited | ✅ k6 Cloud / k8s operator |
@@ -459,9 +463,9 @@ export const options = {
 | Performance | Good | Excellent |
 | Community | Smaller | Massive |
 
-**Когда NBomber:** простые сценарии, .NET-only команда, не нужен massive scale.
+**Когда NBomber:** простые сценарии, .NET-only команда, не нужен massive scale — и лицензия v5 оплачена (или осознанно сидишь на v4 Apache 2.0).
 
-**Когда k6:** standard для serious load testing, distributed, Grafana integration.
+**Когда k6:** дефолт для serious load testing — OSS, distributed, Grafana integration, нет лицензионных рисков.
 
 ---
 
@@ -632,12 +636,14 @@ public class PerformanceBudgets
 | Scenario | Tool |
 |----------|------|
 | Critical business logic — quality of tests | **Stryker.NET** mutation |
-| API capacity planning | **NBomber** или **k6** |
+| API capacity planning | **k6** (или NBomber, если лицензия v5 решена) |
 | Distributed massive scale (millions RPS) | **k6 Cloud** или k6 на k8s |
-| Pre-release perf regression check | **NBomber** в CI |
+| Pre-release perf regression check | **k6** в CI (или NBomber) |
 | 24x7 production monitoring | **OpenTelemetry + Grafana/Datadog** |
-| Specific endpoint perf budget | **NBomber** in xUnit test |
+| Specific endpoint perf budget | **NBomber** in xUnit test (удобен C#-native; ⚠️ лицензия v5) |
 | Comparing optimization | **BenchmarkDotNet** (micro-benchmarks) |
+
+NBomber в таблице — с оговоркой на лицензию v5 (см. раздел 2): организациям он платный, бесплатная альтернатива — v4 (Apache 2.0) или k6.
 
 ---
 
@@ -795,7 +801,7 @@ Quality issue?
 ## Reading list
 
 - **Stryker.NET docs** — stryker-mutator.io/docs/stryker-net
-- **NBomber docs** — nbomber.com/docs
+- **NBomber docs** — nbomber.com/docs — ⚠️ v5 платная для организаций (v4 Apache 2.0)
 - **k6 docs** — k6.io/docs
 - **Brendan Gregg — Systems Performance** (книга, classic)
 - **Designing Data-Intensive Applications** — Kleppmann (chapter про perf)

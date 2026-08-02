@@ -108,15 +108,14 @@ public class CalculatorTests
     {
         var calc = new Calculator();
         var result = calc.Add(2, 3);
-        result.Should().Be(5);
+        result.ShouldBe(5);
     }
     
     [Fact]
     public void Divide_by_zero_throws()
     {
         var calc = new Calculator();
-        Action act = () => calc.Divide(10, 0);
-        act.Should().Throw<DivideByZeroException>();
+        Should.Throw<DivideByZeroException>(() => calc.Divide(10, 0));
     }
 }
 ```
@@ -156,11 +155,11 @@ public class OrdersApiTests : IClassFixture<WebApplicationFactory<Program>>
         
         response.EnsureSuccessStatusCode();
         var order = await response.Content.ReadFromJsonAsync<OrderDto>();
-        order.Id.Should().BeGreaterThan(0);
+        order.Id.ShouldBeGreaterThan(0);
         
         // Verify in DB
         var dbOrder = await _ctx.Orders.FindAsync(order.Id);
-        dbOrder.Should().NotBeNull();
+        dbOrder.ShouldNotBeNull();
     }
 }
 ```
@@ -202,7 +201,7 @@ public async Task User_can_create_order()
     
     await page.WaitForSelectorAsync(".order-success");
     var orderText = await page.TextContentAsync(".order-id");
-    orderText.Should().Contain("Order #");
+    orderText.ShouldContain("Order #");
 }
 ```
 
@@ -282,14 +281,14 @@ public async Task ThenOrderCreated() { /* ... */ }
 public async Task Health_endpoint_returns_200()
 {
     var response = await client.GetAsync("/health");
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    response.StatusCode.ShouldBe(HttpStatusCode.OK);
 }
 
 [Fact]
 public async Task Database_is_reachable()
 {
     var response = await client.GetAsync("/health/database");
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    response.StatusCode.ShouldBe(HttpStatusCode.OK);
 }
 ```
 
@@ -303,8 +302,7 @@ public async Task Database_is_reachable()
 public void Divide_by_zero_throws_exception_regression_1234()
 {
     var calc = new Calculator();
-    Action act = () => calc.Divide(10, 0);
-    act.Should().Throw<DivideByZeroException>();
+    Should.Throw<DivideByZeroException>(() => calc.Divide(10, 0));
 }
 ```
 
@@ -438,7 +436,7 @@ Total suite:
 public void Test1() { CreateUser(id: 1); }
 
 [Fact]  
-public void Test2() { var user = GetUser(id: 1); user.Should().NotBeNull(); }
+public void Test2() { var user = GetUser(id: 1); user.ShouldNotBeNull(); }
 // Если Test2 запустится первым — fail!
 
 // ✅ Каждый тест — самодостаточен
@@ -447,7 +445,7 @@ public void Test2()
 {
     CreateUser(id: 1);  // setup в самом тесте
     var user = GetUser(id: 1);
-    user.Should().NotBeNull();
+    user.ShouldNotBeNull();
 }
 ```
 
@@ -461,7 +459,7 @@ public void Test2()
 public void GetCurrentDay_returns_today()
 {
     var day = service.GetDay();
-    day.Should().Be(DateTime.Today.DayOfWeek.ToString());
+    day.ShouldBe(DateTime.Today.DayOfWeek.ToString());
     // Test fails в субботу из-за edge case в коде → нашёл bug в субботу
 }
 
@@ -474,7 +472,7 @@ public void GetDay_returns_correct_day()
     var service = new MyService(time);
     
     var day = service.GetDay();
-    day.Should().Be("Monday");
+    day.ShouldBe("Monday");
 }
 ```
 
@@ -496,7 +494,7 @@ public void GenerateReport()
 public void GenerateReport_includes_total()
 {
     var report = service.Generate();
-    report.Should().Contain("Total: $100");
+    report.ShouldContain("Total: $100");
 }
 ```
 
@@ -525,7 +523,7 @@ public void Subtract_returns_correct_difference()
     int result = calc.Subtract(a, b);
     
     // Assert — проверь
-    result.Should().Be(7);
+    result.ShouldBe(7);
 }
 ```
 
@@ -537,7 +535,7 @@ public void Subtract_returns_correct_difference()
 public void Test()
 {
     var result = new Calculator().Subtract(10, 3);
-    result.Should().Be(7);
+    result.ShouldBe(7);
 }
 
 // ✅ AAA
@@ -546,7 +544,7 @@ public void Test()
 {
     var calc = new Calculator();        // Arrange
     var result = calc.Subtract(10, 3);  // Act
-    result.Should().Be(7);              // Assert
+    result.ShouldBe(7);              // Assert
 }
 ```
 
@@ -741,8 +739,8 @@ public void Test()
     
     service.NotifyUser(1);
     
-    spy.SentEmails.Should().ContainSingle()
-        .Which.Should().Contain("user1@example.com");
+    spy.SentEmails.ShouldHaveSingleItem()
+        .ShouldContain("user1@example.com");
 }
 ```
 
@@ -779,7 +777,7 @@ Repeat.
 public void Add_returns_sum()
 {
     var result = Calculator.Add(2, 3);
-    result.Should().Be(5);
+    result.ShouldBe(5);
 }
 // Compile error — Calculator.Add не существует
 
@@ -794,7 +792,7 @@ public static class Calculator
 [Fact]
 public void Add_different_numbers()
 {
-    Calculator.Add(10, 20).Should().Be(30);
+    Calculator.Add(10, 20).ShouldBe(30);
 }
 // RED — current implementation fails
 
@@ -937,7 +935,7 @@ public void Method_updates_entity_in_database()
     service.Method(entity.Id);
     
     var updated = repo.GetById(entity.Id);
-    updated.Status.Should().Be("processed");
+    updated.Status.ShouldBe("processed");
 }
 ```
 
@@ -958,7 +956,7 @@ public void Test()
 public void Test2()
 {
     var result = service.Do();
-    result.Should().NotBeNull();  // ⚠️ только non-null проверяет
+    result.ShouldNotBeNull();  // ⚠️ только non-null проверяет
     // А если возвращает {Status: "Error"}? Тест passes!
 }
 
@@ -967,9 +965,9 @@ public void Test2()
 public void Test3()
 {
     var result = service.Do();
-    result.Should().NotBeNull();
-    result.Status.Should().Be("Success");
-    result.Value.Should().Be(42);
+    result.ShouldNotBeNull();
+    result.Status.ShouldBe("Success");
+    result.Value.ShouldBe(42);
 }
 ```
 
@@ -1019,7 +1017,7 @@ public void Property_setter_works()
 {
     var u = new User();
     u.Name = "John";
-    u.Name.Should().Be("John");
+    u.Name.ShouldBe("John");
 }
 // Конечно works! Это framework.
 ```
@@ -1051,7 +1049,7 @@ Coverage только показывает что **строка выполне�
 public int Divide(int a, int b) => a / b;
 
 [Fact]
-public void Divide_works() => Divide(10, 2).Should().Be(5);
+public void Divide_works() => Divide(10, 2).ShouldBe(5);
 // Coverage: 100%. Но `Divide(10, 0)` throw — тест не проверяет!
 ```
 
@@ -1077,7 +1075,7 @@ public void Divide_works() => Divide(10, 2).Should().Be(5);
 | **Verify** | Snapshot testing |
 | **FsCheck** | Property-based testing |
 | **Stryker.NET** | Mutation testing |
-| **NBomber** | Load testing in C# |
+| **NBomber** | Load testing in C# — ⚠️ v5 (2024) платная для организаций, v4 Apache 2.0; OSS-альтернатива — k6 |
 | **Playwright** | E2E browser automation |
 | **Reqnroll** | BDD / Gherkin (drop-in форк мёртвого SpecFlow) |
 | **Respawn** | DB cleanup between tests |
