@@ -1,6 +1,6 @@
 # Infrastructure — DevOps & deploy
 
-> 14 файлов / ~515 KB. Docker, Kubernetes, CI/CD, observability, messaging, NoSQL, IPC, AI/LLM integration.
+> 17 файлов / ~610 KB. Docker, Kubernetes, Aspire, CI/CD, observability, messaging, NoSQL, IPC, AI/LLM integration, AI-tooling.
 
 [[README|← Главный README]] · [[INDEX|Полный INDEX]]
 
@@ -14,6 +14,7 @@
 | Первый .NET-проект с нуля | [[project-setup-basics|`Junior/project-setup-basics.md`]] |
 | Setup CI/CD | [[cicd-github-actions|`Middle/cicd-github-actions.md`]] |
 | Deploy в Kubernetes | [[kubernetes|`Middle/kubernetes.md`]] |
+| Оркестрация multi-service dev (Aspire) | [[aspire|`Senior/aspire.md`]] |
 | Production observability | [[observability|`Senior/observability.md`]] |
 | Message queue / Kafka | [[messaging|`Senior/messaging.md`]] |
 | Когда NoSQL вместо Postgres | [[nosql-databases|`Senior/nosql-databases.md`]] |
@@ -21,7 +22,7 @@
 
 ---
 
-## 📚 Все 14 файлов
+## 📚 Все 17 файлов
 
 ### 🌱 Junior
 
@@ -34,6 +35,7 @@
 
 | Файл | Описание |
 |------|----------|
+| [[ai-coding-tools|`ai-coding-tools.md`]] | AI-инструменты 2026: Copilot / Claude Code / Cursor, агентный workflow, AI-ревью, риски |
 | [[cicd-github-actions|`cicd-github-actions.md`]] | CI/CD для .NET: build, test, lint, security scan, deploy |
 | [[kubernetes|`kubernetes.md`]] | Pod/Deployment/Service, deploy .NET app, health checks, Helm |
 
@@ -41,6 +43,7 @@
 
 | Файл | Описание |
 |------|----------|
+| [[aspire|`aspire.md`]] | Aspire 13+: AppHost, ServiceDefaults, CLI, publish/deploy, polyglot ⭐ |
 | [[docker|`docker.md`]] | Docker deep: multistage, optimization, security ⭐ |
 | [[observability|`observability.md`]] | OpenTelemetry, Prometheus, Jaeger ⭐ |
 | [[messaging|`messaging.md`]] | RabbitMQ, Kafka, MassTransit |
@@ -50,6 +53,7 @@
 | [[project-setup|`project-setup.md`]] | Directory.Build.props, CPM, .editorconfig, packaging |
 | [[llm-rag-patterns|`llm-rag-patterns.md`]] | LLM integration, RAG, vector DBs |
 | [[semantic-kernel|`semantic-kernel.md`]] | Microsoft Semantic Kernel |
+| [[mcp-csharp|`mcp-csharp.md`]] | MCP-серверы на C#: официальный SDK `ModelContextProtocol`, tools, транспорты |
 | [[wpf-production|`wpf-production.md`]] | WPF production deployment |
 
 ---

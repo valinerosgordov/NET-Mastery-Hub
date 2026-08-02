@@ -1,17 +1,20 @@
 ---
-tags: [ai, semantic-kernel, vector-search, rag, embeddings, llm]
+tags: [ai, semantic-kernel, agent-framework, vector-search, rag, embeddings, llm]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # Semantic Kernel и Vector Search в .NET
 
-> Semantic Kernel как единый AI SDK от Microsoft для .NET (LLM, embeddings, agents) плюс vector search по смысловой близости — выбор vector store (pgvector, Qdrant, Pinecone, Redis) под задачу RAG и семантического поиска.
+> Semantic Kernel — зрелый AI SDK Microsoft для .NET (LLM, embeddings, vector search, agents), с октября 2025 в maintenance mode: новые агентные проекты Microsoft ведёт в Agent Framework (GA апрель 2026). Здесь — SK для существующих кодовых баз, выбор vector store (pgvector, Qdrant, Pinecone, Redis) под RAG и раздел о миграции на Agent Framework.
 
 ## Что это, зачем и когда
 
+> [!warning] Статус 2026: SK в maintenance mode
+> С public preview **Microsoft Agent Framework** (октябрь 2025) Semantic Kernel и AutoGen переведены в **maintenance mode** — только bugfix и security-патчи, новых фич не будет. Agent Framework достиг **GA 3 апреля 2026** (.NET и Python) — это конвергенция SK + AutoGen, и для **новых** агентных проектов Microsoft рекомендует именно его. SK-знания не обесценились: Agent Framework вырос из SK (те же `Microsoft.Extensions.AI`-типы, концепции переносятся почти 1:1), а существующие SK-кодовые базы получают critical bugfixes минимум год после GA. Подробности и миграция — [[#Microsoft Agent Framework — куда переехал SK|раздел ниже]].
+
 ### Что такое Semantic Kernel?
-**AI SDK от Microsoft для .NET.** Абстракция над LLM-провайдерами (OpenAI, Azure OpenAI, Gemini, Ollama), embeddings, vector stores и AI-агентами. Альтернатива LangChain из Python-мира, но native для .NET.
+**AI SDK от Microsoft для .NET.** Абстракция над LLM-провайдерами (OpenAI, Azure OpenAI, Gemini, Ollama), embeddings, vector stores и AI-агентами. Альтернатива LangChain из Python-мира, но native для .NET. С октября 2025 — в maintenance mode (см. callout выше); vector search-часть (`Microsoft.Extensions.VectorData`, коннекторы) живёт своей жизнью и используется и из Agent Framework.
 
 **Аналогия:** Entity Framework Core для данных — один API к разным БД. Semantic Kernel — один API к разным LLM и vector stores.
 
@@ -105,7 +108,7 @@ public sealed class Article
 ```csharp
 var vectorStore = new PostgresVectorStore(dataSource);
 var collection = vectorStore.GetCollection<int, Article>("articles");
-await collection.CreateCollectionIfNotExistsAsync();
+await collection.EnsureCollectionExistsAsync();
 
 // Upsert
 var article = new Article
@@ -113,14 +116,14 @@ var article = new Article
     Id = 1,
     Title = "EF Core Projections",
     Content = "Используй .Select() чтобы не тащить лишние колонки...",
-    Embedding = await embedder.GenerateAsync(
+    Embedding = await embedder.GenerateVectorAsync(
         "EF Core Projections\n\n" +
         "Используй .Select() чтобы не тащить лишние колонки...")
 };
 await collection.UpsertAsync(article);
 
 // Search
-var queryEmbedding = await embedder.GenerateAsync("EF Core performance tips");
+var queryEmbedding = await embedder.GenerateVectorAsync("EF Core performance tips");
 var results = collection.SearchAsync(queryEmbedding, top: 5);
 
 await foreach (var r in results)
@@ -132,13 +135,13 @@ await foreach (var r in results)
 ```csharp
 public sealed class RagService(
     IEmbeddingGenerator<string, Embedding<float>> embedder,
-    IVectorStoreCollection<int, Article> store,
+    VectorStoreCollection<int, Article> store,
     IChatClient chat)
 {
     public async Task<string> AskAsync(string question, CancellationToken ct)
     {
         // 1. Эмбедим вопрос
-        var qEmbedding = await embedder.GenerateAsync(question, cancellationToken: ct);
+        var qEmbedding = await embedder.GenerateVectorAsync(question, cancellationToken: ct);
 
         // 2. Находим top-5 релевантных статей
         var topArticles = new List<Article>();
@@ -255,7 +258,7 @@ public sealed class WeatherPlugin
 
 ```csharp
 var builder = Kernel.CreateBuilder()
-    .AddOpenAIChatCompletion("gpt-4o", apiKey);
+    .AddOpenAIChatCompletion("gpt-5-mini", apiKey);   // подставь актуальную модель провайдера
 
 builder.Services.AddSingleton<IWeatherClient, OpenWeatherMapClient>();
 builder.Plugins.AddFromType<WeatherPlugin>();   // DI-aware
@@ -341,7 +344,7 @@ var result = await kernel.InvokeAsync(summarize, new() { ["input"] = text });
 
 ### Концепция
 
-LLM (GPT-4, Gemini, Llama) поддерживают **function calling**: ты регистрируешь functions, LLM решает какую вызвать на user query, парсирует arguments, ты executes function, returns result обратно LLM.
+Все современные LLM (GPT, Claude, Gemini, Llama) поддерживают **function calling**: ты регистрируешь functions, LLM решает какую вызвать на user query, парсирует arguments, ты executes function, returns result обратно LLM.
 
 ```
 User: "What's the weather in Berlin tomorrow?"
@@ -357,10 +360,12 @@ LLM generates final response: "Tomorrow in Berlin will be +15°C with partly clo
 
 ### Auto invocation в SK
 
+Современный SK-API — провайдер-независимый `FunctionChoiceBehavior` (свойство базового `PromptExecutionSettings`); старый `ToolCallBehavior` — OpenAI-специфичный legacy, но всё ещё компилируется.
+
 ```csharp
 var settings = new OpenAIPromptExecutionSettings
 {
-    ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
 };
 
 var chat = kernel.GetRequiredService<IChatCompletionService>();
@@ -384,6 +389,7 @@ Console.WriteLine(response.Content);
 ```csharp
 var settings = new OpenAIPromptExecutionSettings
 {
+    // Современный эквивалент: FunctionChoiceBehavior.Auto(autoInvoke: false)
     ToolCallBehavior = ToolCallBehavior.EnableKernelFunctions   // не auto-invoke
 };
 
@@ -447,7 +453,7 @@ public async Task<string> GetCurrentWeatherAsync(
 - **No error handling** — function throws → entire chain breaks. Wrap в try-catch, return error string LLM can interpret.
 
 > [!question]- **Интервью: function calling в SK как работает?**
-> LLM (GPT-4+) поддерживает **tool/function calling protocol**: ты declares available functions с descriptions, LLM в response может request function call с arguments вместо text answer. Kernel: 1) Sends user message + function metadata to LLM. 2) LLM returns either text **or** tool_call(name, args). 3) Kernel invokes function. 4) Result sent back to LLM. 5) LLM generates final response using result. **Two modes**: `AutoInvokeKernelFunctions` (kernel handles loop) или `EnableKernelFunctions` (you control). **Production critical**: descriptions quality, function granularity, error handling, manual mode для destructive operations.
+> Современные LLM поддерживают **tool/function calling protocol**: ты declares available functions с descriptions, LLM в response может request function call с arguments вместо text answer. Kernel: 1) Sends user message + function metadata to LLM. 2) LLM returns either text **or** tool_call(name, args). 3) Kernel invokes function. 4) Result sent back to LLM. 5) LLM generates final response using result. **Two modes**: `FunctionChoiceBehavior.Auto()` (kernel handles loop) или `Auto(autoInvoke: false)` (you control). **Production critical**: descriptions quality, function granularity, error handling, manual mode для destructive operations.
 
 ---
 
@@ -463,11 +469,13 @@ public async Task<string> GetCurrentWeatherAsync(
 
 Несколько agents могут collaborate — **multi-agent systems**.
 
-### Single agent (.NET SK Agents — preview as of 2026)
+### Single agent (SK Agents — GA, но заморожены)
+
+SK Agents дошли до GA весной 2025, но с переводом SK в maintenance mode дальше не развиваются — именно этот слой стал основой [[#Microsoft Agent Framework — куда переехал SK|Agent Framework]]. Код ниже актуален для существующих SK-кодовых баз.
 
 ```bash
-dotnet add package Microsoft.SemanticKernel.Agents.Core --prerelease
-dotnet add package Microsoft.SemanticKernel.Agents.OpenAI --prerelease
+dotnet add package Microsoft.SemanticKernel.Agents.Core
+dotnet add package Microsoft.SemanticKernel.Agents.OpenAI
 ```
 
 ```csharp
@@ -486,15 +494,16 @@ var researcher = new ChatCompletionAgent
     Kernel = kernel,
     Arguments = new KernelArguments(new OpenAIPromptExecutionSettings
     {
-        ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+        FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
     })
 };
 
 // Conversation
 var thread = new ChatHistoryAgentThread();
-await thread.OnNewMessageAsync(new ChatMessageContent(AuthorRole.User, "What are recent advances in fusion energy?"));
 
-await foreach (var response in researcher.InvokeAsync(thread))
+await foreach (var response in researcher.InvokeAsync(
+    new ChatMessageContent(AuthorRole.User, "What are recent advances in fusion energy?"),
+    thread))
 {
     Console.WriteLine($"{response.Message.Role}: {response.Message.Content}");
 }
@@ -562,7 +571,103 @@ Pipeline:
 ```
 
 > [!question]- **Интервью: SK Agents framework зачем?**
-> **Agent** = LLM с persistent instructions, tools, memory, goal-orientation. Делает multi-step reasoning vs single function call. **Use cases**: 1) Complex tasks (research + summarize + verify). 2) Multi-agent collaboration (researcher → writer → reviewer pipeline). 3) Autonomous workflows. **Termination strategies**: max iterations, agent approval, custom condition. **Selection strategies**: sequential, round-robin, LLM-decided. **Cost**: каждый turn = LLM call → expensive. **Status в .NET 2026**: preview, evolving API. **Alternative**: AutoGen (Microsoft), CrewAI, LangGraph.
+> **Agent** = LLM с persistent instructions, tools, memory, goal-orientation. Делает multi-step reasoning vs single function call. **Use cases**: 1) Complex tasks (research + summarize + verify). 2) Multi-agent collaboration (researcher → writer → reviewer pipeline). 3) Autonomous workflows. **Termination strategies**: max iterations, agent approval, custom condition. **Selection strategies**: sequential, round-robin, LLM-decided. **Cost**: каждый turn = LLM call → expensive. **Status 2026**: SK Agents — GA, но SK в maintenance mode; новые агентные проекты Microsoft рекомендует строить на Agent Framework (конвергенция SK + AutoGen, GA апрель 2026), где мульти-агентность — это Workflows. **Alternatives вне Microsoft**: LangGraph, CrewAI.
+
+---
+
+## Microsoft Agent Framework — куда переехал SK
+
+### Что это
+
+**Microsoft Agent Framework** — production SDK Microsoft для агентов и мульти-агентных workflows, **GA 3 апреля 2026** (.NET и Python, open source, MIT). Это конвергенция Semantic Kernel и AutoGen: от SK — enterprise-фундамент (DI, OpenTelemetry, типы `Microsoft.Extensions.AI`), от AutoGen — мульти-агентные оркестрации. Документация: learn.microsoft.com/agent-framework.
+
+```bash
+dotnet add package Microsoft.Agents.AI.OpenAI   # тянет core-пакет Microsoft.Agents.AI
+```
+
+### Ключевые концепции
+
+| Концепция | Что это |
+|-----------|---------|
+| **`AIAgent`** | Базовая абстракция агента. Один конкретный тип `ChatClientAgent` работает поверх любого `IChatClient` — вместо зоопарка `ChatCompletionAgent` / `OpenAIAssistantAgent` / `AzureAIAgent` |
+| **Session** (`AgentSession`) | Состояние диалога (бывший thread); создаёт сам агент через `CreateSessionAsync()`, бывает локальной и service-backed |
+| **Workflows** | Graph-based движок оркестрации: агенты и функции соединяются в детерминированные, воспроизводимые процессы (наследие AutoGen; замена `AgentGroupChat`) |
+| **Middleware** | Pipeline перехвата поведения агента: логирование, approval-flow, трансформация tool-вызовов (аналог SK filters) |
+| **Tools** | Обычные C# методы через `AIFunctionFactory.Create()` — без `[KernelFunction]`, без Kernel; `[Description]` опционален |
+
+Плюс встроенная поддержка MCP (Model Context Protocol) и A2A (agent-to-agent) из коробки.
+
+### Маппинг SK → Agent Framework
+
+| Semantic Kernel | Agent Framework |
+|-----------------|-----------------|
+| `Kernel` + plugins | Не нужен — агент строится прямо на `IChatClient` |
+| `[KernelFunction]` + `KernelPluginFactory` + Kernel | `AIFunctionFactory.Create(method)` в параметре `tools` |
+| `ChatCompletionAgent { Kernel = ... }` | `chatClient.AsAIAgent(instructions: ...)` |
+| `new ChatHistoryAgentThread()` — тип выбираешь сам | `await agent.CreateSessionAsync()` — агент сам знает |
+| `agent.InvokeAsync(...)` → `IAsyncEnumerable<AgentResponseItem<...>>` | `agent.RunAsync(...)` → единый `AgentResponse` (`.Text`, `.Messages`) |
+| `agent.InvokeStreamingAsync(...)` | `agent.RunStreamingAsync(...)` → `AgentResponseUpdate` |
+| `OpenAIPromptExecutionSettings` + `KernelArguments` | `ChatClientAgentRunOptions` (`MaxOutputTokens` и т.д.) |
+| `AgentGroupChat` + selection/termination strategies | Workflows (graph-based) |
+| Filters (function/prompt invocation) | Middleware |
+
+### Минимальный агент на C#
+
+```csharp
+using System.ComponentModel;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using OpenAI;
+
+var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")!;
+
+// Любой IChatClient (Microsoft.Extensions.AI): OpenAI, Azure OpenAI, Ollama...
+IChatClient chatClient = new OpenAIClient(apiKey)
+    .GetChatClient("gpt-5-mini")   // подставь актуальную модель провайдера
+    .AsIChatClient();
+
+// Tool — обычный метод, без [KernelFunction] и без Kernel
+[Description("Gets the current weather for a given city")]
+static string GetWeather([Description("City name")] string city)
+    => $"{city}: +21°C, sunny";
+
+AIAgent agent = chatClient.AsAIAgent(
+    instructions: "You are a helpful weather assistant.",
+    tools: [AIFunctionFactory.Create(GetWeather)]);
+
+// Session хранит контекст диалога (аналог AgentThread из SK)
+AgentSession session = await agent.CreateSessionAsync();
+
+AgentResponse response = await agent.RunAsync("What's the weather in Berlin?", session);
+Console.WriteLine(response.Text);
+
+// Streaming — тот же паттерн
+await foreach (AgentResponseUpdate update in agent.RunStreamingAsync("And in Paris?", session))
+    Console.Write(update);   // update ToString()-friendly
+```
+
+### Когда мигрировать, когда нет
+
+```
+✅ Agent Framework:
+- Новый агентный проект — по умолчанию, SK новых фич не получит
+- Нужны мульти-агентные workflows (в SK оркестрация так и не стабилизировалась)
+- AutoGen-проект — мигрировать в течение 6-12 месяцев, экосистема остановлена
+- Нужны MCP / A2A / middleware / hosted agents
+
+❌ Оставаться на SK (пока):
+- Стабильная SK-система в production без потребности в новых оркестрациях —
+  critical bugfixes гарантированы минимум год после GA Agent Framework
+- Глубокая завязка на SK-специфику (prompt templates, planners, Memory API) —
+  миграция дороже выгоды, пока система не требует новых возможностей
+- Vector search на Microsoft.Extensions.VectorData миграции не требует вообще —
+  этот слой общий и работает с обоими
+```
+
+Сама миграция во многом механическая: официальный guide (learn.microsoft.com/agent-framework/migration-guide/from-semantic-kernel/) даёт маппинг API почти 1:1.
+
+> [!question]- **Интервью: что случилось с Semantic Kernel в 2025-2026?**
+> С public preview Microsoft Agent Framework (октябрь 2025) SK и AutoGen переведены в **maintenance mode** — bugfix/security only. Agent Framework достиг **GA 3 апреля 2026**: конвергенция SK (enterprise-фундамент, `Microsoft.Extensions.AI`-типы) и AutoGen (мульти-агентные паттерны). Ключевые упрощения: не нужен `Kernel` — агент строится прямо на `IChatClient`; tools без `[KernelFunction]`; единый `ChatClientAgent` вместо нескольких типов агентов; `RunAsync` возвращает единый `AgentResponse` вместо `IAsyncEnumerable`. Мульти-агентность — graph-based **Workflows** (замена `AgentGroupChat`). Стратегия: новые проекты — на Agent Framework; стабильный SK-production может не спешить (critical bugfixes минимум год после GA).
 
 ---
 
@@ -571,6 +676,9 @@ Pipeline:
 ### Что это
 
 **Memory** — хранение и retrieval information across conversations. Не путать с conversation history (in-memory current chat). **Long-term memory** persists между sessions.
+
+> [!warning] Legacy API
+> `MemoryBuilder` / `ISemanticTextMemory` (`Microsoft.SemanticKernel.Memory`) объявлены obsolete ещё до maintenance mode — новый код должен использовать `Microsoft.Extensions.VectorData` (Quickstart выше). Раздел оставлен для чтения существующих кодовых баз.
 
 ### Volatile memory (in-process)
 
@@ -910,9 +1018,12 @@ LLM-specific transient errors:
 ### Cost tracking
 
 ```csharp
+public sealed record ModelPricing(decimal InputPer1M, decimal OutputPer1M);
+
 public class CostTrackingHandler : DelegatingHandler
 {
     private readonly IMetrics _metrics;
+    private readonly IReadOnlyDictionary<string, ModelPricing> _pricing;   // bind из appsettings
     
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken ct)
@@ -928,15 +1039,14 @@ public class CostTrackingHandler : DelegatingHandler
             {
                 var promptTokens = usage.GetProperty("prompt_tokens").GetInt32();
                 var completionTokens = usage.GetProperty("completion_tokens").GetInt32();
-                var model = json.RootElement.GetProperty("model").GetString();
+                var model = json.RootElement.GetProperty("model").GetString()!;
                 
-                // Calculate cost (example для GPT-4o)
-                var cost = model switch
-                {
-                    "gpt-4o" => promptTokens * 0.0025m / 1000m + completionTokens * 0.01m / 1000m,
-                    "gpt-4o-mini" => promptTokens * 0.00015m / 1000m + completionTokens * 0.0006m / 1000m,
-                    _ => 0
-                };
+                // Прайс держи в конфиге, НЕ хардкодь: провайдеры меняют цены
+                // и линейки моделей несколько раз в год
+                var cost = _pricing.TryGetValue(model, out var p)
+                    ? promptTokens * p.InputPer1M / 1_000_000m
+                      + completionTokens * p.OutputPer1M / 1_000_000m
+                    : 0m;
                 
                 _metrics.Counter("llm_tokens", new[] { ("model", model), ("type", "prompt") })
                     .Increment(promptTokens);
@@ -981,7 +1091,7 @@ public class CachingChatService(
 
 ```csharp
 // Pseudo-code
-var queryEmbedding = await embedder.GenerateAsync(query, ct);
+var queryEmbedding = await embedder.GenerateVectorAsync(query, cancellationToken: ct);
 var similar = await vectorStore.SearchAsync(queryEmbedding, top: 1, threshold: 0.95);
 
 if (similar.Any())
@@ -1009,7 +1119,7 @@ Trace spans show:
 Critical для debugging: видишь chain of operations, latency breakdown, costs per request.
 
 > [!question]- **Интервью: production patterns LLM apps?**
-> 1) **Rate limiting** — respect LLM provider RPM/TPM limits, internal RateLimiter. 2) **Retries с exponential backoff** для 429/5xx (НЕ 4xx). 3) **Cost tracking** — log tokens per request + dollar cost (через DelegatingHandler или metrics). 4) **Caching** — exact match для FAQs, semantic similarity для variations. 5) **Observability** — OpenTelemetry, SK auto-instruments. 6) **Fallback** — secondary model или cached response при primary failure. 7) **Prompt versioning** — track prompt changes как code, A/B testing. **Cost optimization**: 1) cheaper model для simple tasks (gpt-4o-mini). 2) caching. 3) shorter prompts. 4) max_tokens limits.
+> 1) **Rate limiting** — respect LLM provider RPM/TPM limits, internal RateLimiter. 2) **Retries с exponential backoff** для 429/5xx (НЕ 4xx). 3) **Cost tracking** — log tokens per request + dollar cost (через DelegatingHandler или metrics). 4) **Caching** — exact match для FAQs, semantic similarity для variations. 5) **Observability** — OpenTelemetry, SK auto-instruments. 6) **Fallback** — secondary model или cached response при primary failure. 7) **Prompt versioning** — track prompt changes как code, A/B testing. **Cost optimization**: 1) cheaper model для simple tasks (mini/nano-tier у OpenAI, Haiku-класс у Anthropic). 2) caching. 3) shorter prompts. 4) max_tokens limits.
 
 ---
 
@@ -1019,11 +1129,11 @@ Critical для debugging: видишь chain of operations, latency breakdown, 
 |--|-----------------|-----------|------------|
 | Language | C# / Python / Java | Python (TS port) | Python (TS port) |
 | Microsoft | ✅ | ❌ | ❌ |
-| Maturity | Stable + Agents preview | Mature, big ecosystem | Mature, RAG-focused |
+| Maturity | Stable, но maintenance mode — новое развитие в Agent Framework | Mature, big ecosystem | Mature, RAG-focused |
 | Strengths | .NET native, enterprise, Azure integration | Largest ecosystem, many integrations | Best for RAG, advanced retrieval |
-| Weaknesses | Smaller ecosystem | Frequent breaking changes | Less general-purpose |
+| Weaknesses | Smaller ecosystem, заморожен (bugfix only) | Frequent breaking changes | Less general-purpose |
 | Function calling | ✅ Auto + manual | ✅ | ✅ |
-| Agents | Preview (.NET) | LangGraph (mature) | Built-in |
+| Agents | GA, но заморожены → Agent Framework | LangGraph (mature) | Built-in |
 | Memory connectors | Many | Many | Many |
 | Streaming | ✅ | ✅ | ✅ |
 | Vector stores | 8+ | 50+ | 30+ |
@@ -1032,6 +1142,7 @@ Critical для debugging: видишь chain of operations, latency breakdown, 
 
 ```
 Choose Semantic Kernel:
+✅ Существующая SK-кодовая база (для НОВЫХ агентных проектов — Agent Framework)
 ✅ .NET / Azure shop
 ✅ Enterprise compliance
 ✅ Strong typing нужен
@@ -1055,23 +1166,26 @@ Choose LlamaIndex:
 Возможно use SK для C# orchestration + LlamaIndex (через REST) для retrieval. Или SK + custom retrieval pipeline.
 
 > [!question]- **Интервью: SK vs LangChain — когда что?**
-> **SK** — когда .NET shop, enterprise, Azure integration. Strong typing, Microsoft backing. **LangChain** — Python-first, biggest ecosystem (50+ vector stores, 100+ tools, mature agents через LangGraph). **LlamaIndex** — RAG-specialized, лучше для document indexing, advanced retrieval (hierarchical, hybrid search). **Reality check**: для C# проектов SK + custom code часто выигрывает над попытками use Python libraries через REST. **Trade-off**: SK ecosystem меньше, но достаточен для большинства production cases. **Future**: SK Agents framework matures → паритет с LangGraph.
+> **SK** — когда .NET shop, enterprise, Azure integration. Strong typing, Microsoft backing. **LangChain** — Python-first, biggest ecosystem (50+ vector stores, 100+ tools, mature agents через LangGraph). **LlamaIndex** — RAG-specialized, лучше для document indexing, advanced retrieval (hierarchical, hybrid search). **Reality check**: для C# проектов SK + custom code часто выигрывает над попытками use Python libraries через REST. **Trade-off**: SK ecosystem меньше, но достаточен для большинства production cases. **2026**: развитие агентной части ушло в Microsoft Agent Framework (Workflows) — именно он конкурирует с LangGraph; сам SK — в maintenance mode, выбирать его для нового агентного проекта уже не стоит.
 
 ---
 
-## Common pitfalls (расширенный список)
+## Подводные камни
 
 ### Embedding dimension mismatch
-Index built с 1536-dim, query с 768-dim → garbage results. **Match dimensions explicitly**.
+Index built с 1536-dim, query с 768-dim → garbage results. **Match dimensions explicitly**. И помни: смена embedding-модели = полный reindex корпуса — выбирай размерность под задачу сразу (384 для быстрого/дешёвого, 768/1024 для баланса, 1536+ для точности).
 
 ### Distance function mismatch  
 Index с CosineSimilarity, query с DotProduct → wrong ranking. **Same metric везде**.
 
 ### Hybrid search недооценён
-Чисто vector search упускает exact matches (SKU, codes). **BM25 + vector + reranker** обычно лучше.
+Чисто vector search упускает exact matches (SKU, codes). **BM25 + vector + reranker** (`BAAI/bge-reranker`) обычно лучше. Qdrant / Weaviate умеют из коробки, в pgvector — вручную.
 
 ### Multi-tenancy без RLS на vector store
 Все tenants видят all vectors. **Filter by tenant_id ПЕРЕД similarity**, не после.
+
+### Стоимость embedding при масштабе
+100k документов × 1k токенов × $0.02/1M = $2. При 10M документов → $200, плюс re-embedding при смене модели. **Bulk-генерация через batch API дешевле; считай стоимость reindex до выбора модели**.
 
 ### Context window overflow
 Stuff 50 retrieved chunks в prompt → exceeds 128K context, errors или garbage. **Limit top-K, summarize если нужно более**.
@@ -1080,7 +1194,7 @@ Stuff 50 retrieved chunks в prompt → exceeds 128K context, errors или garb
 User input injected в prompt template → LLM может ignore instructions. **Sanitize, или use structured outputs, или separate user input от system prompt**.
 
 ### Cost explosion
-GPT-4o for everything → bill $1000s/month. **Use cheaper models (gpt-4o-mini, Haiku) для simple tasks. Cache aggressive. Monitor cost per query**.
+Флагманская модель for everything → bill $1000s/month. **Use cheaper models (mini/nano-tier, Haiku-класс) для simple tasks. Cache aggressive. Monitor cost per query**.
 
 ### Tool calling без timeouts
 Agent endless loop вызывая tools → cost explosion. **Max iterations, max time, circuit breaker**.
@@ -1098,7 +1212,7 @@ Server streams faster than client consumes → memory grows. **Implement back-pr
 ```csharp
 // === Setup ===
 var builder = Kernel.CreateBuilder()
-    .AddOpenAIChatCompletion("gpt-4o", apiKey)
+    .AddOpenAIChatCompletion("gpt-5-mini", apiKey)   // подставь актуальную модель
     .AddOpenAIEmbeddingGenerator("text-embedding-3-small", apiKey);
 
 builder.Plugins.AddFromType<MyPlugin>();
@@ -1107,7 +1221,7 @@ var kernel = builder.Build();
 // === Function calling auto ===
 var settings = new OpenAIPromptExecutionSettings
 {
-    ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
 };
 var chat = kernel.GetRequiredService<IChatCompletionService>();
 var response = await chat.GetChatMessageContentAsync(history, settings, kernel);
@@ -1187,14 +1301,6 @@ Wrap LLM service с OpenTelemetry + cost tracking. Dashboard: tokens/min, cost/h
 
 ### 5. Semantic cache
 Cache LLM responses by embedding similarity (threshold 0.95). On cache hit — return stored response. Track hit rate. Compare cost savings.
-
-## Подводные камни
-
-- **Размерность вектора менять потом больно.** Смена модели → reindex всего корпуса. Выбирай под задачу сразу: 384 для быстрого/дешёвого, 768/1024 для баланса, 1536+ для точности.
-- **Метрика расстояния должна совпадать при build и query.** CosineSimilarity при индексе → CosineSimilarity при поиске. Смешение = мусорные результаты.
-- **Hybrid search обычно лучше чистого vector.** BM25 + vector + reranker (`BAAI/bge-reranker`). Qdrant / Weaviate умеют из коробки, в pgvector — вручную.
-- **Стоимость embedding при масштабе.** 100k документов × 1k токенов × $0.02/1M = $2. При 10M документов → $200. Bulk-генерация через batch API дешевле.
-- **RLS и multi-tenant.** Vector store должен уметь фильтровать по `TenantId` перед similarity search, а не после — иначе сливается в одну кучу.
 
 ## См. также
 

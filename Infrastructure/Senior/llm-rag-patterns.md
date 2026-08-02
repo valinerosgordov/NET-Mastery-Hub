@@ -1,7 +1,7 @@
 ---
 tags: [ai, llm, rag, openai, semantic-kernel, embeddings, microsoft-extensions-ai]
 level: Senior
-date: 2026-06-28
+date: 2026-08-02
 ---
 
 # RAG и LLM Patterns в .NET — production guide
@@ -94,7 +94,9 @@ User query ────▶│ Embed query → Vector search    │
 
 ## Microsoft.Extensions.AI как абстракция
 
-Это **новый канонический способ работать с LLM из .NET 9+** — single API над OpenAI, Azure OpenAI, Gemini, Ollama, AWS Bedrock. Аналог `Microsoft.Extensions.Logging` для логирования или `Microsoft.Extensions.Caching` для кэша — ты пишешь против абстракции, а провайдера выбираешь в DI.
+Это **канонический способ работать с LLM из .NET** (GA с 2025, текущие пакеты — 10.x) — single API над OpenAI, Azure OpenAI, Gemini, Ollama, AWS Bedrock. Аналог `Microsoft.Extensions.Logging` для логирования или `Microsoft.Extensions.Caching` для кэша — ты пишешь против абстракции, а провайдера выбираешь в DI.
+
+Для **многоагентной оркестрации** поверх этих же абстракций — Microsoft Agent Framework 1.0 (GA 3 апреля 2026, конвергенция Semantic Kernel + AutoGen; оба предшественника — в maintenance mode). Vector search и SK-специфика — в [[semantic-kernel|Semantic Kernel и Vector Search]].
 
 ```bash
 dotnet add package Microsoft.Extensions.AI
@@ -109,11 +111,16 @@ using Microsoft.Extensions.AI;
 using OpenAI;
 
 var openAiClient = new OpenAIClient(configuration["OpenAI:ApiKey"]);
-IChatClient chatClient = openAiClient.AsChatClient(modelId: "gpt-4o");
+IChatClient chatClient = openAiClient
+    .GetChatClient("gpt-5.4-mini") // имя модели дрейфует — сверяйся с актуальной линейкой провайдера
+    .AsIChatClient();
 
-var response = await chatClient.CompleteAsync("Объясни DDD за 3 предложения.");
-Console.WriteLine(response.Message.Text);
+var response = await chatClient.GetResponseAsync("Объясни DDD за 3 предложения.");
+Console.WriteLine(response.Text);
 ```
+
+> [!warning]- GA-переименование API (март 2025) — старый код не компилируется
+> С 9.3-preview и в GA API переименован: `CompleteAsync` → `GetResponseAsync`, `CompleteStreamingAsync` → `GetStreamingResponseAsync`, `AsChatClient(modelId)` → `GetChatClient(modelId).AsIChatClient()`. Вместо `response.Message` (одно сообщение) теперь `response.Messages` (список — модель может вернуть несколько, например tool-call + текст) плюс удобный `response.Text` для конкатенированного текста. Сниппеты из блогов 2024 — начала 2025 сломаются на компиляции — это фича, а не бага: миграция ловится компилятором.
 
 ### DI-регистрация (production)
 
@@ -121,10 +128,11 @@ Console.WriteLine(response.Message.Text);
 // Program.cs
 builder.Services.AddChatClient(sp =>
     new OpenAIClient(builder.Configuration["OpenAI:ApiKey"]!)
-        .AsChatClient(modelId: "gpt-4o"))
-    .UseFunctionInvocation()    // tool use
-    .UseLogging()                // логирование промптов и ответов
+        .GetChatClient("gpt-5.4-mini") // подставь актуальную модель
+        .AsIChatClient())
     .UseDistributedCache()       // кэш ответов
+    .UseFunctionInvocation()     // tool use
+    .UseLogging()                // логирование промптов и ответов
     .UseOpenTelemetry();         // трейсы/метрики
 
 // В сервисе:
@@ -132,16 +140,15 @@ public class AnswerService(IChatClient chatClient)
 {
     public async Task<string> AnswerAsync(string question, CancellationToken ct)
     {
-        var response = await chatClient.CompleteAsync(
-            new[]
-            {
+        var response = await chatClient.GetResponseAsync(
+            [
                 new ChatMessage(ChatRole.System, "Ты — ассистент по C#."),
                 new ChatMessage(ChatRole.User, question),
-            },
+            ],
             options: new ChatOptions { Temperature = 0.3f, MaxOutputTokens = 500 },
             cancellationToken: ct);
 
-        return response.Message.Text ?? "";
+        return response.Text;
     }
 }
 ```
@@ -150,10 +157,14 @@ public class AnswerService(IChatClient chatClient)
 
 ```csharp
 IEmbeddingGenerator<string, Embedding<float>> embedder =
-    openAiClient.AsEmbeddingGenerator(modelId: "text-embedding-3-small");
+    openAiClient.GetEmbeddingClient("text-embedding-3-small").AsIEmbeddingGenerator();
 
-var embedding = await embedder.GenerateAsync("EF Core projection");
-ReadOnlyMemory<float> vector = embedding.Vector; // 1536 float'ов
+// Один текст → сразу вектор (accelerator-extension)
+ReadOnlyMemory<float> vector = await embedder.GenerateVectorAsync("EF Core projection"); // 1536 float'ов
+
+// Батч → GeneratedEmbeddings (список Embedding<float> с .Vector)
+GeneratedEmbeddings<Embedding<float>> batch =
+    await embedder.GenerateAsync(["EF Core projection", "N+1 problem"]);
 ```
 
 > [!question]- **Интервью: зачем нужен Microsoft.Extensions.AI, если есть OpenAI SDK?**
@@ -180,7 +191,7 @@ public sealed class OpenAiOptions
     public string ApiKey { get; init; } = "";
 
     [Required]
-    public string Model { get; init; } = "gpt-4o";
+    public string Model { get; init; } = "gpt-5.4-mini"; // имена моделей дрейфуют — держи в конфиге, не в коде
 
     public string ImageModel { get; init; } = "dall-e-3";
 
@@ -428,13 +439,13 @@ foreach (var (parent, parentId) in ChunkLarge(doc, size: 2000))
 
     foreach (var child in ChunkSmall(parent, size: 500))
     {
-        var embedding = await embedder.GenerateAsync(child);
+        var vector = await embedder.GenerateVectorAsync(child);
         await vectorStore.UpsertAsync(new VectorRecord
         {
             Id = Guid.NewGuid(),
             ParentId = parentId,
             Content = child,
-            Embedding = embedding.Vector,
+            Embedding = vector,
         });
     }
 }
@@ -508,6 +519,8 @@ public IEnumerable<CodeChunk> ChunkCSharp(string source, string filePath)
 | `BAAI/bge-large-en-v1.5` (Ollama) | 1024 | бесплатно | Локально через Ollama |
 | `intfloat/multilingual-e5-large` (Ollama) | 1024 | бесплатно | Многоязычный, отлично для RU |
 
+**Цены и имена моделей дрейфуют** — таблица сверена на 2026-08, но перед расчётом стоимости проверяй актуальный прайс провайдера. Паттерны экономии (batch, кэш по хэшу, дешёвая модель) от прайса не зависят.
+
 ### Batching — экономия RPM/TPM
 
 Embedding APIs принимают **массив текстов** в одном запросе. Batch'и до 100-2048 элементов в зависимости от провайдера.
@@ -549,8 +562,8 @@ public async Task<string> EmbedWithCacheAsync(string text, CancellationToken ct)
     var cached = await cache.GetAsync<float[]>($"emb:{hashHex}", ct);
     if (cached is not null) return hashHex;
 
-    var embedding = await embedder.GenerateAsync(text, cancellationToken: ct);
-    await cache.SetAsync($"emb:{hashHex}", embedding.Vector.ToArray(), ct);
+    var vector = await embedder.GenerateVectorAsync(text, cancellationToken: ct);
+    await cache.SetAsync($"emb:{hashHex}", vector.ToArray(), ct);
     return hashHex;
 }
 ```
@@ -690,7 +703,7 @@ public async Task<IReadOnlyList<RankedHit>> RerankAsync(
 
 ### LLM-as-reranker (cheap fallback)
 
-Можно вместо cross-encoder использовать дешёвую LLM (gpt-4o-mini) с structured output:
+Можно вместо cross-encoder использовать дешёвую LLM (mini/nano-модель актуальной линейки — например `gpt-5.4-mini`) с structured output:
 
 ```csharp
 var prompt = $"""
@@ -703,7 +716,7 @@ var prompt = $"""
     {string.Join("\n\n", docs.Select((d, i) => $"[{i}] {d}"))}
     """;
 
-var response = await chatClient.CompleteAsync(prompt, options: new ChatOptions
+var response = await chatClient.GetResponseAsync(prompt, options: new ChatOptions
 {
     Temperature = 0,
     ResponseFormat = ChatResponseFormat.Json,
@@ -718,6 +731,9 @@ var response = await chatClient.CompleteAsync(prompt, options: new ChatOptions
 
 LLM может **вызвать твою функцию** во время генерации ответа. Это превращает чат-бот в агента, который может: посчитать что-то, дёрнуть API, прочитать БД, обновить запись.
 
+> [!info]- MCP — стандартный транспорт для tools
+> Если tools нужно переиспользовать между приложениями и агентами (а не хардкодить в одном сервисе), выноси их в **MCP-сервер** — Model Context Protocol, открытый стандарт с официальным C# SDK (NuGet-пакет `ModelContextProtocol`, разработка Microsoft в партнёрстве с Anthropic). MCP-tools подключаются к `IChatClient` как обычные `AITool` — тот же `ChatOptions.Tools`. Деплой, атрибуты `[McpServerTool]`, transports — [[mcp-csharp|MCP на C#]].
+
 ### С Microsoft.Extensions.AI
 
 ```csharp
@@ -729,17 +745,21 @@ static string GetWeather(
     return $"В {city} +5°C, облачно.";
 }
 
-var chatClient = openAiClient.AsChatClient("gpt-4o")
-    .UseFunctionInvocation();
+var chatClient = openAiClient
+    .GetChatClient("gpt-5.4-mini") // подставь актуальную модель
+    .AsIChatClient()
+    .AsBuilder()
+    .UseFunctionInvocation()
+    .Build();
 
-var response = await chatClient.CompleteAsync(
+var response = await chatClient.GetResponseAsync(
     "Какая погода в Москве?",
     options: new ChatOptions
     {
         Tools = [AIFunctionFactory.Create(GetWeather)],
     });
 
-Console.WriteLine(response.Message.Text);
+Console.WriteLine(response.Text);
 // "В Москве сейчас +5°C и облачно."
 ```
 
@@ -750,40 +770,44 @@ Console.WriteLine(response.Message.Text);
 ```csharp
 public async Task<string> RunAgentAsync(string userInput, CancellationToken ct)
 {
-    var messages = new List<ChatMessage>
-    {
+    List<ChatMessage> messages =
+    [
         new(ChatRole.System, "Ты — ассистент. Используй tools для точных ответов."),
         new(ChatRole.User, userInput),
-    };
+    ];
 
-    var tools = new List<AITool>
-    {
+    List<AITool> tools =
+    [
         AIFunctionFactory.Create(GetWeather),
         AIFunctionFactory.Create(SearchDocs),
         AIFunctionFactory.Create(SaveNote),
-    };
+    ];
 
     for (var iteration = 0; iteration < 10; iteration++) // safety cap
     {
-        var response = await chatClient.CompleteAsync(messages, new ChatOptions
+        var response = await chatClient.GetResponseAsync(messages, new ChatOptions
         {
             Tools = tools,
         }, ct);
 
+        var functionCalls = response.Messages
+            .SelectMany(m => m.Contents)
+            .OfType<FunctionCallContent>()
+            .ToList();
+
         // Если модель не запросила tool — это финальный ответ
-        if (response.Message.FunctionCalls.Count == 0)
-            return response.Message.Text ?? "";
+        if (functionCalls.Count == 0)
+            return response.Text;
 
-        messages.Add(response.Message);
+        // Вернуть ВСЕ сообщения ответа в историю (assistant-сообщение с tool call'ами)
+        messages.AddMessages(response);
 
-        foreach (var call in response.Message.FunctionCalls)
+        foreach (var call in functionCalls)
         {
             var tool = tools.OfType<AIFunction>().First(t => t.Name == call.Name);
-            var result = await tool.InvokeAsync(call.Arguments, ct);
-            messages.Add(new ChatMessage(ChatRole.Tool, result?.ToString() ?? "")
-            {
-                AdditionalProperties = { ["tool_call_id"] = call.Id },
-            });
+            var result = await tool.InvokeAsync(new AIFunctionArguments(call.Arguments), ct);
+            messages.Add(new ChatMessage(ChatRole.Tool,
+                [new FunctionResultContent(call.CallId, result)]));
         }
     }
 
@@ -831,7 +855,7 @@ app.MapPost("/api/chat", async (
         new ChatMessage(ChatRole.User, request.Message),
     };
 
-    await foreach (var update in chatClient.CompleteStreamingAsync(messages, cancellationToken: ct))
+    await foreach (var update in chatClient.GetStreamingResponseAsync(messages, cancellationToken: ct))
     {
         if (string.IsNullOrEmpty(update.Text)) continue;
 
@@ -857,7 +881,7 @@ public async IAsyncEnumerable<string> StreamAnswerAsync(
         new ChatMessage(ChatRole.User, question),
     };
 
-    await foreach (var update in _chatClient.CompleteStreamingAsync(messages, cancellationToken: ct))
+    await foreach (var update in _chatClient.GetStreamingResponseAsync(messages, cancellationToken: ct))
     {
         if (!string.IsNullOrEmpty(update.Text))
             yield return update.Text;
@@ -883,7 +907,7 @@ private async Task OnSubmitAsync()
 
 ## Token budgeting и context management
 
-LLM-модели тарифицируются и ограничены **контекстом**: gpt-4o = 128k tokens вход + 16k tokens выход. RAG-промпт с 10 чанками может легко вылезти за лимит, и ты получишь 400.
+LLM-модели тарифицируются и ограничены **контекстом**: у GPT-5 family — 400k tokens суммарно (272k вход + 128k выход), у новейших флагманов — до ~1M; лимиты дрейфуют, проверяй model card конкретной модели. RAG-промпт с 10 чанками может легко вылезти за лимит, и ты получишь 400.
 
 ### Подсчёт токенов
 
@@ -894,6 +918,8 @@ dotnet add package Tiktoken
 ```csharp
 using Tiktoken;
 
+// GPT-5 family использует тот же токенизатор o200k_base, что и gpt-4o;
+// если маппинг библиотеки отстаёт от новых имён моделей — бери энкодер по "gpt-4o"
 var encoder = ModelToEncoder.For("gpt-4o");
 var tokens = encoder.CountTokens("Привет, как дела?"); // 7
 
@@ -990,10 +1016,10 @@ public async Task<EvalReport> RunEvalsAsync(IReadOnlyList<EvalCase> cases, Cance
             Верни JSON: {{ "score": int, "reasoning": "string" }}
             """;
 
-        var judgeResp = await _judgeClient.CompleteAsync(judgePrompt,
+        var judgeResp = await _judgeClient.GetResponseAsync(judgePrompt,
             new ChatOptions { ResponseFormat = ChatResponseFormat.Json, Temperature = 0 }, ct);
 
-        var judgement = JsonSerializer.Deserialize<JudgeResult>(judgeResp.Message.Text!)!;
+        var judgement = JsonSerializer.Deserialize<JudgeResult>(judgeResp.Text)!;
         results.Add(new EvalResult(c.Id, judgement.Score, judgement.Reasoning, actualAnswer));
     }
 
@@ -1051,6 +1077,7 @@ public async Task<EvalReport> RunEvalsAsync(IReadOnlyList<EvalCase> cases, Cance
 ## См. также
 
 - [[semantic-kernel|Semantic Kernel и Vector Search]] — введение в SK, vector store comparison, pgvector
+- [[mcp-csharp|MCP на C#]] — Model Context Protocol: переиспользуемые tools/resources для LLM-приложений, официальный C# SDK
 - [[resilience|Resilience и HttpClient]] — Polly v8, retry/timeout/circuit breaker для LLM-вызовов
 - [[postgresql-deep|PostgreSQL Deep]] — pgvector, JSONB, Row-Level Security для multi-tenant RAG
 - [[api-design|API Design]] — SSE, Minimal API, Server-Sent Events
@@ -1058,7 +1085,8 @@ public async Task<EvalReport> RunEvalsAsync(IReadOnlyList<EvalCase> cases, Cance
 
 ## Reading list (внешнее)
 
-- **OpenAI Cookbook** — github.com/openai/openai-cookbook (recipes для всех use cases)- **Microsoft.Extensions.AI Docs** — learn.microsoft.com/dotnet/ai/microsoft-extensions-ai
+- **OpenAI Cookbook** — github.com/openai/openai-cookbook (recipes для всех use cases)
+- **Microsoft.Extensions.AI Docs** — learn.microsoft.com/dotnet/ai/microsoft-extensions-ai
 - **RAGAS** — github.com/explodinggradients/ragas (metrics для RAG-eval)
 - **Lost in the Middle** — arxiv.org/abs/2307.03172 (про падение качества в длинном контексте)
 - **Simon Willison's Blog** — simonwillison.net (практический фронт LLM/RAG)
