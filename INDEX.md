@@ -2,7 +2,7 @@
 
 > Автогенерируется скриптом `Scripts/generate_index.ps1` из frontmatter (`level:`) и tagline'ов файлов. **Не редактировать руками** — перегенерировать после изменений.
 >
-> **169 файлов / 6,1 MB** · обновлено 2026-08-02
+> **168 файлов / 6,1 MB** · обновлено 2026-08-02
 
 ---
 
@@ -236,12 +236,6 @@
 | [vertical-slice-handler.md](Snippets/vertical-slice-handler.md) | All | 9 | Copy-paste слайс без mediator-библиотеки: feature-класс с Command/Response records и Handler (primary const... |
 | [wpf-viewmodel.md](Snippets/wpf-viewmodel.md) | Middle | 7 | WPF на CommunityToolkit.Mvvm: `ObservableObject` с `[ObservableProperty]`/`[RelayCommand]`, async-safe загр... |
 
-### (root) — 1 файлов / 2 KB
-
-| Файл | Уровень | KB | Описание |
-|---|---|---:|---|
-| [LICENSE.md](LICENSE.md) | — | 2 |  |
-
 ---
 
 ## По уровню (компактно)
@@ -266,7 +260,7 @@
 
 [[agent-safe-architecture]] · [[arch-tests]] · [[architecture-decisions]] · [[architecture-patterns]] · [[choosing-dependencies]] · [[cqrs-mediatr]] · [[ddd]] · [[distributed-systems]] · [[eip-content-based-router]] · [[solid]] · [[system-design]] · [[twelve-factor-app]] · [[webai-csharp-architecture]] · [[api-design]] · [[auth-security]] · [[blazor-server]] · [[blazor-wasm]] · [[caching]] · [[di-configuration]] · [[graphql]] · [[hosting-background]] · [[kestrel-as-raw-host]] · [[logging-observability]] · [[native-aot]] · [[pipeline-middleware]] · [[resilience]] · [[security-practices]] · [[signalr]] · [[async-threading]] · [[cli-tools-scripting]] · [[csharp-language-design]] · [[csharp-vs-other-langs]] · [[design-patterns]] · [[desktop-frameworks]] · [[fenwick-bit]] · [[functional-csharp]] · [[gof-patterns-extended]] · [[memory-pooling]] · [[reflection-expression-trees]] · [[source-generators]] · [[types-and-memory]] · [[unsafe-pointers]] · [[basics-tracking]] · [[concurrency]] · [[ef-patterns]] · [[migrations]] · [[queries-performance]] · [[relationships]] · [[api-gateway]] · [[aspire]] · [[docker]] · [[ipc-named-pipes-grpc]] · [[llm-rag-patterns]] · [[mcp-csharp]] · [[messaging]] · [[nosql-databases]] · [[observability]] · [[project-setup]] · [[semantic-kernel]] · [[wpf-production]] · [[09_senior-tips-cheatsheet]] · [[10_interview-behavioral]] · [[capacity-planning]] · [[hft-low-latency]] · [[memory-profiling]] · [[performance-budgets]] · [[performance]] · [[threadpool-starvation-hill-climbing]] · [[code-quality]] · [[static-analysis]] · [[compilation-jit]] · [[concurrency-atomics]] · [[diagnostics-tools]] · [[gc-memory]] · [[interop-pinvoke]] · [[span-layout]] · [[crud-example]] · [[eav-flexible-store-indexing]] · [[mvcc-and-locking]] · [[optimization]] · [[postgres-functions-triggers]] · [[postgresql-deep]] · [[sql-security]] · [[zero-downtime-migrations]] · [[integration-testing]] · [[mutation-load-testing]] · [[testing]]
 
-### Без уровня / All (8)
+### Без уровня / All (7)
 
-[[LICENSE]] · [[00_overview]] · [[01_language-map]] · [[04_interview-prep]] · [[05_topics-by-priority]] · [[99_reading-list]] · [[code-review]] · [[vertical-slice-handler]]
+[[00_overview]] · [[01_language-map]] · [[04_interview-prep]] · [[05_topics-by-priority]] · [[99_reading-list]] · [[code-review]] · [[vertical-slice-handler]]
 
